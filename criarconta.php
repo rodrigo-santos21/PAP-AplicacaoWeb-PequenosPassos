@@ -10,13 +10,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $datanascimento = $_POST['datanascimento'];
     $telefone = $_POST['telefone'];
     $tipo = $_POST['tipo'];
-    var_dump($_POST);
 
     $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone)
             VALUES ('$nome', '$email', '$pass', '$tipo', '$datanascimento', '$telefone')";
 
     if (mysqli_query($link, $sql)) {
-        echo "<p style='color:green'>Conta criada com sucesso!</p>";
+        // Redireciona para index.php após inserção
+        header("Location: index.php");
+        exit(); // importante para parar o script após redireção
     } else {
         echo "<p style='color:red'>Erro: " . mysqli_error($link) . "</p>";
     }
