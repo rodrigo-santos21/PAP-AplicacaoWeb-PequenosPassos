@@ -1,15 +1,15 @@
 <html>
     <head>
-        <meta http-equiv="Content-Laguage" content="pt" />
+        <meta http-equiv="Content-Language" content="pt" />
         <script src=https://cdn.tailwindcss.com> </script>
-        <meta charset="utf8"></meta>
+        <meta charset="utf-8">
         <title>Login</title>
     </head>
 
     <script> //verifica se os campos do email e da password estão preenchidos
         function avaliar(frm)
         {
-            if (frm.email.value == "" || frm.pass.value == ""){ 
+            if (frm.email.value == "" || frm.password.value == ""){ 
                 alert ("É necessário preencher os campos!");
                 return (false);
             } else
@@ -25,8 +25,8 @@
             <form name="Login" method="post" action="autentica.php" onsubmit="return avaliar(Login)" class="space-y-5">
             <!-- Email -->
             <div>
-                <label for="user" class="block text-sm font-medium text-gray-700">Email</label>
-                <input name="user" id="user" type="text" 
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input name="email" id="email" type="email" 
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira o seu email" required>
             </div>
