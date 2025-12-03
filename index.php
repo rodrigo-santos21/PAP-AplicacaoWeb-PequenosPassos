@@ -32,8 +32,8 @@
             </div>
             <!-- Password -->
             <div>
-                <label for="pass" class="block text-sm font-medium text-gray-700">Password</label>
-                <input name="pass" id="pass" type="password" 
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input name="password" id="password" type="password" 
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira a sua password" required>
             </div>
