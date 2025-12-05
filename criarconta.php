@@ -15,6 +15,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     mysqli_stmt_bind_param($stmt, "ssssss", $nome, $email, $pass, $tipo, $datanascimento, $telefone);
 
     if (mysqli_stmt_execute($stmt)) {
+        // Obter o ID do utilizador recém-criado
+        $IDutl = mysqli_insert_id($link);
+
+        // Registo de log
+        date_default_timezone_set("Europe/Lisbon");
+        $fdatahora = date("Y-m-d H:i:s");
+        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl) 
+                                 VALUES ('Criação de Conta', '$fdatahora', '$IDutl')");
+
+        // Redirecionar só depois de inserir log
         header("Location: index.php");
         exit();
     } else {
