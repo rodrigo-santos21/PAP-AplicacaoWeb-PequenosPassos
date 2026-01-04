@@ -2,6 +2,12 @@
 include("DBConnection.php");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    if ($_POST['pass'] !== $_POST['confirmarpass']) {
+        echo "<p style='color:red'>Erro: As passwords não coincidem.</p>";
+        exit;
+    }
+
     $nome = $_POST['nome'];
     $email = $_POST['email'];
     $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT); // HASH seguro
@@ -52,8 +58,13 @@ function calcularIdade(dataNascimento) {
 }
 
 function avaliar(frm) {
-    if (frm.nome.value === "" || frm.email.value === "" || frm.pass.value === "" || frm.datanascimento.value === "" || frm.telefone.value === "") {
+    if (frm.nome.value === "" || frm.email.value === "" || frm.pass.value === "" || frm.confirmarpass.value === "" || frm.datanascimento.value === "" || frm.telefone.value === "") {
         alert("É necessário preencher todos os campos!");
+        return false;
+    }
+
+    if (frm.pass.value !== frm.confirmarpass.value) {
+        alert("As passwords não coincidem!");
         return false;
     }
 
@@ -65,6 +76,7 @@ function avaliar(frm) {
 
     frm.tipo.value = "encarregado"; // ajusta conforme o perfil desejado
     return true;
+    
 }
 </script>
 
@@ -91,6 +103,12 @@ function avaliar(frm) {
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira a sua password" required>
             </div>
+            <div>
+                <label for="confirmarpass">Confirmar Password</label>
+                <input name="confirmarpass" id="confirmarpass" type="password"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Insira novamente a password" required>
+            </div>
             <input type="hidden" name="tipo" id="tipo">
             <div>
                 <label for="datanascimento">Data de nascimento</label>
@@ -105,6 +123,11 @@ function avaliar(frm) {
             <div class="flex justify-center">
                 <button type="submit" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                     Finalizar Conta
+                </button>
+            </div>
+            <div class="flex justify-center">
+                <button type="button" onclick="window.location.href='index.php';" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Voltar
                 </button>
             </div>
         </form>
