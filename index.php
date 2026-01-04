@@ -44,12 +44,10 @@
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                 Entrar
                 </button>
-                <button 
-                    type="button" 
-                    onclick="window.location.href='criarconta.php';"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                Criar Conta
-                </button>
+                <a href="criarconta.php"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-block">
+                    Criar Conta
+                </a>
             </div>
             
             </form>

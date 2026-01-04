@@ -33,12 +33,10 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
             <a href="logs.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Consultar Logs</a>
         </nav>
 
-        <form method="post" action="logout.php" class="mt-6">
-            <button 
-                type="button" 
-                onclick="window.location.href='index.php';"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Terminar Sessão</button>
-        </form>
+        <a href="logout.php"
+            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 block text-center mt-6">
+            Terminar Sessão
+        </a>
     </div>
 </body>
 </html>

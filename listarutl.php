@@ -1,8 +1,31 @@
 <?php
 session_start();
+include "DBConnection.php";
 
 if(!isset($_SESSION['user'])){
     header("Location:index.php");
+    exit;
+}
+
+// PROCESSO DE ELIMINAÇÃO VIA AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
+
+    $id = $_POST['eliminar_id'];
+
+    // Eliminar utilizador
+    $stmt = mysqli_prepare($link, "DELETE FROM utilizador WHERE IDutl = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    $success = mysqli_stmt_execute($stmt);
+
+    // Registar log
+    if ($success) {
+        date_default_timezone_set("Europe/Lisbon");
+        $fdatahora = date("Y-m-d H:i:s");
+        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                             VALUES ('Eliminação de Conta', '$fdatahora', '$id')");
+    }
+
+    echo $success ? "ok" : "erro";
     exit;
 }
 
@@ -14,11 +37,33 @@ $nome = $_SESSION['user'];
     <meta charset="utf-8">
     <title>Listar Utilizadores</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+    // Função para eliminar utilizador via AJAX
+    function eliminarUtilizador(id) {
+        if (confirm("Tem a certeza que deseja eliminar este utilizador?")) {
+
+            fetch("listarutl.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "eliminar_id=" + encodeURIComponent(id)
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data.trim() === "ok") {
+                    alert("Utilizador eliminado com sucesso.");
+                    location.reload();
+                } else {
+                    alert("Erro ao eliminar utilizador.");
+                }
+            });
+        }
+    }
+    </script>
+
 </head>
 
 <body class="bg-gray-100 min-h-screen">
-
-    <?php include "DBConnection.php"; ?>
 
     <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
@@ -38,6 +83,7 @@ $nome = $_SESSION['user'];
                         <th class="p-3 text-left">Tipo</th>
                         <th class="p-3 text-left">Data de Nascimento</th>
                         <th class="p-3 text-left">Telefone</th>
+                        <th class="p-3 text-left">Ações</th>
                     </tr>
                 </thead>
 
@@ -56,6 +102,17 @@ $nome = $_SESSION['user'];
                             <td class='p-3'>{$row['tipo']}</td>
                             <td class='p-3'>{$row['datanascimento']}</td>
                             <td class='p-3'>{$row['telefone']}</td>
+                            <td class='p-3 flex gap-2'>
+                                <a href='editarutl.php?id={$row['IDutl']}'
+                                   class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
+                                   Editar
+                                </a>
+
+                                <button onclick='eliminarUtilizador({$row['IDutl']})'
+                                    class=\"px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition\">
+                                    Eliminar
+                                </button>
+                            </td>
                         </tr>";
                     }
                     ?>
@@ -64,13 +121,10 @@ $nome = $_SESSION['user'];
         </div>
 
         <div class="mt-6 text-center">
-            <button
-                type="button"
-                onclick="window.location.href='admin.php';"
-                class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
-            >
+            <a href="admin.php"
+                class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
                 Página Inicial
-            </button>
+            </a>
         </div>
     </div>
 </body>
