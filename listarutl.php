@@ -92,9 +92,14 @@ $nome = $_SESSION['user'];
                     $query = "SELECT * FROM utilizador ORDER BY IDutl";
                     $result = mysqli_query($link, $query);
 
-                    while($row = mysqli_fetch_array($result)) {
-                        echo "
-                        <tr class='border-b hover:bg-gray-100'>
+                    while ($row = mysqli_fetch_array($result)) {
+
+                    // Superadministrador → não aparece
+                    if ($row['tipo'] === 'superadministrador') {
+                        continue;
+                    }
+
+                    echo "<tr class='border-b hover:bg-gray-100'>
                             <td class='p-3'>{$row['IDutl']}</td>
                             <td class='p-3'>{$row['nome']}</td>
                             <td class='p-3'>{$row['email']}</td>
@@ -102,19 +107,28 @@ $nome = $_SESSION['user'];
                             <td class='p-3'>{$row['tipo']}</td>
                             <td class='p-3'>{$row['datanascimento']}</td>
                             <td class='p-3'>{$row['telefone']}</td>
-                            <td class='p-3 flex gap-2'>
-                                <a href='editarutl.php?id={$row['IDutl']}'
-                                   class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
-                                   Editar
-                                </a>
+                            <td class='p-3 flex gap-2'>";
+                    
+                    // Administrador → aparece mas sem botões
+                    if ($row['tipo'] === 'administrador') {
+                        echo "<span class='text-gray-500 italic'>Sem permissões</span>";
+                    } 
+                    // Outros utilizadores → botões normais
+                    else {
+                        echo "
+                            <a href='editarutl.php?id={$row['IDutl']}'
+                            class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
+                            Editar
+                            </a>
 
-                                <button onclick='eliminarUtilizador({$row['IDutl']})'
-                                    class=\"px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition\">
-                                    Eliminar
-                                </button>
-                            </td>
-                        </tr>";
+                            <button onclick='eliminarUtilizador({$row['IDutl']})'
+                                class=\"px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition\">
+                                Eliminar
+                            </button>";
                     }
+
+                    echo "</td></tr>";
+                }
                     ?>
                 </tbody>
             </table>
