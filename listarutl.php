@@ -2,8 +2,9 @@
 session_start();
 include "DBConnection.php";
 
-if(!isset($_SESSION['user'])){
-    header("Location:index.php");
+//verifica se o utilizador é administrador e se está autenticado
+if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'administrador') {
+    header("Location: index.php?erro=permissao");
     exit;
 }
 
