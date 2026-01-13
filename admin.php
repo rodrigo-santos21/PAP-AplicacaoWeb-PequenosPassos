@@ -4,6 +4,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
     header("Location: index.php?erro=permissao");
     exit();
 }
+
 ?>
 <html lang="pt">
 <head>
