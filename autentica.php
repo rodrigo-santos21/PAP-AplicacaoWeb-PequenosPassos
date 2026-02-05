@@ -12,7 +12,7 @@ $user = $_POST['email'];
 $pass = $_POST['password'];
 
 // Buscar utilizador pelo email
-$sql = "SELECT IDutl, tipo, password FROM utilizador WHERE email = ?";
+$sql = "SELECT IDutl, tipo, password, confirmado FROM utilizador WHERE email = ?";
 $stmt = mysqli_prepare($link, $sql);
 
 if ($stmt) {
@@ -21,11 +21,19 @@ if ($stmt) {
     mysqli_stmt_store_result($stmt);
 
     if (mysqli_stmt_num_rows($stmt) > 0) {
-        mysqli_stmt_bind_result($stmt, $IDutl, $tipo, $hash);
+        mysqli_stmt_bind_result($stmt, $IDutl, $tipo, $hash, $confirmado);
         mysqli_stmt_fetch($stmt);
 
         // Verifica password com hash
         if (password_verify($pass, $hash)) {
+
+            // Verificar se a conta está confirmada
+            if ($confirmado == 0) {
+                echo "<p style='color:red; text-align:center;'>A sua conta ainda não foi confirmada. Verifique o seu email.</p>";
+                exit();
+            }
+
+            // Criar sessão
             $_SESSION['id'] = $IDutl;
             $_SESSION['user'] = $user;
             $_SESSION['tipo'] = $tipo;
@@ -45,9 +53,10 @@ if ($stmt) {
             } elseif ($tipo === 'educador') {
                 header("Location: educador.php");
             } else {
-                header("Location: index.php?erro=2"); // tipo desconhecido
+                header("Location: index.php?erro=2");
             }
             exit();
+
         } else {
             $_SESSION['erro'] = 1;
             header("Location: index.php?erro=1");

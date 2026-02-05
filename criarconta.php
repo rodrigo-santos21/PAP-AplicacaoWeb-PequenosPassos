@@ -1,8 +1,14 @@
 <?php
 include("DBConnection.php");
+require "PHPMailer/src/PHPMailer.php";
+require "PHPMailer/src/SMTP.php";
+require "PHPMailer/src/Exception.php";
+
+use PHPMailer\PHPMailer\PHPMailer;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+    // Verificar passwords
     if ($_POST['pass'] !== $_POST['confirmarpass']) {
         echo "<p style='color:red'>Erro: As passwords não coincidem.</p>";
         exit;
@@ -10,29 +16,64 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $nome = $_POST['nome'];
     $email = $_POST['email'];
-    $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT); // HASH seguro
+    $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
     $datanascimento = $_POST['datanascimento'];
     $telefone = $_POST['telefone'];
     $tipo = $_POST['tipo'];
 
-    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone)
-            VALUES (?, ?, ?, ?, ?, ?)";
+    // Gerar token de confirmação
+    $token = bin2hex(random_bytes(32));
+
+    // Inserir utilizador como NÃO confirmado
+    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
     $stmt = mysqli_prepare($link, $sql);
-    mysqli_stmt_bind_param($stmt, "ssssss", $nome, $email, $pass, $tipo, $datanascimento, $telefone);
+    mysqli_stmt_bind_param($stmt, "sssssss", $nome, $email, $pass, $tipo, $datanascimento, $telefone, $token);
 
     if (mysqli_stmt_execute($stmt)) {
-        // Obter o ID do utilizador recém-criado
+
+        // Obter ID do utilizador recém-criado
         $IDutl = mysqli_insert_id($link);
 
-        // Registo de log
+        // Registar log da criação de conta
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl) 
-                                 VALUES ('Criação de Conta', '$fdatahora', '$IDutl')");
 
-        // Redirecionar só depois de inserir log
-        header("Location: index.php");
+        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                             VALUES ('Criação de conta (aguarda confirmação)', '$fdatahora', '$IDutl')");
+
+        // Enviar email de confirmação
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->Host = "smtp.gmail.com";
+            $mail->SMTPAuth = true;
+            $mail->Username = "webaplicacao@gmail.com";
+            $mail->Password = "wbeabctqiecxzpda";
+            $mail->SMTPSecure = "tls";
+            $mail->Port = 587;
+
+            $mail->setFrom("teuemail@gmail.com", "Pequenos Passos");
+            $mail->addAddress($email);
+
+            $mail->Subject = "Confirmação de Conta";
+            $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
+
+            $mail->Body = "Olá $nome,\n\n".
+                          "Obrigado por criar conta.\n\n".
+                          "Clique no link abaixo para confirmar o seu email:\n$linkConfirmacao\n\n".
+                          "Se não foi você, ignore este email.";
+
+            $mail->send();
+
+        } catch (Exception $e) {
+            echo "<p style='color:red'>Erro ao enviar email: {$mail->ErrorInfo}</p>";
+            exit;
+        }
+
+        echo "<p style='color:green'>Conta criada! Verifique o seu email para confirmar.</p>";
         exit();
+
     } else {
         echo "<p style='color:red'>Erro: " . mysqli_error($link) . "</p>";
     }
