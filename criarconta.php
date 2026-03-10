@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $mail->SMTPSecure = "tls";
             $mail->Port = 587;
 
-            $mail->setFrom("teuemail@gmail.com", "Pequenos Passos");
+            $mail->setFrom("webaplicacao@gmail.com", "Pequenos Passos");
             $mail->addAddress($email);
 
             $mail->Subject = "Confirmação de Conta";
@@ -158,8 +158,8 @@ function avaliar(frm) {
             </div>
             <div>
                 <label for="telefone">Telefone</label>
-                <input name="telefone" id="telefone" type="tel" pattern="[0-9]{9}" placeholder="9 dígitos"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required> <!-- O maxlength serve para limitar até 9 caracteres e o pattern serve para obrigar a ter 9 caracteres -->
             </div>
             <div class="flex justify-center">
                 <button type="submit" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
