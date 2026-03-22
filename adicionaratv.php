@@ -14,7 +14,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $descricao = $_POST['descricao'];
     $criadopor = $_SESSION['id']; // ID do admin que está a criar a atividade
 
-
     // Inserir atividade
     $sql = "INSERT INTO atividade (titulo, descricao, criadopor)
             VALUES (?, ?, ?)";

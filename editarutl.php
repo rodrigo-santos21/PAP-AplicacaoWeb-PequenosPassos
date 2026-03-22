@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                <input type="text" name="telefone" value="<?= $utilizador['telefone'] ?>"
+                <input type="tel" name="telefone" maxlength="9" pattern="\d{9}" placeholder="9 dígitos" value="<?= $utilizador['telefone'] ?>"
                        class="mt-1 w-full px-4 py-2 border rounded-lg" required>
             </div>
 

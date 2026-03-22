@@ -16,7 +16,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $objetivo = $_POST['objetivo'];
     $criadopor = $_SESSION['id']; // ID do admin que está a criar a reunião
 
-
     // Inserir reunião
     $sql = "INSERT INTO reuniao (titulo, datahora, localidade, objetivo, criadopor)
             VALUES (?, ?, ?, ?, ?)";
@@ -70,10 +69,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div>
                 <label for="datahora" class="block text-sm font-medium text-gray-700">Data e Hora (reunião)</label>
-                <input name="datahora" id="datahora" type="date"
+                <input name="datahora" id="datahora" type="datetime-local"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     placeholder="Escreve um!"
-                    required>
+                    required> <!-- O datetime-local permite introduzir data e hora da reunião -->
             </div>
 
             <div>

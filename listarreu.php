@@ -111,8 +111,8 @@ $nome = $_SESSION['user'];
 
                         echo "
                             <a href='editarreu.php?id={$row['IDreu']}'
-                            class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
-                            Editar
+                                class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
+                                Editar
                             </a>
 
                             <button onclick='eliminarReuniao({$row['IDreu']})'

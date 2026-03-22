@@ -87,38 +87,51 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 
 <script>
-function calcularIdade(dataNascimento) {
-    const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
-    let idade = hoje.getFullYear() - nascimento.getFullYear();
-    const mes = hoje.getMonth() - nascimento.getMonth();
-    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-        idade--;
-    }
-    return idade;
-}
-
-function avaliar(frm) {
-    if (frm.nome.value === "" || frm.email.value === "" || frm.pass.value === "" || frm.confirmarpass.value === "" || frm.datanascimento.value === "" || frm.telefone.value === "") {
-        alert("É necessário preencher todos os campos!");
-        return false;
+    function calcularIdade(dataNascimento) {
+        const hoje = new Date();
+        const nascimento = new Date(dataNascimento);
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const mes = hoje.getMonth() - nascimento.getMonth();
+        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+            idade--;
+        }
+        return idade;
     }
 
-    if (frm.pass.value !== frm.confirmarpass.value) {
-        alert("As passwords não coincidem!");
-        return false;
+    function avaliar(frm) {
+        if (frm.nome.value === "" || frm.email.value === "" || frm.pass.value === "" || frm.confirmarpass.value === "" || frm.datanascimento.value === "" || frm.telefone.value === "") {
+            alert("É necessário preencher todos os campos!");
+            return false;
+        }
+
+        if (frm.pass.value !== frm.confirmarpass.value) {
+            alert("As passwords não coincidem!");
+            return false;
+        }
+
+        const idade = calcularIdade(frm.datanascimento.value);
+        if (idade < 18) {
+            alert("Precisa ter pelo menos 18 anos para criar uma conta.");
+            return false;
+        }
+
+        frm.tipo.value = "encarregado"; // ajusta conforme o perfil desejado
+        return true;
     }
 
-    const idade = calcularIdade(frm.datanascimento.value);
-    if (idade < 18) {
-        alert("Precisa ter pelo menos 18 anos para criar uma conta.");
-        return false;
-    }
+    // FUNÇÃO DE VER PASSWORD
+    function togglePassword(inputId, eyeId) {
+        const input = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
 
-    frm.tipo.value = "encarregado"; // ajusta conforme o perfil desejado
-    return true;
-    
-}
+        if (input.type === "password") {
+            input.type = "text";
+            eye.textContent = "👁️"; // olho fechado
+        } else {
+            input.type = "password";
+            eye.textContent = "👁️‍🗨️"; // olho aberto
+        }
+    }
 </script>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -138,17 +151,29 @@ function avaliar(frm) {
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira o seu email" required>
             </div>
-            <div>
+            <div class="relative">
                 <label for="pass">Password</label>
                 <input name="pass" id="pass" type="password"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira a sua password" required>
+
+                <!-- Botão do olho -->
+                <button type="button" onclick="togglePassword('pass', 'eyePass')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyePass">👁️‍🗨️</span>
+                </button>
             </div>
-            <div>
+            <div class="relative">
                 <label for="confirmarpass">Confirmar Password</label>
                 <input name="confirmarpass" id="confirmarpass" type="password"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira novamente a password" required>
+
+                <!-- Botão do olho -->
+                <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyeConfirm">👁️‍🗨️</span>
+                </button>
             </div>
             <input type="hidden" name="tipo" id="tipo">
             <div>

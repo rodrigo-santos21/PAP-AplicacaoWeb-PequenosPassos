@@ -61,6 +61,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
+<script>
+    // FUNÇÃO DE VER PASSWORD
+    function togglePassword(inputId, eyeId) {
+        const input = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            eye.textContent = "👁️"; // olho fechado
+        } else {
+            input.type = "password";
+            eye.textContent = "👁️‍🗨️"; // olho aberto
+        }
+    }
+</script>
+
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
 
@@ -88,18 +104,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     required>
             </div>
 
-            <div>
+            <div class="relative">
                 <label for="pass">Password</label>
                 <input name="pass" id="pass" type="password"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required>
+                
+                <!-- Botão do olho -->
+                <button type="button" onclick="togglePassword('pass', 'eyePass')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyePass">👁️‍🗨️</span>
+                </button>
             </div>
 
-            <div>
+            <div class="relative">
                 <label for="confirmarpass">Confirmar Password</label>
                 <input name="confirmarpass" id="confirmarpass" type="password"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required>
+
+                <!-- Botão do olho -->
+                <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyeConfirm">👁️‍🗨️</span>
+                </button>
             </div>
 
             <div>
@@ -121,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div>
                 <label for="telefone">Telefone</label>
-                <input name="telefone" id="telefone" type="tel" pattern="[0-9]{9}"
+                <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     placeholder="9 dígitos" required>
             </div>
