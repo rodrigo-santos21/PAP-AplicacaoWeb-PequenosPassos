@@ -1,7 +1,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Language" content="pt" />
-        <script src=https://cdn.tailwindcss.com> </script>
+        <link rel="stylesheet" href="style.css">
         <meta charset="utf-8">
         <title>Login</title>
     </head>

@@ -47,7 +47,7 @@ if ($token) {
 <head>
     <meta charset="utf-8">
     <title>Confirmação de Conta</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded shadow-md w-full max-w-md text-center">

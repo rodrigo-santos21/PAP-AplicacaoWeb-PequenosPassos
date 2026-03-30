@@ -10,7 +10,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
 <head>
     <meta charset="utf-8">
     <title>Página do Administrador</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="bg-gray-100 overflow-y-auto min-h-screen">

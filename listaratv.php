@@ -37,7 +37,7 @@ $nome = $_SESSION['user'];
 <head>
     <meta charset="utf-8">
     <title>Listar Atividades</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
 
     <script>
     // Função para eliminar utilizador via AJAX
