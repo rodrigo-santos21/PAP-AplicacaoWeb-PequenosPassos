@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     $id = $_POST['eliminar_id'];
 
     // Eliminar utilizador
-    $stmt = mysqli_prepare($link, "DELETE FROM utilizador WHERE IDutl = ?");
+    $stmt = mysqli_prepare($link, "UPDATE utilizador SET estado = 0 WHERE IDutl = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     $success = mysqli_stmt_execute($stmt);
 
@@ -90,7 +90,7 @@ $nome = $_SESSION['user'];
 
                 <tbody>
                     <?php
-                    $query = "SELECT * FROM utilizador ORDER BY IDutl";
+                    $query = "SELECT * FROM utilizador WHERE estado = 1 ORDER BY IDutl";
                     $result = mysqli_query($link, $query);
 
                     while ($row = mysqli_fetch_array($result)) {

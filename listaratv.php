@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
     $id = $_POST['eliminar_id'];
 
-    // Eliminar atividade
-    $stmt = mysqli_prepare($link, "DELETE FROM atividade WHERE IDatv = ?");
+    // Desativar atividade (soft delete)
+    $stmt = mysqli_prepare($link, "UPDATE atividade SET estado = 0 WHERE IDatv = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     $success = mysqli_stmt_execute($stmt);
 
@@ -91,10 +91,15 @@ $nome = $_SESSION['user'];
                         SELECT a.IDatv, a.titulo, a.descricao, u.nome
                         FROM atividade a, utilizador u
                         WHERE a.criadopor = u.IDutl
+                        AND a.estado = 1
                         ORDER BY a.IDatv
                     ";
 
                     $result = mysqli_query($link, $query);
+
+                    if (!$result) {
+                        die('Erro na query: ' . mysqli_error($link));
+                    }
 
                     while ($row = mysqli_fetch_array($result)) {
 

@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     $id = $_POST['eliminar_id'];
 
     // Eliminar reunião
-    $stmt = mysqli_prepare($link, "DELETE FROM reuniao WHERE IDreu = ?");
+    $stmt = mysqli_prepare($link, "UPDATE reuniao SET estado = 0 WHERE IDreu = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     $success = mysqli_stmt_execute($stmt);
 
@@ -93,6 +93,7 @@ $nome = $_SESSION['user'];
                         SELECT r.IDreu, r.titulo, r.datahora, r.localidade, r.objetivo, u.nome
                         FROM reuniao r, utilizador u
                         WHERE r.criadopor = u.IDutl
+                        AND r.estado = 1
                         ORDER BY r.IDreu
                     ";
 
