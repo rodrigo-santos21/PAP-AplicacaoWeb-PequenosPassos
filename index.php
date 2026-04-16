@@ -2,6 +2,7 @@
     <head>
         <meta http-equiv="Content-Language" content="pt" />
         <link rel="stylesheet" href="style.css">
+        <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
         <meta charset="utf-8">
         <title>Login</title>
     </head>

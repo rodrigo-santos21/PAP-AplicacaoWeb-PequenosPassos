@@ -59,10 +59,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $mail->Subject = "Confirmação de Conta";
             $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
 
-            $mail->Body = "Olá $nome,\n\n".
-                          "Obrigado por criar conta.\n\n".
-                          "Clique no link abaixo para confirmar o seu email:\n$linkConfirmacao\n\n".
-                          "Se não foi você, ignore este email.";
+            $mail->isHTML(true); // IMPORTANTE para permitir HTML no email
+
+            $mail->Body = "
+                <p>Olá <strong>$nome</strong>,</p>
+
+                <p>Obrigado por criar conta.</p>
+
+                <p>Clique no botão abaixo para confirmar o seu email:</p>
+
+                <p style='text-align:center; margin: 30px 0;'>
+                    <a href='$linkConfirmacao' 
+                    style='background-color:#2563eb; 
+                            color:white; 
+                            padding:12px 20px; 
+                            text-decoration:none; 
+                            border-radius:8px; 
+                            font-size:16px; 
+                            display:inline-block;'>
+                        Confirmar Conta
+                    </a>
+                </p>
+
+                <p>Se não foi você, ignore este email.</p>
+            ";
 
             $mail->send();
 
@@ -84,6 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="utf-8">
     <title>Criar Conta</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 
 <script>

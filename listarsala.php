@@ -38,6 +38,7 @@ $nome = $_SESSION['user'];
     <meta charset="utf-8">
     <title>Listar Salas</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 
     <script>
     // Função para eliminar utilizador via AJAX
