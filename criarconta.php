@@ -21,83 +21,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $telefone = $_POST['telefone'];
     $tipo = $_POST['tipo'];
 
+    // VALIDAR IDADE (mínimo 18 anos)
+    $hoje = new DateTime();
+    $nascimento = new DateTime($datanascimento);
+    $idade = $hoje->diff($nascimento)->y;
+
+    if ($idade < 18) {
+        echo "<p style='color:red'>Erro: Precisa ter pelo menos 18 anos para criar uma conta.</p>";
+        exit;
+    }
+
     // Gerar token de confirmação
     $token = bin2hex(random_bytes(32));
 
-    // Inserir utilizador como NÃO confirmado
-    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?)";
+    // Inserir utilizador como NÃO confirmado e NÃO aprovado
+    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, 0)";
     $stmt = mysqli_prepare($link, $sql);
     mysqli_stmt_bind_param($stmt, "sssssss", $nome, $email, $pass, $tipo, $datanascimento, $telefone, $token);
 
     if (mysqli_stmt_execute($stmt)) {
 
-        // Obter ID do utilizador recém-criado
         $IDutl = mysqli_insert_id($link);
 
-        // Registar log da criação de conta
+        // Registar log
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
 
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Criação de conta (aguarda confirmação)', '$fdatahora', '$IDutl')");
+                             VALUES ('Pedido de criação de conta (aguarda aprovação)', '$fdatahora', '$IDutl')");
 
-        // Enviar email de confirmação
-        $mail = new PHPMailer(true);
-        try {
-            $mail->isSMTP();
-            $mail->Host = "smtp.gmail.com";
-            $mail->SMTPAuth = true;
-            $mail->Username = "webaplicacao@gmail.com";
-            $mail->Password = "wbeabctqiecxzpda";
-            $mail->SMTPSecure = "tls";
-            $mail->Port = 587;
-
-            $mail->setFrom("webaplicacao@gmail.com", "Pequenos Passos");
-            $mail->addAddress($email);
-
-            $mail->Subject = "Confirmação de Conta";
-            $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
-
-            $mail->isHTML(true); // IMPORTANTE para permitir HTML no email
-
-            $mail->Body = "
-                <p>Olá <strong>$nome</strong>,</p>
-
-                <p>Obrigado por criar conta.</p>
-
-                <p>Clique no botão abaixo para confirmar o seu email:</p>
-
-                <p style='text-align:center; margin: 30px 0;'>
-                    <a href='$linkConfirmacao' 
-                    style='background-color:#2563eb; 
-                            color:white; 
-                            padding:12px 20px; 
-                            text-decoration:none; 
-                            border-radius:8px; 
-                            font-size:16px; 
-                            display:inline-block;'>
-                        Confirmar Conta
-                    </a>
-                </p>
-
-                <p>Se não foi você, ignore este email.</p>
-            ";
-
-            $mail->send();
-
-        } catch (Exception $e) {
-            echo "<p style='color:red'>Erro ao enviar email: {$mail->ErrorInfo}</p>";
-            exit;
-        }
-
-        echo "<p style='color:green'>Conta criada! Verifique o seu email para confirmar.</p>";
+        echo "<p style='color:green'>Pedido enviado! Aguarde aprovação do administrador.</p>";
         exit();
 
     } else {
         echo "<p style='color:red'>Erro: " . mysqli_error($link) . "</p>";
     }
 }
+
 ?>
 <html lang="pt">
 <head>
@@ -108,34 +69,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 
 <script>
-    function calcularIdade(dataNascimento) {
-        const hoje = new Date();
-        const nascimento = new Date(dataNascimento);
-        let idade = hoje.getFullYear() - nascimento.getFullYear();
-        const mes = hoje.getMonth() - nascimento.getMonth();
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-            idade--;
-        }
-        return idade;
-    }
-
+    // FUNNÇÃO PARA SÓ PERMITIR COM QUE SEJAM CRIADOS ENCARREGAODS DE EDUCAÇÃO AO CRIAR CONTA 
     function avaliar(frm) {
-        if (frm.nome.value === "" || frm.email.value === "" || frm.pass.value === "" || frm.confirmarpass.value === "" || frm.datanascimento.value === "" || frm.telefone.value === "") {
-            alert("É necessário preencher todos os campos!");
-            return false;
-        }
-
-        if (frm.pass.value !== frm.confirmarpass.value) {
-            alert("As passwords não coincidem!");
-            return false;
-        }
-
-        const idade = calcularIdade(frm.datanascimento.value);
-        if (idade < 18) {
-            alert("Precisa ter pelo menos 18 anos para criar uma conta.");
-            return false;
-        }
-
         frm.tipo.value = "encarregado"; // ajusta conforme o perfil desejado
         return true;
     }
@@ -202,10 +137,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input name="datanascimento" id="datanascimento" type="date"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
             </div>
-            <div>
+
+            <div><!-- O maxlength serve para limitar até 9 caracteres e o pattern serve para obrigar a ter 9 caracteres -->
                 <label for="telefone">Telefone</label>
                 <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required> <!-- O maxlength serve para limitar até 9 caracteres e o pattern serve para obrigar a ter 9 caracteres -->
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" 
+                    required
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras--> 
             </div>
             <div class="flex justify-center">
                 <button type="submit" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">

@@ -44,23 +44,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $datanascimento = $_POST['datanascimento'];
     $telefone = $_POST['telefone'];
 
-    $stmt = mysqli_prepare($link, "UPDATE utilizador SET nome=?, email=?, tipo=?, datanascimento=?, telefone=? WHERE IDutl=?");
+    // VALIDAR IDADE (mínimo 18 anos)
+    $hoje = new DateTime();
+    $nascimento = new DateTime($datanascimento);
+    $idade = $hoje->diff($nascimento)->y;
 
-    mysqli_stmt_bind_param($stmt, "sssssi", $nome, $email, $tipo, $datanascimento, $telefone, $id);
+    if ($idade < 18) {
+        $erro = "O utilizador deve ter pelo menos 18 anos.";
+    }
 
-    $success = mysqli_stmt_execute($stmt);
+    if (!isset($erro)) {
 
-    if ($success) {
-        // Registar log
-        date_default_timezone_set("Europe/Lisbon");
-        $fdatahora = date("Y-m-d H:i:s");
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Edição de Conta', '$fdatahora', '$id')");
+        $stmt = mysqli_prepare($link, "UPDATE utilizador 
+                                       SET nome=?, email=?, tipo=?, datanascimento=?, telefone=? 
+                                       WHERE IDutl=?");
 
-        header("Location: listarutl.php?sucesso=editado");
-        exit();
-    } else {
-        $erro = "Erro ao atualizar utilizador.";
+        mysqli_stmt_bind_param($stmt, "sssssi", 
+            $nome, $email, $tipo, $datanascimento, $telefone, $id
+        );
+
+        $success = mysqli_stmt_execute($stmt);
+
+        if ($success) {
+            // Registar log
+            date_default_timezone_set("Europe/Lisbon");
+            $fdatahora = date("Y-m-d H:i:s");
+
+            mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                                 VALUES ('Edição de Conta', '$fdatahora', '$id')");
+
+            header("Location: listarutl.php?sucesso=editado");
+            exit();
+        } else {
+            $erro = "Erro ao atualizar utilizador.";
+        }
     }
 }
 ?>
@@ -117,7 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div>
                 <label class="block text-sm font-medium text-gray-700">Telefone</label>
                 <input type="tel" name="telefone" maxlength="9" pattern="\d{9}" placeholder="9 dígitos" value="<?= $utilizador['telefone'] ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                        class="mt-1 w-full px-4 py-2 border rounded-lg" 
+                        required
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
             </div>
 
             <div class="flex justify-between mt-6">

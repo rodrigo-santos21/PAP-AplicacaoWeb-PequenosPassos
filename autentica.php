@@ -12,7 +12,7 @@ $user = $_POST['email'];
 $pass = $_POST['password'];
 
 // Buscar utilizador pelo email
-$sql = "SELECT IDutl, tipo, password, confirmado, estado FROM utilizador WHERE email = ?";
+$sql = "SELECT IDutl, tipo, password, confirmado, estado, aprovado FROM utilizador WHERE email = ?";
 $stmt = mysqli_prepare($link, $sql);
 
 if ($stmt) {
@@ -21,7 +21,7 @@ if ($stmt) {
     mysqli_stmt_store_result($stmt);
 
     if (mysqli_stmt_num_rows($stmt) > 0) {
-        mysqli_stmt_bind_result($stmt, $IDutl, $tipo, $hash, $confirmado, $estado);
+        mysqli_stmt_bind_result($stmt, $IDutl, $tipo, $hash, $confirmado, $estado, $aprovado);
         mysqli_stmt_fetch($stmt);
 
         // Verifica password com hash
@@ -30,6 +30,12 @@ if ($stmt) {
             // Verificar se o utilizador está ativo
             if ($estado == 0) {
                 echo "<p style='color:red; text-align:center;'>A sua conta está desativada. Contacte o administrador.</p>";
+                exit();
+            }
+
+            // Verificar se a conta está aprovada
+            if ($aprovado['aprovado'] == 0) {
+                echo "<p style='color:red'>A sua conta ainda não foi aprovada pelo administrador.</p>";
                 exit();
             }
 

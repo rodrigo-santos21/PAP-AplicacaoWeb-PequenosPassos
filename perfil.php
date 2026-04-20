@@ -9,6 +9,24 @@ if (!isset($_SESSION['id'])) {
 }
 
 $IDutl = $_SESSION['id'];
+$tipo = $_SESSION['tipo'];
+
+// Definir página de cancelar consoante o tipo de utilizador
+if ($tipo === "superadministrador") {
+    $paginaCancelar = "superadmin.php";
+
+} elseif ($tipo === "administrador") {
+    $paginaCancelar = "admin.php";
+
+} elseif ($tipo === "educador") {
+    $paginaCancelar = "educador.php";
+
+} elseif ($tipo === "encarregado") {
+    $paginaCancelar = "encarregado.php";
+
+} else {
+    $paginaCancelar = "index.php"; // fallback de segurança
+}
 
 // Buscar dados do utilizador
 $stmt = mysqli_prepare($link, "SELECT nome, email, telefone, datanascimento FROM utilizador WHERE IDutl = ?");
@@ -90,7 +108,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div>
                 <label class="block text-sm font-medium text-gray-700">Telefone</label>
                 <input type="text" name="telefone" value="<?= $utilizador['telefone'] ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                       class="mt-1 w-full px-4 py-2 border rounded-lg" 
+                       required
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
             </div>
 
             <div>
@@ -122,14 +142,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </button>
         </form>
         
-        <a href="login.php"
-            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+        <a href="<?= $paginaCancelar ?>"
+            class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 block text-center mt-4">
             Cancelar
-        </a>
-        
-        <a href="logout.php"
-           class="block text-center mt-6 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-            Terminar Sessão
         </a>
 
     </div>

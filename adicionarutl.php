@@ -22,10 +22,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $telefone = $_POST['telefone'];
         $tipo = $_POST['tipo']; // Admin escolhe o tipo
 
+        // VALIDAR IDADE (mínimo 18 anos)
+        $hoje = new DateTime();
+        $nascimento = new DateTime($datanascimento);
+        $idade = $hoje->diff($nascimento)->y;
+
+        if ($idade < 18) {
+            $erro = "O utilizador deve ter pelo menos 18 anos.";
+        }
+
         // Impedir criação de administradores ou superadministradores
-        if ($tipo === "administrador" || $tipo === "superadministrador") {
+        if (!isset($erro) && ($tipo === "administrador" || $tipo === "superadministrador")) {
             $erro = "Não é permitido criar administradores.";
-        } else {
+        }
+
+        // Se não houver erros, inserir utilizador
+        if (!isset($erro)) {
 
             $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone)
                     VALUES (?, ?, ?, ?, ?, ?)";
@@ -37,6 +49,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if (mysqli_stmt_execute($stmt)) {
 
                 $IDutl = mysqli_insert_id($link);
+
+                // Se for educador, inserir também na tabela educador
+                if ($tipo === "educador") {
+                    $sqlEdu = "INSERT INTO educador (IDutl) VALUES (?)";
+                    $stmtEdu = mysqli_prepare($link, $sqlEdu);
+                    mysqli_stmt_bind_param($stmtEdu, "i", $IDutl);
+                    mysqli_stmt_execute($stmtEdu);
+                }
 
                 // Registo de log
                 date_default_timezone_set("Europe/Lisbon");
@@ -54,6 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
+
 <html lang="pt">
 <head>
     <meta charset="utf-8">
@@ -144,16 +165,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div>
                 <label for="datanascimento">Data de nascimento</label>
                 <input name="datanascimento" id="datanascimento" type="date"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
             </div>
 
             <div>
                 <label for="telefone">Telefone</label>
                 <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    placeholder="9 dígitos" required>
+                    required
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
             </div>
+
 
             <div class="flex justify-between">
                 <a href="admin.php"
