@@ -27,7 +27,7 @@
             <!-- Email -->
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input name="email" id="email" type="email" 
+                <input name="email" id="email" type="email"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Insira o seu email" required>
             </div>
@@ -45,10 +45,14 @@
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                 Entrar
                 </button>
+
                 <a href="criarconta.php"
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-block">
                     Criar Conta
                 </a>
+
+                <a href="recuperar.php" class="text-blue-600 hover:underline">Esqueci-me da password</a>
+
             </div>
             
             </form>

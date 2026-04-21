@@ -1,6 +1,14 @@
 <?php
 session_start();
 include("DBConnection.php");
+require "PHPMailer/src/PHPMailer.php";
+require "PHPMailer/src/SMTP.php";
+require "PHPMailer/src/Exception.php";
+
+use PHPMailer\PHPMailer\PHPMailer;
+
+// Buscar salas da base de dados
+$salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado = 1");
 
 // Apenas administradores podem aceder
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
@@ -20,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
         $datanascimento = $_POST['datanascimento'];
         $telefone = $_POST['telefone'];
-        $tipo = $_POST['tipo']; // Admin escolhe o tipo
+        $tipo = $_POST['tipo'];
 
         // VALIDAR IDADE (mínimo 18 anos)
         $hoje = new DateTime();
@@ -31,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $erro = "O utilizador deve ter pelo menos 18 anos.";
         }
 
-        // Impedir criação de administradores ou superadministradores
+        // Impedir criação de administradores
         if (!isset($erro) && ($tipo === "administrador" || $tipo === "superadministrador")) {
             $erro = "Não é permitido criar administradores.";
         }
@@ -39,11 +47,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Se não houver erros, inserir utilizador
         if (!isset($erro)) {
 
-            $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone)
-                    VALUES (?, ?, ?, ?, ?, ?)";
+            // Criar token de confirmação
+            $token = bin2hex(random_bytes(32));
+
+            $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado)
+                    VALUES (?, ?, ?, ?, ?, ?, 0, ?, 1)";
             $stmt = mysqli_prepare($link, $sql);
-            mysqli_stmt_bind_param($stmt, "ssssss", 
-                $nome, $email, $pass, $tipo, $datanascimento, $telefone
+            mysqli_stmt_bind_param($stmt, "sssssss", 
+                $nome, $email, $pass, $tipo, $datanascimento, $telefone, $token
             );
 
             if (mysqli_stmt_execute($stmt)) {
@@ -52,10 +63,57 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 // Se for educador, inserir também na tabela educador
                 if ($tipo === "educador") {
-                    $sqlEdu = "INSERT INTO educador (IDutl) VALUES (?)";
+
+                    $especialidade = $_POST['especialidade'] ?? null;
+                    $sala = $_POST['sala'] ?? null;
+
+                    $sqlEdu = "INSERT INTO educador (IDutl, especialidade, IDsala) VALUES (?, ?, ?)";
                     $stmtEdu = mysqli_prepare($link, $sqlEdu);
-                    mysqli_stmt_bind_param($stmtEdu, "i", $IDutl);
+                    mysqli_stmt_bind_param($stmtEdu, "isi", $IDutl, $especialidade, $sala);
                     mysqli_stmt_execute($stmtEdu);
+                }
+
+                // Enviar email de confirmação
+                $mail = new PHPMailer(true);
+
+                try {
+                    $mail->isSMTP();
+                    $mail->Host = "smtp.gmail.com";
+                    $mail->SMTPAuth = true;
+                    $mail->Username = "webaplicacao@gmail.com";
+                    $mail->Password = "wbeabctqiecxzpda";
+                    $mail->SMTPSecure = "tls";
+                    $mail->Port = 587;
+
+                    $mail->setFrom("webaplicacao@gmail.com", "Pequenos Passos");
+                    $mail->addAddress($email);
+
+                    $mail->Subject = "Confirmação de Conta";
+
+                    $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
+
+                    $mail->isHTML(true);
+                    $mail->Body = "
+                        <p>Olá <strong>$nome</strong>,</p>
+
+                        <p>A sua conta foi criada pelo administrador.</p>
+
+                        <p>Clique no botão abaixo para confirmar o seu email:</p>
+
+                        <p style='text-align:center; margin: 30px 0;'>
+                            <a href='$linkConfirmacao'
+                               style='background-color:#2563eb; color:white; padding:12px 20px; text-decoration:none; border-radius:8px; font-size:16px; display:inline-block;'>
+                                Confirmar Conta
+                            </a>
+                        </p>
+
+                        <p>Se não foi você, ignore este email.</p>
+                    ";
+
+                    $mail->send();
+
+                } catch (Exception $e) {
+                    $erro = "Erro ao enviar email de confirmação: " . $mail->ErrorInfo;
                 }
 
                 // Registo de log
@@ -65,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                                      VALUES ('Criação de Conta (Admin)', '$fdatahora', '$IDutl')");
 
-                header("Location: listarutl.php?sucesso=adicionado");
+                header("Location: listarutl.php?sucesso=adicionado&emailconfirmacao=1");
                 exit();
             } else {
                 $erro = "Erro ao adicionar utilizador: " . mysqli_error($link);
@@ -80,23 +138,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="utf-8">
     <title>Adicionar Utilizador</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <script>
-    // FUNÇÃO DE VER PASSWORD
     function togglePassword(inputId, eyeId) {
         const input = document.getElementById(inputId);
         const eye = document.getElementById(eyeId);
 
         if (input.type === "password") {
             input.type = "text";
-            eye.textContent = "👁️"; // olho fechado
+            eye.textContent = "👁️";
         } else {
             input.type = "password";
-            eye.textContent = "👁️‍🗨️"; // olho aberto
+            eye.textContent = "👁️‍🗨️";
         }
     }
+
+    function mostrarCamposEducador() {
+        const tipo = document.getElementById("tipo").value;
+        const campos = document.getElementById("camposEducador");
+
+        campos.style.display = (tipo === "educador") ? "block" : "none";
+    }
+
+    window.onload = function() {
+        mostrarCamposEducador();
+        document.getElementById("tipo").addEventListener("change", mostrarCamposEducador);
+    };
 </script>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -132,7 +201,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required>
                 
-                <!-- Botão do olho -->
                 <button type="button" onclick="togglePassword('pass', 'eyePass')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyePass">👁️‍🗨️</span>
@@ -145,7 +213,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required>
 
-                <!-- Botão do olho -->
                 <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyeConfirm">👁️‍🗨️</span>
@@ -162,6 +229,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </select>
             </div>
 
+            <!-- CAMPOS EXTRA PARA EDUCADORES -->
+            <div id="camposEducador" style="display:none;">
+
+                <div>
+                    <label for="especialidade">Especialidade</label>
+                    <input name="especialidade" id="especialidade" type="text"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+
+                <div>
+                    <label for="sala">Sala</label>
+                    <select name="sala" id="sala"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Selecione uma sala</option>
+
+                        <?php while ($s = mysqli_fetch_assoc($salas)): ?>
+                            <option value="<?= $s['IDsala'] ?>">
+                                <?= $s['nome'] ?>
+                            </option>
+                        <?php endwhile; ?>
+
+                    </select>
+                </div>
+
+            </div>
+
             <div>
                 <label for="datanascimento">Data de nascimento</label>
                 <input name="datanascimento" id="datanascimento" type="date"
@@ -173,9 +266,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
-
 
             <div class="flex justify-between">
                 <a href="admin.php"

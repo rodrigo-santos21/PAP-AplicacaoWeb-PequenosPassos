@@ -34,7 +34,7 @@ if ($stmt) {
             }
 
             // Verificar se a conta está aprovada
-            if ($aprovado['aprovado'] == 0) {
+            if ($aprovado == 0) {
                 echo "<p style='color:red'>A sua conta ainda não foi aprovada pelo administrador.</p>";
                 exit();
             }

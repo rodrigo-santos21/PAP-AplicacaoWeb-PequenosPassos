@@ -18,6 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     mysqli_stmt_bind_param($stmt, "i", $id);
     $success = mysqli_stmt_execute($stmt);
 
+    // Se for educador, desativar também na tabela educador
+    if ($success) {
+        $stmt2 = mysqli_prepare($link, "UPDATE educador SET estado = 0 WHERE IDutl = ?");
+        mysqli_stmt_bind_param($stmt2, "i", $id);
+        mysqli_stmt_execute($stmt2);
+    }
+
     // Registar log
     if ($success) {
         date_default_timezone_set("Europe/Lisbon");
@@ -66,6 +73,13 @@ $nome = $_SESSION['user'];
 </head>
 
 <body class="bg-gray-100 min-h-screen">
+
+    <?php if (isset($_GET['emailconfirmacao'])): ?>
+        <div class="bg-blue-200 text-blue-800 p-4 rounded mb-6 text-center font-semibold shadow">
+            ✔ O utilizador foi criado com sucesso.  
+            Um email de confirmação foi enviado para o endereço indicado.
+        </div>
+    <?php endif; ?>
 
     <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
