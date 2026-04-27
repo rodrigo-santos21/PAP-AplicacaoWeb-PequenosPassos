@@ -30,7 +30,7 @@ $IDutl = $user['IDutl'];
 
 // Criar token
 $token = bin2hex(random_bytes(32));
-$expira = date("Y-m-d H:i:s", time() + 3600); // 1 hora
+$expira = date("Y-m-d H:i:s", time() + 3600); // 1 hora para expirar o token
 
 // Guardar token na BD
 $stmt2 = mysqli_prepare($link, "UPDATE utilizador SET reset_token = ?, reset_token_expira = ? WHERE IDutl = ?");
