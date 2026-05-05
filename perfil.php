@@ -74,6 +74,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="style.css">
 </head>
 
+<script>
+    function togglePassword(inputId, eyeId) {
+        const input = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            eye.textContent = "👁️";
+        } else {
+            input.type = "password";
+            eye.textContent = "👁️‍🗨️";
+        }
+    }
+</script>
+
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
     <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
@@ -123,16 +138,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <h3 class="text-lg font-bold text-gray-800">Alterar Password</h3>
 
-            <div>
+            <div class="relative">
                 <label class="block text-sm font-medium text-gray-700">Nova Password</label>
-                <input type="password" name="pass1"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg">
+                <input type="password" id="pass1" name="pass1"
+                    class="mt-1 w-full px-4 py-2 border rounded-lg">
+
+                <button type="button" onclick="togglePassword('pass1', 'eyePass')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyePass">👁️‍🗨️</span>
+                </button>
             </div>
 
-            <div>
+            <div class="relative">
                 <label class="block text-sm font-medium text-gray-700">Confirmar Password</label>
-                <input type="password" name="pass2"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg">
+                <input type="password" id="pass2" name="pass2"
+                    class="mt-1 w-full px-4 py-2 border rounded-lg">
+
+                <button type="button" onclick="togglePassword('pass2', 'eyeConfirm')"
+                    class="absolute right-3 top-9 text-gray-500">
+                    <span id="eyeConfirm">👁️‍🗨️</span>
+                </button>
             </div>
 
             <!-- BOTÃO FINAL -->

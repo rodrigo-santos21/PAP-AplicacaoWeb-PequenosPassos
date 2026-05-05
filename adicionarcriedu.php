@@ -5,10 +5,21 @@ include("DBConnection.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas educadores podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     header("Location: index.php?erro=permissao");
     exit;
+}
+
+$IDutl = $_SESSION['id']; // Educador autenticado
+
+// Buscar a sala do educador
+$resSala = mysqli_query($link, "SELECT IDsala FROM educador WHERE IDutl = $IDutl AND estado = 1");
+$salaEducador = mysqli_fetch_assoc($resSala);
+$IDsalaEducador = $salaEducador['IDsala'] ?? null;
+
+if (!$IDsalaEducador) {
+    die("Erro: O educador não está associado a nenhuma sala.");
 }
 
 // PROCESSAMENTO DO FORMULÁRIO
@@ -18,12 +29,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $datanascimento = $_POST['datanascimento'];
     $sexo = $_POST['sexo'];
     $observacoes = $_POST['observacoes'];
-    $IDsala = $_POST['IDsala'];
     $IDutl = $_POST['IDutl']; // encarregado
-    $educadores = $_POST['educadores'] ?? [];
     $criadopor = $_SESSION['id'];
 
-    // VALIDAÇÃO DA IDADE AQUI
+    // VALIDAÇÃO DA IDADE
     $idade = date_diff(date_create($datanascimento), date_create('today'))->y;
 
     if ($idade > 6) {
@@ -36,55 +45,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $stmt = mysqli_prepare($link, $sql);
 
-    if (!$stmt) {
-        die("Erro no prepare: " . mysqli_error($link));
-    }
-
     mysqli_stmt_bind_param($stmt, "ssssii",
-        $nome, $datanascimento, $sexo, $observacoes, $IDutl, $IDsala
+        $nome, $datanascimento, $sexo, $observacoes, $IDutl, $IDsalaEducador
     );
 
     if (mysqli_stmt_execute($stmt)) {
 
         $IDcri = mysqli_insert_id($link);
 
-        // Associar educadores
-        foreach ($educadores as $IDedu) {
-            $stmt2 = mysqli_prepare($link,
-                "INSERT INTO crianca_educador (IDcri, IDedu, estado) VALUES (?, ?, 1)"
-            );
-            mysqli_stmt_bind_param($stmt2, "ii", $IDcri, $IDedu);
-            mysqli_stmt_execute($stmt2);
-        }
+        // Associar automaticamente o educador
+        $stmt2 = mysqli_prepare($link,
+            "INSERT INTO crianca_educador (IDcri, IDedu, estado) VALUES (?, ?, 1)"
+        );
+        mysqli_stmt_bind_param($stmt2, "ii", $IDcri, $IDedu);
+        mysqli_stmt_execute($stmt2);
 
         // Criar log
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
 
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Adição de criança: $nome', '$fdatahora', '$criadopor')");
+                             VALUES ('Educador adicionou criança: $nome', '$fdatahora', '$criadopor')");
 
-        header("Location: adicionarcri.php?sucesso=1");
+        header("Location: adicionarcri_educador.php?sucesso=1");
         exit();
     } else {
         $erro = "Erro ao adicionar criança: " . mysqli_error($link);
     }
 }
 
-// Buscar salas
-$salas = mysqli_query($link, "SELECT * FROM sala WHERE estado = 1");
-
-// Buscar encarregados
+// Buscar encarregados (SEM JOIN)
 $encarregados = mysqli_query($link,
     "SELECT IDutl, nome FROM utilizador WHERE tipo = 'encarregado' AND estado = 1"
-);
-
-// Buscar educadores
-$educadores = mysqli_query($link,
-    "SELECT educador.IDedu, utilizador.nome
-     FROM educador
-     INNER JOIN utilizador ON educador.IDutl = utilizador.IDutl
-     WHERE educador.estado = 1"
 );
 ?>
 <html lang="pt">
@@ -150,14 +142,8 @@ $educadores = mysqli_query($link,
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Sala</label>
-                <select name="IDsala"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-                    <option value="">Selecionar sala...</option>
-                    <?php while ($s = mysqli_fetch_assoc($salas)): ?>
-                        <option value="<?= $s['IDsala'] ?>"><?= $s['nome'] ?></option>
-                    <?php endwhile; ?>
-                </select>
+                <input type="text" value="Sala atribuída automaticamente"
+                       class="mt-1 block w-full px-4 py-2 border rounded-lg bg-gray-200" disabled>
             </div>
 
             <div>
@@ -172,20 +158,8 @@ $educadores = mysqli_query($link,
                 </select>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Educadores Associados</label>
-                <div class="mt-2 space-y-2">
-                    <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="educadores[]" value="<?= $ed['IDedu'] ?>">
-                            <span><?= $ed['nome'] ?></span>
-                        </label>
-                    <?php endwhile; ?>
-                </div>
-            </div>
-
             <div class="flex justify-between">
-                <a href="admin.php"
+                <a href="educador.php"
                     class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     Cancelar
                 </a>
