@@ -21,12 +21,11 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'encarregado') {
         </h2>
 
         <nav class="space-y-4">
+            <a href="adicionarcriee.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Adcionar Criança</a>
+            <a href="listacri.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Criança</a>    
             <a href="veratv.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Ver Atividade</a>
             <a href="verreu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Ver Reunião</a>
-            <a href="versala.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Ver Sala</a>
-            <a href="adicionarcri.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Adcionar Criança</a>
-            <a href="listacri.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Criança</a>
-            <a href="veroco.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Ver Ocorrência</a>
+            <a href="veroco.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Histórico Ocorrências</a>
             <a href="listapre.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Histórico de Presenças</a>
             <a href="perfil.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Perfil</a>
         </nav>

@@ -64,6 +64,8 @@ if ($stmt) {
                 header("Location: encarregado.php");
             } elseif ($tipo === 'educador') {
                 header("Location: educador.php");
+            } elseif ($tipo === 'funcionario') {
+                header("Location: funcionario.php");
             } else {
                 header("Location: index.php?erro=2");
             }

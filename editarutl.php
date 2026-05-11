@@ -122,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="tipo" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
                     <option value="encarregado" <?= $utilizador['tipo'] === 'encarregado' ? 'selected' : '' ?>>Encarregado</option>
                     <option value="educador" <?= $utilizador['tipo'] === 'educador' ? 'selected' : '' ?>>Educador</option>
+                    <option value="funcionario" <?= $utilizador['tipo'] === 'funcionario' ? 'selected' : '' ?>>Funcionário</option>
                 </select>
             </div>
 

@@ -29,11 +29,12 @@ if (!$crianca) {
     exit();
 }
 
-// Buscar salas
-$salas = mysqli_query($link, "SELECT * FROM sala WHERE estado = 1");
-
-// Buscar educadores
-$educadores = mysqli_query($link, "SELECT * FROM educador WHERE estado = 1");
+// Buscar educadores (AGORA COM IDsala)
+$educadores = mysqli_query($link,
+    "SELECT educador.IDedu, educador.IDsala, educador.IDutl
+     FROM educador
+     WHERE educador.estado = 1"
+);
 
 // Buscar educadores associados
 $educadoresAssociados = [];
@@ -98,14 +99,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2) ATIVAR educadores que já existiam mas estavam desativados
         foreach ($educadoresSelecionados as $IDedu) {
             if (isset($educadoresExistentes[$IDedu])) {
-                // Já existe → só reativar
                 mysqli_query($link, "
                     UPDATE crianca_educador 
                     SET estado = 1 
                     WHERE IDcri = $id AND IDedu = $IDedu
                 ");
             } else {
-                // Não existe → criar nova relação
                 mysqli_query($link, "
                     INSERT INTO crianca_educador (IDcri, IDedu, estado)
                     VALUES ($id, $IDedu, 1)
@@ -133,7 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <title>Editar Criança</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -166,54 +164,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div>
                 <label class="block text-sm font-medium text-gray-700">Sexo</label>
                 <select name="sexo" class="mt-1 w-full px-4 py-2 border rounded-lg">
-                    <option value="" <?= $crianca['sexo'] === "" ? "selected" : "" ?>>Indefinido</option>
                     <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
                     <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
+                    <option value="ND" <?= $crianca['sexo'] === "ND" ? "selected" : "" ?>>Prefere não divulgar</option>
                 </select>
             </div>
 
+            <!-- EDUCADORES (CHECKBOXES) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Educadores</label>
+                <div class="mt-2 space-y-2">
+
+                    <?php mysqli_data_seek($educadores, 0); ?>
+                    <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
+
+                        <?php
+                        // Buscar nome do educador
+                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']}");
+                        $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Educador removido";
+                        ?>
+
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" class="educadorCheck"
+                                   data-idsala="<?= $ed['IDsala'] ?>"
+                                   value="<?= $ed['IDedu'] ?>"
+                                   name="educadores[]"
+                                   <?= in_array($ed['IDedu'], $educadoresAssociados) ? "checked" : "" ?>>
+                            <span><?= $nomeEdu ?></span>
+                        </label>
+
+                    <?php endwhile; ?>
+                </div>
+            </div>
+
+            <!-- SALA AUTOMÁTICA -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Sala</label>
-                <select name="IDsala" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-                    <?php while ($s = mysqli_fetch_assoc($salas)): ?>
-                        <option value="<?= $s['IDsala'] ?>"
-                            <?= $crianca['IDsala'] == $s['IDsala'] ? "selected" : "" ?>>
-                            <?= $s['nome'] ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
+                <input type="text" id="IDsala" name="IDsala"
+                       value="<?= $crianca['IDsala'] ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200"
+                       readonly required>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Observações</label>
                 <textarea name="observacoes" rows="4"
                     class="mt-1 w-full px-4 py-2 border rounded-lg"><?= $crianca['observacoes'] ?></textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Educadores Associados</label>
-                <div class="mt-2 space-y-2">
-                    <?php mysqli_data_seek($educadores, 0); ?>
-                    <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
-
-                        <?php
-                        // Buscar nome do educador na tabela utilizador
-                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']}");
-                        $nomeEdu = "Educador removido";
-                        if ($resNome && mysqli_num_rows($resNome) > 0) {
-                            $rowNome = mysqli_fetch_assoc($resNome);
-                            $nomeEdu = $rowNome['nome'];
-                        }
-                        ?>
-
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="educadores[]" value="<?= $ed['IDedu'] ?>"
-                                <?= in_array($ed['IDedu'], $educadoresAssociados) ? "checked" : "" ?>>
-                            <span><?= $nomeEdu ?></span>
-                        </label>
-
-                    <?php endwhile; ?>
-                </div>
             </div>
 
             <div class="flex justify-between mt-6">
@@ -230,6 +226,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         </form>
     </div>
+
+<!-- SCRIPT PARA VALIDAR EDUCADORES E DEFINIR SALA -->
+<script>
+let salaSelecionada = document.getElementById("IDsala").value || null;
+
+document.querySelectorAll(".educadorCheck").forEach(chk => {
+    chk.addEventListener("change", function () {
+
+        const salaEducador = this.dataset.idsala;
+
+        // Primeiro educador define a sala
+        if (salaSelecionada === "" || salaSelecionada === null) {
+            if (this.checked) {
+                salaSelecionada = salaEducador;
+                document.getElementById("IDsala").value = salaEducador;
+            }
+            return;
+        }
+
+        // Se tentar selecionar educador de outra sala
+        if (this.checked && salaEducador !== salaSelecionada) {
+            alert("Este educador pertence a outra sala. Só pode selecionar educadores da mesma sala.");
+            this.checked = false;
+            return;
+        }
+
+        // Se desmarcar todos → limpar sala
+        const algumMarcado = [...document.querySelectorAll(".educadorCheck")]
+            .some(c => c.checked);
+
+        if (!algumMarcado) {
+            salaSelecionada = null;
+            document.getElementById("IDsala").value = "";
+        }
+    });
+});
+</script>
 
 </body>
 </html>

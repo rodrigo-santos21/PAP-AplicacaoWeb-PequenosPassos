@@ -5,8 +5,8 @@ include("DBConnection.php");
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas encarregados de educação podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'encarregado') {
     header("Location: index.php?erro=permissao");
     exit;
 }

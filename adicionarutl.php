@@ -226,6 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     required>
                     <option value="encarregado">Encarregado</option>
                     <option value="educador">Educador</option>
+                    <option value="funcionario">Funcionário</option>
                 </select>
             </div>
 

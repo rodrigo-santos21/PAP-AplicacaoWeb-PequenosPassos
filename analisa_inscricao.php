@@ -1,0 +1,145 @@
+<?php
+session_start();
+include("DBConnection.php");
+
+// Apenas funcionários podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
+    header("Location: index.php?erro=permissao");
+    exit();
+}
+
+$IDfunc = $_SESSION['id'];
+
+// Verificar se veio ID pela URL
+if (!isset($_GET['id'])) {
+    header("Location: inscricoespendentes.php?erro=sem_id");
+    exit();
+}
+
+$id = intval($_GET['id']);
+
+// Buscar dados da inscrição
+$sql = "SELECT * FROM utilizador WHERE IDutl = $id AND aprovado = 0";
+$res = mysqli_query($link, $sql);
+$u = mysqli_fetch_assoc($res);
+
+if (!$u) {
+    header("Location: inscricoespendentes.php?erro=nao_existe");
+    exit();
+}
+
+/* ============================================================
+   1) TENTAR BLOQUEAR A INSCRIÇÃO
+   ============================================================ */
+
+if ($u['analise_por'] === NULL) {
+
+    // Tentar bloquear para este funcionário
+    mysqli_query($link,
+        "UPDATE utilizador 
+        SET analise_por = $IDfunc 
+        WHERE IDutl = $id AND analise_por IS NULL
+        "
+    );
+    
+    // Buscar novamente para confirmar
+    $res = mysqli_query($link, "SELECT * FROM utilizador WHERE IDutl = $id");
+    $u = mysqli_fetch_assoc($res);
+
+    if ($u['analise_por'] != $IDfunc) {
+        // Outro funcionário ganhou o bloqueio
+        header("Location: inscricoespendentes.php?erro=bloqueado");
+        exit();
+    }
+
+} else if ($u['analise_por'] != $IDfunc) {
+    // Já está bloqueado por outro funcionário
+    header("Location: inscricoespendentes.php?erro=bloqueado");
+    exit();
+}
+
+/* ============================================================
+   2) PROCESSAR APROVAÇÃO OU REJEIÇÃO
+   ============================================================ */
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $acao = $_POST['acao'];
+
+    if ($acao === "aprovar") {
+
+        mysqli_query($link,
+            "UPDATE utilizador 
+             SET aprovado = 1, analise_por = NULL 
+             WHERE IDutl = $id"
+        );
+
+        // Criar log
+        date_default_timezone_set("Europe/Lisbon");
+        $datahora = date("Y-m-d H:i:s");
+        mysqli_query($link,
+            "INSERT INTO logs (descricao, datahora, IDutl)
+             VALUES ('Funcionário $IDfunc aprovou a conta $id', '$datahora', $IDfunc)"
+        );
+
+        header("Location: inscricoespendentes.php?sucesso=aprovado");
+        exit();
+
+    } elseif ($acao === "rejeitar") {
+
+        mysqli_query($link, "DELETE FROM utilizador WHERE IDutl = $id");
+
+        // Criar log
+        date_default_timezone_set("Europe/Lisbon");
+        $datahora = date("Y-m-d H:i:s");
+        mysqli_query($link,
+            "INSERT INTO logs (descricao, datahora, IDutl)
+             VALUES ('Funcionário $IDfunc rejeitou a conta $id', '$datahora', $IDfunc)"
+        );
+
+        header("Location: inscricoespendentes.php?sucesso=rejeitado");
+        exit();
+    }
+}
+
+?>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisar Inscrição</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6">
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Analisar Inscrição
+        </h2>
+
+        <p><strong>Nome:</strong> <?= $u['nome'] ?></p>
+        <p><strong>Email:</strong> <?= $u['email'] ?></p>
+        <p><strong>Data Nascimento:</strong> <?= $u['datanascimento'] ?></p>
+        <p><strong>Telefone:</strong> <?= $u['telefone'] ?></p>
+        <p><strong>Tipo:</strong> <?= $u['tipo'] ?></p>
+
+        <form method="post" class="mt-6 flex justify-between">
+
+            <a href="aprovar.php?id=<?= $u['IDutl'] ?>">Aprovar</a>
+            <a href="rejeitar.php?id=<?= $u['IDutl'] ?>">Rejeitar</a>
+
+        </form>
+
+        <div class="text-center mt-6">
+            <a href="inscricoespendentes.php"
+               class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                Voltar
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

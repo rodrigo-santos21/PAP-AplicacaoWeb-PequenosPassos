@@ -7,8 +7,8 @@ require "PHPMailer/src/Exception.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas funcionários podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
     exit();
 }
@@ -53,7 +53,7 @@ try {
     $mail->Body = "
         <p>Olá <strong>{$u['nome']}</strong>,</p>
 
-        <p>Informamos que o seu pedido de criação de conta foi <strong>rejeitado pelo administrador</strong>.</p>
+        <p>Informamos que o seu pedido de criação de conta foi <strong>rejeitado pela secretaria da escola</strong>.</p>
 
         <p>Se acredita que isto foi um erro, por favor contacte a instituição.</p>
 
@@ -75,7 +75,7 @@ date_default_timezone_set("Europe/Lisbon");
 $fdatahora = date("Y-m-d H:i:s");
 
 mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                     VALUES ('Conta rejeitada e eliminada pelo administrador', '$fdatahora', '$id')");
+                     VALUES ('Conta rejeitada e eliminada pelo funcionário $IDfunc', '$fdatahora', '$id')");
 
 header("Location: inscricoespendentes.php?sucesso=rejeitado");
 exit();

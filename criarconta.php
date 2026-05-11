@@ -35,8 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $token = bin2hex(random_bytes(32));
 
     // Inserir utilizador como NÃO confirmado e NÃO aprovado
-    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado)
-            VALUES (?, ?, ?, ?, ?, ?, 0, ?, 0)";
+    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado, analise_por)
+        VALUES (?, ?, ?, ?, ?, ?, 0, ?, 0, NULL)";
+
     $stmt = mysqli_prepare($link, $sql);
     mysqli_stmt_bind_param($stmt, "sssssss", $nome, $email, $pass, $tipo, $datanascimento, $telefone, $token);
 
@@ -51,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                              VALUES ('Pedido de criação de conta (aguarda aprovação)', '$fdatahora', '$IDutl')");
 
-        echo "<p style='color:green'>Pedido enviado! Aguarde aprovação do administrador.</p>";
+        echo "<p style='color:green'>Pedido enviado! Aguarde aprovação da secretaria da escola.</p>";
         exit();
 
     } else {

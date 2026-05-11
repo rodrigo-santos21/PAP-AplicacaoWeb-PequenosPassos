@@ -24,6 +24,9 @@ if ($tipo === "superadministrador") {
 } elseif ($tipo === "encarregado") {
     $paginaCancelar = "encarregado.php";
 
+} elseif ($tipo === "funcionario") {
+    $paginaCancelar = "funcionario.php";
+
 } else {
     $paginaCancelar = "index.php"; // fallback de segurança
 }

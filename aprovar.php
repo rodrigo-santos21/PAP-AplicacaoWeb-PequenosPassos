@@ -7,8 +7,8 @@ require "PHPMailer/src/Exception.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas funcionários podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
     exit();
 }
@@ -33,8 +33,8 @@ if (!$u) {
     exit();
 }
 
-// Atualizar estado para aprovado
-mysqli_query($link, "UPDATE utilizador SET aprovado = 1 WHERE IDutl = $id");
+// Atualizar estado para aprovado e fazer o bloqueio de funcionário
+mysqli_query($link, "UPDATE utilizador SET aprovado = 1, analise_por = NULL WHERE IDutl = $id");
 
 // Enviar email de confirmação
 $mail = new PHPMailer(true);
@@ -56,7 +56,7 @@ try {
     $mail->isHTML(true);
     $mail->Body = "
         <p>Olá <strong>{$u['nome']}</strong>,</p>
-        <p>A sua conta foi aprovada pelo administrador.</p>
+        <p>A sua conta foi aprovada pela secretaria da escola.</p>
         <p>Clique no botão abaixo para confirmar o seu email:</p>
         <p style='text-align:center; margin: 30px 0;'>
             <a href='$linkConfirmacao'
@@ -79,7 +79,7 @@ date_default_timezone_set("Europe/Lisbon");
 $fdatahora = date("Y-m-d H:i:s");
 
 mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                     VALUES ('Conta aprovada pelo administrador', '$fdatahora', '$id')");
+                     VALUES ('Conta aprovada pelo funcionário $IDfunc', '$fdatahora', '$id')");
 
 header("Location: inscricoespendentes.php?sucesso=aprovado");
 exit();
