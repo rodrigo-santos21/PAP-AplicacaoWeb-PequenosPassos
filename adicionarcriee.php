@@ -11,6 +11,18 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'encarregado') {
     exit;
 }
 
+// Buscar dados do encarregado logado
+$IDenc = $_SESSION['id'] ?? null;
+$nomeEncarregado = "";
+
+if ($IDenc) {
+    $resEnc = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDenc");
+    if ($resEnc && mysqli_num_rows($resEnc) > 0) {
+        $enc = mysqli_fetch_assoc($resEnc);
+        $nomeEncarregado = $enc['nome'];
+    }
+}
+
 /* ============================================================
    PROCESSAMENTO DO FORMULÁRIO
    ============================================================ */
@@ -21,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $sexo = $_POST['sexo'];
     $observacoes = $_POST['observacoes'];
     $IDsala = $_POST['IDsala'];
-    $IDutl = $_POST['IDutl']; // encarregado
+    $IDutl = $_SESSION['id']; // encarregado logado
     $educadores = $_POST['educadores'] ?? [];
     $criadopor = $_SESSION['id'];
 
@@ -33,8 +45,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Inserir criança
-    $sql = "INSERT INTO crianca (nome, datanascimento, sexo, observacoes, IDutl, IDsala, estado)
-            VALUES (?, ?, ?, ?, ?, ?, 1)";
+    $sql = "INSERT INTO crianca (nome, datanascimento, sexo, observacoes, IDutl, IDsala, estado, analise_por)
+        VALUES (?, ?, ?, ?, ?, NULL, 0, NULL)";
 
     $stmt = mysqli_prepare($link, $sql);
 
@@ -42,53 +54,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         die("Erro no prepare: " . mysqli_error($link));
     }
 
-    mysqli_stmt_bind_param($stmt, "ssssii",
-        $nome, $datanascimento, $sexo, $observacoes, $IDutl, $IDsala
+    mysqli_stmt_bind_param($stmt, "ssssi",
+        $nome, $datanascimento, $sexo, $observacoes, $IDutl
     );
 
     if (mysqli_stmt_execute($stmt)) {
 
         $IDcri = mysqli_insert_id($link);
 
-        // Associar educadores
-        foreach ($educadores as $IDedu) {
-            $stmt2 = mysqli_prepare($link,
-                "INSERT INTO crianca_educador (IDcri, IDedu, estado) VALUES (?, ?, 1)"
-            );
-            mysqli_stmt_bind_param($stmt2, "ii", $IDcri, $IDedu);
-            mysqli_stmt_execute($stmt2);
-        }
-
         // Criar log
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
 
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Adição de criança: $nome', '$fdatahora', '$criadopor')");
+                             VALUES ('Encarregado $IDutl adicionou criança pendente ID $IDcri', '$fdatahora', '$IDutl')");
 
-        header("Location: adicionarcri.php?sucesso=1");
+        header("Location: adicionarcriee.php?sucesso=1");
         exit();
     } else {
         $erro = "Erro ao adicionar criança: " . mysqli_error($link);
     }
 }
 
-/* ============================================================
-   BUSCAR DADOS NECESSÁRIOS
-   ============================================================ */
-
-// Buscar encarregados
-$encarregados = mysqli_query($link,
-    "SELECT IDutl, nome FROM utilizador WHERE tipo = 'encarregado' AND estado = 1"
-);
-
-// Buscar educadores + sala (SEM JOIN extra)
-$educadores = mysqli_query($link,
-    "SELECT educador.IDedu, educador.IDsala, utilizador.nome
-     FROM educador
-     INNER JOIN utilizador ON educador.IDutl = utilizador.IDutl
-     WHERE educador.estado = 1"
-);
 ?>
 <html lang="pt">
 <head>
@@ -151,44 +138,16 @@ $educadores = mysqli_query($link,
                     placeholder="Notas importantes (opcional)"></textarea>
             </div>
 
-            <!-- EDUCADORES (CHECKBOXES) -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Educadores</label>
-                <div id="educadoresLista" class="mt-2 space-y-2">
-                    <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" class="educadorCheck"
-                                   data-idsala="<?= $ed['IDsala'] ?>"
-                                   value="<?= $ed['IDedu'] ?>"
-                                   name="educadores[]">
-                            <span><?= $ed['nome'] ?></span>
-                        </label>
-                    <?php endwhile; ?>
-                </div>
-            </div>
-
-            <!-- SALA AUTOMÁTICA -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Sala</label>
-                <input type="text" id="IDsala" name="IDsala"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-200"
-                    readonly required>
-            </div>
-
             <div>
                 <label class="block text-sm font-medium text-gray-700">Encarregado de Educação</label>
-                <select name="IDutl"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-                    <option value="">Selecionar encarregado...</option>
-                    <?php while ($e = mysqli_fetch_assoc($encarregados)): ?>
-                        <option value="<?= $e['IDutl'] ?>"><?= $e['nome'] ?></option>
-                    <?php endwhile; ?>
-                </select>
+                <input type="text"
+                    value="<?= htmlspecialchars($nomeEncarregado) ?>"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-300"
+                    readonly>
             </div>
 
             <div class="flex justify-between">
-                <a href="admin.php"
+                <a href="encarregado.php"
                     class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     Cancelar
                 </a>
@@ -201,41 +160,6 @@ $educadores = mysqli_query($link,
 
         </form>
     </div>
-
-<!-- SCRIPT PARA VALIDAR EDUCADORES E DEFINIR SALA -->
-<script>
-let salaSelecionada = null;
-
-document.querySelectorAll(".educadorCheck").forEach(chk => {
-    chk.addEventListener("change", function () {
-
-        const salaEducador = this.dataset.idsala;
-
-        // Primeiro educador define a sala
-        if (salaSelecionada === null && this.checked) {
-            salaSelecionada = salaEducador;
-            document.getElementById("IDsala").value = salaEducador;
-            return;
-        }
-
-        // Se tentar selecionar educador de outra sala
-        if (this.checked && salaEducador !== salaSelecionada) {
-            alert("Este educador pertence a outra sala. Só pode selecionar educadores da mesma sala.");
-            this.checked = false;
-            return;
-        }
-
-        // Se desmarcar todos → limpar sala
-        const algumMarcado = [...document.querySelectorAll(".educadorCheck")]
-            .some(c => c.checked);
-
-        if (!algumMarcado) {
-            salaSelecionada = null;
-            document.getElementById("IDsala").value = "";
-        }
-    });
-});
-</script>
 
 </body>
 </html>

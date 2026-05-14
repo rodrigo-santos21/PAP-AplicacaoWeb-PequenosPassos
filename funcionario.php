@@ -22,6 +22,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
 
         <nav class="space-y-4">
             <a href="inscricoespendentes.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Inscrições Pendentes</a>
+            <a href="criancaspendentes.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Crianças Pendentes</a>
             <a href="perfil.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Perfil</a>
         </nav>
 
