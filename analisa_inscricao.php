@@ -127,8 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="post" class="mt-6 flex justify-between">
 
-            <a href="aprovar.php?id=<?= $u['IDutl'] ?>">Aprovar</a>
-            <a href="rejeitar.php?id=<?= $u['IDutl'] ?>">Rejeitar</a>
+            <a href="aprovar.php?id=<?= $u['IDutl'] ?>" class="px-4 py-2 bg-blue-600 text-white rounded "> Aprovar</a>
+            <a href="rejeitar.php?id=<?= $u['IDutl'] ?>" class="px-4 py-2 bg-red-600 text-white rounded "> Rejeitar</a>
 
         </form>
 

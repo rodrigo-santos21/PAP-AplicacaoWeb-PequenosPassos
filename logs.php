@@ -2,8 +2,9 @@
 session_start();
 include("DBConnection.php");
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Administradores e funcionários podem aceder
+if (!isset($_SESSION['tipo']) || 
+   ($_SESSION['tipo'] !== 'administrador' && $_SESSION['tipo'] !== 'funcionario')) {
     header("Location: index.php?erro=permissao");
     exit();
 }
@@ -80,7 +81,7 @@ $result = mysqli_query($link, $sql);
         <?php endif; ?>
 
         <div class="text-center mt-6">
-            <a href="admin.php"
+            <a href="<?= $_SESSION['tipo'] === 'administrador' ? 'admin.php' : 'funcionario.php' ?>"
                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                 Voltar
             </a>

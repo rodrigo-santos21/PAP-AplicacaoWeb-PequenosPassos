@@ -1,0 +1,20 @@
+POST RECEBIDO:
+Array
+(
+    [id_crianca] => 7
+    [data] => 2026-05-13
+    [horaE] => 09:00
+    [horaS] => 16:30
+)
+
+
+DEPOIS DE TRATAR HORAS:
+Array
+(
+    [id_crianca] => 7
+    [data] => 2026-05-13
+    [horaE] => 09:00
+    [horaS] => 16:30
+)
+
+

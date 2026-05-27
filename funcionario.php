@@ -23,6 +23,11 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
         <nav class="space-y-4">
             <a href="inscricoespendentes.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Inscrições Pendentes</a>
             <a href="criancaspendentes.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Crianças Pendentes</a>
+            <a href="listarcrifun.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Crianças</a>
+            <a href="listareefun.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Encarregados de Educação</a>
+            <a href="listaredufun.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Educadores</a>
+            <a href="funcionario_presencas.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Presenças</a>
+            <a href="logs.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Logs</a>
             <a href="perfil.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Perfil</a>
         </nav>
 

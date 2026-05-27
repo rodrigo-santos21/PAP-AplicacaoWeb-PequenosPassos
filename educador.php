@@ -29,9 +29,9 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
             <a href="listaratv.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar as suas atividades</a>
             <a href="listarreu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Reunião à qual pertence</a>
             <a href="listarsala.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar a sua sala</a>
-            <a href="adicionarpre.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Marcar Presenças</a>
-            <a href="listapre.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Histórico de Presenças</a>
+            <a href="educador_presencas.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Presenças</a>
             <a href="perfil.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Perfil</a>
+
         </nav>
 
         <a href="logout.php"

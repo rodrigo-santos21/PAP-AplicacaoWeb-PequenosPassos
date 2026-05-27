@@ -2,15 +2,15 @@
 session_start();
 include "DBConnection.php";
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas funcionários podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
     exit();
 }
 
 // Verificar se veio um ID pela URL
 if (!isset($_GET['id'])) {
-    header("Location: listarutl.php?erro=sem_id");
+    header("Location: listareefun.php?erro=sem_id");
     exit();
 }
 
@@ -25,13 +25,13 @@ $utilizador = mysqli_fetch_assoc($result);
 
 // Se não existir
 if (!$utilizador) {
-    header("Location: listarutl.php?erro=nao_existe");
+    header("Location: listareefun.php?erro=nao_existe");
     exit();
 }
 
-// Impedir edição de administradores e superadministradores
-if ($utilizador['tipo'] === 'administrador' || $utilizador['tipo'] === 'superadministrador') {
-    header("Location: listarutl.php?erro=sem_permissao");
+// Impedir edição de utilizadores que não sejam encarregados
+if ($utilizador['tipo'] !== 'encarregado') {
+    header("Location: listareefun.php?erro=tipo_invalido");
     exit();
 }
 
@@ -40,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nome = $_POST['nome'];
     $email = $_POST['email'];
-    $tipo = $_POST['tipo'];
     $datanascimento = $_POST['datanascimento'];
     $telefone = $_POST['telefone'];
 
@@ -50,33 +49,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $idade = $hoje->diff($nascimento)->y;
 
     if ($idade < 18) {
-        $erro = "O utilizador deve ter pelo menos 18 anos.";
+        $erro = "O encarregado deve ter pelo menos 18 anos.";
     }
 
     if (!isset($erro)) {
 
         $stmt = mysqli_prepare($link, "UPDATE utilizador 
-                                       SET nome=?, email=?, tipo=?, datanascimento=?, telefone=? 
+                                       SET nome=?, email=?, datanascimento=?, telefone=? 
                                        WHERE IDutl=?");
 
-        mysqli_stmt_bind_param($stmt, "sssssi", 
-            $nome, $email, $tipo, $datanascimento, $telefone, $id
+        mysqli_stmt_bind_param($stmt, "ssssi", 
+            $nome, $email, $datanascimento, $telefone, $id
         );
 
         $success = mysqli_stmt_execute($stmt);
 
         if ($success) {
+
             // Registar log
             date_default_timezone_set("Europe/Lisbon");
             $fdatahora = date("Y-m-d H:i:s");
 
             mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                                 VALUES ('Edição de Conta', '$fdatahora', '$id')");
+                                 VALUES ('Edição de Encarregado', '$fdatahora', '{$_SESSION['id']}')");
 
-            header("Location: listarutl.php?sucesso=editado");
+            header("Location: listareefun.php?sucesso=editado");
             exit();
         } else {
-            $erro = "Erro ao atualizar utilizador.";
+            $erro = "Erro ao atualizar encarregado.";
         }
     }
 }
@@ -85,16 +85,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="pt">
 <head>
     <meta charset="utf-8">
-    <title>Editar Utilizador</title>
+    <title>Editar Encarregado</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
     <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Editar Utilizador
+            Editar Encarregado de Educação
         </h2>
 
         <?php if (isset($erro)): ?>
@@ -117,12 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        class="mt-1 w-full px-4 py-2 border rounded-lg" required>
             </div>
 
+            <!-- Tipo fixo: Encarregado -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tipo</label>
-                <select name="tipo" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-                    <option value="encarregado" <?= $utilizador['tipo'] === 'encarregado' ? 'selected' : '' ?>>Encarregado</option>
-                    <option value="educador" <?= $utilizador['tipo'] === 'educador' ? 'selected' : '' ?>>Educador</option>
-                    <option value="funcionario" <?= $utilizador['tipo'] === 'funcionario' ? 'selected' : '' ?>>Funcionário</option>
+                <select name="tipo" class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200" disabled>
+                    <option value="encarregado" selected>Encarregado</option>
                 </select>
             </div>
 
@@ -134,14 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Telefone</label>
-                <input type="tel" name="telefone" maxlength="9" pattern="\d{9}" placeholder="9 dígitos" value="<?= $utilizador['telefone'] ?>"
-                        class="mt-1 w-full px-4 py-2 border rounded-lg" 
-                        required
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
+                <input type="tel" name="telefone" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
+                       value="<?= $utilizador['telefone'] ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg"
+                       required
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
 
             <div class="flex justify-between mt-6">
-                <a href="listarutl.php"
+                <a href="listareefun.php"
                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     Cancelar
                 </a>

@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                              VALUES ('Encarregado $IDutl adicionou criança pendente ID $IDcri', '$fdatahora', '$IDutl')");
 
-        header("Location: adicionarcriee.php?sucesso=1");
+        header("Location: encarregado.php?sucesso=1");
         exit();
     } else {
         $erro = "Erro ao adicionar criança: " . mysqli_error($link);
