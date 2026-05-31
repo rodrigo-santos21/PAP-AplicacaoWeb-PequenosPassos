@@ -34,20 +34,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $titulo = $_POST['titulo'];
     $descricao = $_POST['descricao'];
-    $criadopor = $_SESSION['id']; // ID do admin que está a editar a atividade
+    $datahora = $_POST['datahora'];
+    $IDedu = $_POST['IDedu']; // Novo responsável
+    $criadopor = $_SESSION['id']; // Admin que editou
 
-    $stmt = mysqli_prepare($link, "UPDATE atividade SET titulo=?, descricao=? WHERE IDatv=?");
+    // Atualizar atividade
+    $stmt = mysqli_prepare($link, "
+        UPDATE atividade 
+        SET titulo=?, datahora=?, descricao=?, IDedu=?
+        WHERE IDatv=?
+    ");
 
-    mysqli_stmt_bind_param($stmt, "ssi", $titulo, $descricao, $id);
+    mysqli_stmt_bind_param($stmt, "sssii", $titulo, $datahora, $descricao, $IDedu, $id);
 
     $success = mysqli_stmt_execute($stmt);
 
     if ($success) {
+
         // Registar log
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Edição de Atividade', '$fdatahora', '$criadopor')");
+
+        mysqli_query($link, "
+            INSERT INTO logs (descricao, datahora, IDutl)
+            VALUES ('Admin editou atividade (ID $id)', '$fdatahora', '$criadopor')
+        ");
 
         header("Location: listaratv.php?sucesso=editado");
         exit();
@@ -62,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <title>Editar Atividade</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -84,6 +94,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-medium text-gray-700">Título</label>
                 <input type="text" name="titulo" value="<?= $atividade['titulo'] ?>"
                        class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Data e Hora</label>
+                <input type="datetime-local" name="datahora"
+                       value="<?= date('Y-m-d\TH:i', strtotime($atividade['datahora'])) ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Responsável</label>
+                <select name="IDedu"
+                        class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                    <option value="">Selecione um educador</option>
+
+                    <?php
+                    // Buscar educadores ativos (SEM JOIN)
+                    $resEdu = mysqli_query($link, "SELECT IDedu, IDutl FROM educador WHERE estado = 1");
+
+                    while ($e = mysqli_fetch_assoc($resEdu)) {
+
+                        $IDutlEdu = $e['IDutl'];
+
+                        // Buscar nome do utilizador
+                        $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlEdu");
+                        $u = mysqli_fetch_assoc($resU);
+
+                        $selected = ($atividade['IDedu'] == $e['IDedu']) ? "selected" : "";
+
+                        echo "<option value='{$e['IDedu']}' $selected>{$u['nome']}</option>";
+                    }
+                    ?>
+                </select>
             </div>
 
             <div>

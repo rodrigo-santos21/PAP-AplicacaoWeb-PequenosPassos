@@ -78,49 +78,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Lista de educadores selecionados no formulário
         $educadoresSelecionados = $_POST['educadores'] ?? [];
 
-        // Buscar educadores já associados (ativos ou inativos)
-        $educadoresExistentes = [];
-        $res = mysqli_query($link, "SELECT IDedu, estado FROM crianca_educador WHERE IDcri = $id");
-        while ($row = mysqli_fetch_assoc($res)) {
-            $educadoresExistentes[$row['IDedu']] = $row['estado']; // 1 ou 0
-        }
+        // VALIDAR SE PELO MENOS UM EDUCADOR FOI SELECIONADO
+        if (empty($educadoresSelecionados)) {
+            $erro = "Tem de selecionar pelo menos um educador.";
+        } else {
 
-        // 1) DESATIVAR educadores que foram desmarcados
-        foreach ($educadoresExistentes as $IDedu => $estadoAtual) {
-            if (!in_array($IDedu, $educadoresSelecionados)) {
-                mysqli_query($link, "
-                    UPDATE crianca_educador 
-                    SET estado = 0 
-                    WHERE IDcri = $id AND IDedu = $IDedu
-                ");
+            // Buscar educadores já associados (ativos ou inativos)
+            $educadoresExistentes = [];
+            $res = mysqli_query($link, "SELECT IDedu, estado FROM crianca_educador WHERE IDcri = $id");
+            while ($row = mysqli_fetch_assoc($res)) {
+                $educadoresExistentes[$row['IDedu']] = $row['estado']; // 1 ou 0
             }
-        }
 
-        // 2) ATIVAR educadores que já existiam mas estavam desativados
-        foreach ($educadoresSelecionados as $IDedu) {
-            if (isset($educadoresExistentes[$IDedu])) {
-                mysqli_query($link, "
-                    UPDATE crianca_educador 
-                    SET estado = 1 
-                    WHERE IDcri = $id AND IDedu = $IDedu
-                ");
-            } else {
-                mysqli_query($link, "
-                    INSERT INTO crianca_educador (IDcri, IDedu, estado)
-                    VALUES ($id, $IDedu, 1)
-                ");
+            // 1) DESATIVAR educadores que foram desmarcados
+            foreach ($educadoresExistentes as $IDedu => $estadoAtual) {
+                if (!in_array($IDedu, $educadoresSelecionados)) {
+                    mysqli_query($link, "
+                        UPDATE crianca_educador 
+                        SET estado = 0 
+                        WHERE IDcri = $id AND IDedu = $IDedu
+                    ");
+                }
             }
+
+            // 2) ATIVAR educadores que já existiam mas estavam desativados
+            foreach ($educadoresSelecionados as $IDedu) {
+                if (isset($educadoresExistentes[$IDedu])) {
+                    mysqli_query($link, "
+                        UPDATE crianca_educador 
+                        SET estado = 1 
+                        WHERE IDcri = $id AND IDedu = $IDedu
+                    ");
+                } else {
+                    mysqli_query($link, "
+                        INSERT INTO crianca_educador (IDcri, IDedu, estado)
+                        VALUES ($id, $IDedu, 1)
+                    ");
+                }
+            }
+
+            // Registar log
+            date_default_timezone_set("Europe/Lisbon");
+            $fdatahora = date("Y-m-d H:i:s");
+
+            mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                                VALUES ('Edição da criança (ID $id)', '$fdatahora', '$criadopor')");
+
+            header("Location: listacri.php?sucesso=editado");
+            exit();
         }
-
-        // Registar log
-        date_default_timezone_set("Europe/Lisbon");
-        $fdatahora = date("Y-m-d H:i:s");
-
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Edição da criança (ID $id)', '$fdatahora', '$criadopor')");
-
-        header("Location: listacri.php?sucesso=editado");
-        exit();
     } else {
         $erro = "Erro ao atualizar criança: " . mysqli_error($link);
     }
@@ -133,6 +139,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Editar Criança</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(e) {
+    const checks = document.querySelectorAll(".educadorCheck:checked");
+    if (checks.length === 0) {
+        alert("Tem de selecionar pelo menos um educador.");
+        e.preventDefault();
+    }
+});
+</script>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
@@ -166,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <select name="sexo" class="mt-1 w-full px-4 py-2 border rounded-lg">
                     <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
                     <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
-                    <option value="ND" <?= $crianca['sexo'] === "ND" ? "selected" : "" ?>>Prefere não divulgar</option>
+                    <option value="N" <?= $crianca['sexo'] === "N" ? "selected" : "" ?>>Prefere não divulgar</option>
                 </select>
             </div>
 

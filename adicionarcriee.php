@@ -45,8 +45,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Inserir criança
-    $sql = "INSERT INTO crianca (nome, datanascimento, sexo, observacoes, IDutl, IDsala, estado, analise_por)
-        VALUES (?, ?, ?, ?, ?, NULL, 0, NULL)";
+    $sql = "INSERT INTO crianca (nome, datanascimento, sexo, observacoes, IDutl, IDsala, estado, analise_por, aprovado)
+            VALUES (?, ?, ?, ?, ?, NULL, 0, NULL, 0)";
 
     $stmt = mysqli_prepare($link, $sql);
 

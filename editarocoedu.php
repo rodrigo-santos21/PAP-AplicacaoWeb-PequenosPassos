@@ -2,53 +2,56 @@
 session_start();
 include "DBConnection.php";
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas educadores podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     header("Location: index.php?erro=permissao");
     exit();
 }
 
 // Verificar ID da ocorrência
 if (!isset($_GET['id'])) {
-    header("Location: listaroco.php?erro=sem_id");
+    header("Location: listarocoedu.php?erro=sem_id");
     exit();
 }
 
 $IDoc = intval($_GET['id']);
 $IDutl = intval($_SESSION['id']);
 
+// Buscar IDedu correto
+$res = mysqli_query($link, "SELECT IDedu FROM educador WHERE IDutl = $IDutl AND estado = 1");
+if (!$res || mysqli_num_rows($res) == 0) {
+    die("Erro: Educador não encontrado.");
+}
+$row = mysqli_fetch_assoc($res);
+$IDedu = intval($row['IDedu']);
+
 // Buscar ocorrência (SEM JOIN)
 $resOc = mysqli_query($link, "SELECT * FROM ocorrencia WHERE IDoc = $IDoc AND estado = 1");
 $oc = mysqli_fetch_assoc($resOc);
 
 if (!$oc) {
-    header("Location: listaroco.php?erro=nao_existe");
+    header("Location: listarocoedu.php?erro=nao_existe");
     exit();
 }
 
+// Verificar se a criança pertence ao educador (SEM JOIN)
 $IDcri = intval($oc['IDcri']);
-$IDeduCriador = intval($oc['IDedu']);
 
-// Buscar nome da criança (SEM JOIN)
-$criNome = "—";
-$resCri = mysqli_query($link, "SELECT nome FROM crianca WHERE IDcri = $IDcri");
-if ($resCri && mysqli_num_rows($resCri) > 0) {
-    $cri = mysqli_fetch_assoc($resCri);
-    $criNome = $cri['nome'];
+$resRel = mysqli_query($link, "
+    SELECT estado FROM crianca_educador
+    WHERE IDcri = $IDcri AND IDedu = $IDedu
+");
+
+$permitido = false;
+while ($r = mysqli_fetch_assoc($resRel)) {
+    if ($r['estado'] == 1) {
+        $permitido = true;
+    }
 }
 
-// Buscar nome do educador criador (SEM JOIN)
-$eduNome = "—";
-$resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDedu = $IDeduCriador");
-if ($resEdu && mysqli_num_rows($resEdu) > 0) {
-    $edu = mysqli_fetch_assoc($resEdu);
-    $IDutlCriador = intval($edu['IDutl']);
-
-    $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlCriador");
-    if ($resU && mysqli_num_rows($resU) > 0) {
-        $u = mysqli_fetch_assoc($resU);
-        $eduNome = $u['nome'];
-    }
+if (!$permitido) {
+    header("Location: listarocoedu.php?erro=sem_permissao");
+    exit();
 }
 
 // PROCESSAR ATUALIZAÇÃO
@@ -84,13 +87,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fdatahora = date("Y-m-d H:i:s");
 
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Ocorrência editada pelo admin (ID $IDoc)', '$fdatahora', '$IDutl')");
+                             VALUES ('Ocorrência editada (ID $IDoc)', '$fdatahora', '$IDutl')");
 
-        header("Location: listaroco.php?sucesso=editado");
+        header("Location: listarocoedu.php?sucesso=editado");
         exit();
     } else {
         $erro = "Erro ao atualizar ocorrência.";
     }
+}
+
+// Buscar nome da criança (SEM JOIN)
+$criNome = "—";
+$resCri = mysqli_query($link, "SELECT nome FROM crianca WHERE IDcri = $IDcri");
+if ($resCri && mysqli_num_rows($resCri) > 0) {
+    $cri = mysqli_fetch_assoc($resCri);
+    $criNome = $cri['nome'];
 }
 
 ?>
@@ -98,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="pt">
 <head>
     <meta charset="utf-8">
-    <title>Editar Ocorrência (Admin)</title>
+    <title>Editar Ocorrência</title>
     <link rel="stylesheet" href="style.css">
 
     <script>
@@ -113,12 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Editar Ocorrência (Admin)
+            Editar Ocorrência
         </h2>
 
         <p class="text-center text-gray-600 mb-4">
-            Criança: <b><?= $criNome ?></b><br>
-            Criado por: <b><?= $eduNome ?></b>
+            Criança: <b><?= $criNome ?></b>
         </p>
 
         <?php if (isset($erro)): ?>
@@ -165,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="flex justify-between mt-6">
-                <a href="listaroco.php"
+                <a href="listarocoedu.php"
                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     Cancelar
                 </a>

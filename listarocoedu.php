@@ -2,27 +2,48 @@
 session_start();
 include "DBConnection.php";
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas educadores podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     header("Location: index.php?erro=permissao");
     exit;
 }
 
 $IDutl = intval($_SESSION['id']);
 
+// Buscar IDedu correto
+$res = mysqli_query($link, "SELECT IDedu FROM educador WHERE IDutl = $IDutl AND estado = 1");
+if (!$res || mysqli_num_rows($res) == 0) {
+    die("Erro: Educador não encontrado.");
+}
+$row = mysqli_fetch_assoc($res);
+$IDedu = intval($row['IDedu']);
+
 // PROCESSO DE DESATIVAÇÃO (SOFT DELETE)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
 
     $id = intval($_POST['desativar_id']);
 
-    // Soft delete direto (admin pode tudo)
+    // Verificar se a ocorrência pertence a uma criança do educador
+    $check = mysqli_query($link, "
+        SELECT o.IDoc 
+        FROM ocorrencia o
+        JOIN crianca_educador ce ON ce.IDcri = o.IDcri
+        WHERE o.IDoc = $id AND ce.IDedu = $IDedu AND ce.estado = 1
+    ");
+
+    if (mysqli_num_rows($check) == 0) {
+        echo "erro";
+        exit;
+    }
+
+    // Soft delete
     mysqli_query($link, "UPDATE ocorrencia SET estado = 0 WHERE IDoc = $id");
 
     // Log
     date_default_timezone_set("Europe/Lisbon");
     $fdatahora = date("Y-m-d H:i:s");
     mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                         VALUES ('Ocorrência desativada pelo admin (ID $id)', '$fdatahora', '$IDutl')");
+                         VALUES ('Ocorrência desativada (ID $id)', '$fdatahora', '$IDutl')");
 
     echo "ok";
     exit;
@@ -33,14 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
 <html lang="pt">
 <head>
     <meta charset="utf-8">
-    <title>Ocorrências — Administrador</title>
+    <title>Ocorrências do Educador</title>
     <link rel="stylesheet" href="style.css">
 
     <script>
     function desativarOcorrencia(id) {
         if (confirm("Tem a certeza que deseja desativar esta ocorrência?")) {
 
-            fetch("listaroco.php", {
+            fetch("listarocoedu.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: "desativar_id=" + encodeURIComponent(id)
@@ -65,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
     <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
 
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-            Ocorrências — Administrador
+            Ocorrências — Educador
         </h1>
 
         <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
@@ -90,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                 <tbody>
                 <?php
 
-                // Buscar todas as ocorrências ativas (SEM JOIN)
+                // Buscar todas as ocorrências das crianças do educador
                 $query = "
                     SELECT * FROM ocorrencia
                     WHERE estado = 1
@@ -102,18 +123,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                 while ($o = mysqli_fetch_assoc($result)) {
 
                     $IDcri = intval($o['IDcri']);
-                    $IDeduCriador = intval($o['IDedu']);
 
-                    // Nome da criança (SEM JOIN)
+                    // Verificar se a criança pertence ao educador (SEM JOIN)
+                    $resRel = mysqli_query($link, "
+                        SELECT estado FROM crianca_educador
+                        WHERE IDcri = $IDcri AND IDedu = $IDedu
+                    ");
+
+                    $pertence = false;
+                    while ($r = mysqli_fetch_assoc($resRel)) {
+                        if ($r['estado'] == 1) {
+                            $pertence = true;
+                        }
+                    }
+
+                    if (!$pertence) {
+                        continue;
+                    }
+
+                    // Nome da criança
                     $criNome = "—";
-                    $resCri = mysqli_query($link, "SELECT nome FROM crianca WHERE IDcri = $IDcri");
+                    $resCri = mysqli_query($link, "SELECT nome FROM crianca WHERE IDcri = $IDcri AND estado = 1");
                     if ($resCri && mysqli_num_rows($resCri) > 0) {
                         $cri = mysqli_fetch_assoc($resCri);
                         $criNome = $cri['nome'];
                     }
 
-                    // Nome do educador criador (SEM JOIN)
+                    // Nome do educador criador
                     $eduNome = "—";
+                    $IDeduCriador = intval($o['IDedu']);
+
                     $resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDedu = $IDeduCriador");
                     if ($resEdu && mysqli_num_rows($resEdu) > 0) {
                         $edu = mysqli_fetch_assoc($resEdu);
@@ -126,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                         }
                     }
 
-                    // Tipo final com tipo_outro
+                    // Tipo final
                     if ($o['tipo'] === "Outro" && !empty($o['tipo_outro'])) {
                         $tipoFinal = "Outro (" . $o['tipo_outro'] . ")";
                     } else {
@@ -149,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                         <td class='p-3'>{$eduNome}</td>
 
                         <td class='p-3 flex gap-2'>
-                            <a href='editaroco.php?id={$o['IDoc']}'
+                            <a href='editarocoedu.php?id={$o['IDoc']}'
                                 class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
                                 Editar
                             </a>
@@ -168,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
         </div>
 
         <div class="mt-6 text-center">
-            <a href="admin.php"
+            <a href="educador.php"
                 class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
                 Página Inicial
             </a>

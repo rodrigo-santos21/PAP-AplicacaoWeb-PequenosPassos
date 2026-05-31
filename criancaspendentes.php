@@ -9,7 +9,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
 }
 
 // Buscar todas as crianças pendentes (estado = 0)
-$sql = "SELECT * FROM crianca WHERE estado = 0 ORDER BY analise_por IS NOT NULL, nome ASC";
+$sql = "SELECT * FROM crianca WHERE aprovado = 0 AND estado = 0 ORDER BY analise_por IS NOT NULL, nome ASC";
 $result = mysqli_query($link, $sql);
 ?>
 <!DOCTYPE html>

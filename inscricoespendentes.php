@@ -38,6 +38,7 @@
                         <th class="p-3">Email</th>
                         <th class="p-3">Data Nasc.</th>
                         <th class="p-3">Telefone</th>
+                        <th class="p-3">Estado</th>
                         <th class="p-3 text-center">Ações</th>
                     </tr>
                 </thead>

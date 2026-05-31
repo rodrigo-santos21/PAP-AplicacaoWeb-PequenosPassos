@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Atualizar criança
     mysqli_query($link,
         "UPDATE crianca 
-         SET estado = 1, IDsala = $IDsala, analise_por = NULL
+         SET estado = 1, aprovado = 1, IDsala = $IDsala, analise_por = NULL
          WHERE IDcri = $id"
     );
 

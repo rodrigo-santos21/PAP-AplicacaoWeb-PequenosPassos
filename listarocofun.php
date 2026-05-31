@@ -2,62 +2,21 @@
 session_start();
 include "DBConnection.php";
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas funcionários podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
     exit;
 }
 
 $IDutl = intval($_SESSION['id']);
 
-// PROCESSO DE DESATIVAÇÃO (SOFT DELETE)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
-
-    $id = intval($_POST['desativar_id']);
-
-    // Soft delete direto (admin pode tudo)
-    mysqli_query($link, "UPDATE ocorrencia SET estado = 0 WHERE IDoc = $id");
-
-    // Log
-    date_default_timezone_set("Europe/Lisbon");
-    $fdatahora = date("Y-m-d H:i:s");
-    mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                         VALUES ('Ocorrência desativada pelo admin (ID $id)', '$fdatahora', '$IDutl')");
-
-    echo "ok";
-    exit;
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8">
-    <title>Ocorrências — Administrador</title>
+    <title>Ocorrências — Funcionário</title>
     <link rel="stylesheet" href="style.css">
-
-    <script>
-    function desativarOcorrencia(id) {
-        if (confirm("Tem a certeza que deseja desativar esta ocorrência?")) {
-
-            fetch("listaroco.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: "desativar_id=" + encodeURIComponent(id)
-            })
-            .then(r => r.text())
-            .then(data => {
-                if (data.trim() === "ok") {
-                    alert("Ocorrência desativada com sucesso.");
-                    location.reload();
-                } else {
-                    alert("Erro ao desativar ocorrência.");
-                }
-            });
-        }
-    }
-    </script>
-
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -65,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
     <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
 
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-            Ocorrências — Administrador
+            Ocorrências — Funcionário
         </h1>
 
         <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-            Listagem Completa
+            Listagem Completa (Apenas Consulta)
         </h3>
 
         <div class="overflow-x-auto">
@@ -83,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                         <th class="p-3 text-left">Gravidade</th>
                         <th class="p-3 text-left">Descrição</th>
                         <th class="p-3 text-left">Criado por</th>
-                        <th class="p-3 text-left">Ações</th>
                     </tr>
                 </thead>
 
@@ -147,18 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                         <td class='p-3'>{$o['gravidade']}</td>
                         <td class='p-3'>{$desc}</td>
                         <td class='p-3'>{$eduNome}</td>
-
-                        <td class='p-3 flex gap-2'>
-                            <a href='editaroco.php?id={$o['IDoc']}'
-                                class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
-                                Editar
-                            </a>
-
-                            <button onclick='desativarOcorrencia({$o['IDoc']})'
-                                class=\"px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition\">
-                                Eliminar
-                            </button>
-                        </td>
                     </tr>";
                 }
 
@@ -168,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
         </div>
 
         <div class="mt-6 text-center">
-            <a href="admin.php"
+            <a href="funcionario.php"
                 class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
                 Página Inicial
             </a>

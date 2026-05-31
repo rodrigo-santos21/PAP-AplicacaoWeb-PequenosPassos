@@ -2,35 +2,61 @@
 session_start();
 include("DBConnection.php");
 
-// Apenas administradores podem aceder
-if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
+// Apenas educadores podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     header("Location: index.php?erro=permissao");
     exit;
 }
 
+$IDutl = $_SESSION['id']; // ID do utilizador (educador logado)
+
+/* ================================
+   1) BUSCAR ID DO EDUCADOR + SALA
+================================ */
+$resEdu = mysqli_query($link, "
+    SELECT IDedu, IDsala 
+    FROM educador 
+    WHERE IDutl = $IDutl AND estado = 1
+");
+
+if (!$resEdu || mysqli_num_rows($resEdu) === 0) {
+    die("Erro: Educador não encontrado ou inativo.");
+}
+
+$edu = mysqli_fetch_assoc($resEdu);
+$IDedu = $edu['IDedu'];
+$IDsala = $edu['IDsala'];
+
+/* ================================
+   2) PROCESSAR FORMULÁRIO
+================================ */
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $titulo = $_POST['titulo'];
     $descricao = $_POST['descricao'];
     $datahora = $_POST['datahora'];
-    $criadopor = $_SESSION['id']; // Admin é o responsável
+    $criadopor = $IDutl; // Educador cria
 
-    // 1) Inserir atividade (IDedu = NULL)
+    // 1) Inserir atividade (educador é o responsável)
     $sql = "INSERT INTO atividade (titulo, datahora, IDedu, descricao, criadopor, estado)
-            VALUES (?, ?, NULL, ?, ?, 1)";
+            VALUES (?, ?, ?, ?, ?, 1)";
 
     $stmt = mysqli_prepare($link, $sql);
-    mysqli_stmt_bind_param($stmt, "sssi", $titulo, $datahora, $descricao, $criadopor);
+    mysqli_stmt_bind_param($stmt, "ssisi", $titulo, $datahora, $IDedu, $descricao, $criadopor);
 
     if (mysqli_stmt_execute($stmt)) {
 
         // ID da atividade criada
         $IDatv = mysqli_insert_id($link);
 
-        // 2) Buscar todas as crianças ativas
-        $resCri = mysqli_query($link, "SELECT IDcri FROM crianca WHERE estado = 1");
+        // 2) Buscar todas as crianças da sala do educador
+        $resCri = mysqli_query($link, "
+            SELECT IDcri 
+            FROM crianca 
+            WHERE estado = 1 AND IDsala = $IDsala
+        ");
 
-        // 3) Associar atividade a todas as crianças
+        // 3) Associar atividade às crianças da sala
         while ($cri = mysqli_fetch_assoc($resCri)) {
             $IDcri = $cri['IDcri'];
 
@@ -44,10 +70,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         date_default_timezone_set("Europe/Lisbon");
         $fdatahora = date("Y-m-d H:i:s");
 
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Admin adicionou atividade (ID $IDatv)', '$fdatahora', '$criadopor')");
+        mysqli_query($link, "
+            INSERT INTO logs (descricao, datahora, IDutl)
+            VALUES ('Educador adicionou atividade (ID $IDatv)', '$fdatahora', '$criadopor')
+        ");
 
-        header("Location: listaratv.php?sucesso=adicionado");
+        header("Location: listaratvedu.php?sucesso=adicionado");
         exit();
     } else {
         $erro = "Erro ao adicionar atividade: " . mysqli_error($link);
@@ -96,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <div class="flex justify-between">
-                <a href="admin.php"
+                <a href="educador.php"
                     class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                     Cancelar
                 </a>

@@ -11,16 +11,32 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     exit;
 }
 
-$IDedu = $_SESSION['id']; // Educador autenticado
+$IDutl = intval($_SESSION['id']); //educador autenticado
+
+$res = mysqli_query($link, "SELECT IDedu FROM educador WHERE IDutl = $IDutl AND estado = 1");
+
+if ($res && mysqli_num_rows($res) > 0) {
+    $row = mysqli_fetch_assoc($res);
+    $IDedu = intval($row['IDedu']);
+} else {
+    die("Erro: Educador não encontrado ou inativo.");
+}
+
 
 // PROCESSAMENTO DO FORMULÁRIO
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $IDcri = $_POST['IDcri'];
-    $tipo = $_POST['tipo'];
-    $gravidade = $_POST['gravidade'];
-    $descricao = $_POST['descricao'];
-    $criadopor = $_SESSION['id'];
+    $IDcri = intval($_POST['IDcri']);
+    $tipo = mysqli_real_escape_string($link, $_POST['tipo']);
+    $tipo_outro = null;
+
+    if ($tipo === "Outro") {
+        $tipo_outro = mysqli_real_escape_string($link, $_POST['tipo_outro']);
+    }
+
+    $gravidade = mysqli_real_escape_string($link, $_POST['gravidade']);
+    $descricao = mysqli_real_escape_string($link, $_POST['descricao']);
+    $criadopor = $IDedu;
 
     // Validar se a criança pertence ao educador
     $check = mysqli_query($link, "
@@ -41,12 +57,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Inserir ocorrência
         $stmt = mysqli_prepare($link, "
-            INSERT INTO ocorrencia (tipo, datahora, descricao, gravidade, IDcri, IDedu, estado)
-            VALUES (?, NOW(), ?, ?, ?, ?, 1)
+            INSERT INTO ocorrencia (tipo, tipo_outro, datahora, descricao, gravidade, IDcri, IDedu, estado)
+            VALUES (?, ?, NOW(), ?, ?, ?, ?, 1)
         ");
 
-        mysqli_stmt_bind_param($stmt, "sssii",
-            $tipo, $descricao, $gravidade, $IDcri, $IDedu
+        mysqli_stmt_bind_param($stmt, "ssssii",
+            $tipo, $tipo_outro, $descricao, $gravidade, $IDcri, $IDedu
         );
 
         if (mysqli_stmt_execute($stmt)) {
@@ -58,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                                  VALUES ('Ocorrência registada para criança ID $IDcri', '$fdatahora', '$criadopor')");
 
-            header("Location: adicionarocorrencia.php?sucesso=1");
+            header("Location: adicionaroco.php?sucesso=1");
             exit();
         } else {
             $erro = "Erro ao registar ocorrência: " . mysqli_error($link);
@@ -99,7 +115,6 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
     <meta charset="utf-8">
     <title>Registar Ocorrência</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -131,7 +146,8 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Tipo de Ocorrência</label>
-                <select name="tipo" class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
+                <select name="tipo" id="tipoSelect"
+                        class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
                     <option value="">Selecionar...</option>
                     <option value="Doença">Doença</option>
                     <option value="Queda">Queda</option>
@@ -140,6 +156,23 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                     <option value="Outro">Outro</option>
                 </select>
             </div>
+
+            <div id="outroCampo" style="display:none;">
+                <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
+                <input type="text" name="tipo_outro"
+                    class="mt-1 block w-full px-4 py-2 border rounded-lg"
+                    placeholder="Descreva o tipo de ocorrência...">
+            </div>
+
+            <script>
+            document.getElementById('tipoSelect').addEventListener('change', function() {
+                if (this.value === "Outro") {
+                    document.getElementById('outroCampo').style.display = "block";
+                } else {
+                    document.getElementById('outroCampo').style.display = "none";
+                }
+            });
+            </script>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Gravidade</label>
