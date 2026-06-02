@@ -20,6 +20,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         WHERE IDcri = $id
     ");
 
+    /* ============================================================
+       2) DESATIVAR RELAÇÃO CRIANÇA ↔ ATIVIDADES
+       ============================================================ */
+    mysqli_query($link, "
+        UPDATE crianca_atividade
+        SET estado = 0
+        WHERE IDcri = $id
+    ");
+
+    /* ============================================================
+       3) DESATIVAR OCORRÊNCIAS DA CRIANÇA
+       ============================================================ */
+    mysqli_query($link, "
+        UPDATE ocorrencia
+        SET estado = 0
+        WHERE IDcri = $id
+    ");
+
     // Desativar criança (soft delete)
     $stmt = mysqli_prepare($link, "UPDATE crianca SET estado = 0 WHERE IDcri = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
@@ -44,7 +62,7 @@ $nome = $_SESSION['user'];
 <head>
     <meta charset="utf-8">
     <title>Listar Crianças</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>

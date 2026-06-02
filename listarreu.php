@@ -37,7 +37,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 
     $id = (int)$_GET['id'];
 
-    // Dados base
     $stmt = mysqli_prepare($link, "SELECT IDreu, titulo, datahora, localidade, objetivo FROM reuniao WHERE IDreu = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     mysqli_stmt_execute($stmt);
@@ -49,7 +48,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
         exit;
     }
 
-    // Participantes agrupados por tipo
     $func = [];
     $edu  = [];
     $enc  = [];
@@ -60,7 +58,6 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
         $IDutl = $p['IDutl'];
 
         $u = mysqli_fetch_assoc(mysqli_query($link, "SELECT tipo FROM utilizador WHERE IDutl = $IDutl AND estado = 1"));
-
         if (!$u) continue;
 
         if ($u['tipo'] === 'funcionario') $func[] = $IDutl;
@@ -169,26 +166,21 @@ if (isset($_GET['action']) && $_GET['action'] === 'update' && $_SERVER['REQUEST_
     $edu  = $_POST['educadores'] ?? [];
     $enc  = $_POST['encarregados'] ?? [];
 
-    /* ============================================================
-       FUNCIONÁRIOS — SE O ADMIN ESCOLHEU "TODOS"
-       ============================================================ */
     if (isset($_POST['funcionario_tipo']) && $_POST['funcionario_tipo'] === "todos") {
-
         $func = [];
         $res = mysqli_query($link, "SELECT IDutl FROM utilizador WHERE tipo='funcionario' AND estado=1");
-
-        while ($row = mysqli_fetch_assoc($res)) {
-            $func[] = $row['IDutl'];
-        }
+        while ($row = mysqli_fetch_assoc($res)) $func[] = $row['IDutl'];
     }
 
-    mysqli_query($link, "UPDATE reuniao SET titulo='$titulo', datahora='$datahora', localidade='$localidade', objetivo='$objetivo' WHERE IDreu=$id");
+    mysqli_query($link, "UPDATE reuniao 
+                         SET titulo='$titulo', datahora='$datahora', localidade='$localidade', objetivo='$objetivo' 
+                         WHERE IDreu=$id");
 
-    mysqli_query($link, "DELETE FROM reuniao_participante WHERE IDreu = $id");
+    mysqli_query($link, "UPDATE reuniao_participante SET estado = 0 WHERE IDreu = $id");
 
     $todos = array_unique(array_merge($func, $edu, $enc));
     foreach ($todos as $IDutl) {
-        mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl) VALUES ($id, $IDutl)");
+        mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl, estado) VALUES ($id, $IDutl, 1)");
     }
 
     echo json_encode(['success' => true]);
@@ -203,7 +195,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && $_SERVER['REQUEST_
 
     $id = (int)$_POST['id'];
 
-    mysqli_query($link, "DELETE FROM reuniao_participante WHERE IDreu = $id");
+    mysqli_query($link, "UPDATE reuniao_participante SET estado = 0 WHERE IDreu = $id");
     mysqli_query($link, "UPDATE reuniao SET estado = 0 WHERE IDreu = $id");
 
     echo json_encode(['success' => true]);
@@ -218,12 +210,14 @@ $resF = mysqli_query($link, "SELECT IDutl, nome FROM utilizador WHERE tipo='func
 while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 
 ?>
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8">
     <title>Listar Reuniões</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <!-- FullCalendar local -->
     <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
@@ -384,10 +378,11 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
             </form>
         </div>
     </div>
+
 <script>
-/* ============================================================
-   FUNÇÕES DO MODAL
-   ============================================================ */
+
+let selecionadosEducadores = [];
+let selecionadosEncarregados = [];
 
 function abrirModal() {
     document.getElementById('modalReuniao').classList.remove('hidden');
@@ -396,10 +391,6 @@ function abrirModal() {
 function fecharModal() {
     document.getElementById('modalReuniao').classList.add('hidden');
 }
-
-/* ============================================================
-   FULLCALENDAR
-   ============================================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -425,7 +416,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     /* ============================================================
-                       PREENCHER CAMPOS BASE
+                       ARRAYS GLOBAIS — MANTER SELECIONADOS
+                       ============================================================ */
+                    selecionadosEducadores = data.educadores.map(String);
+                    selecionadosEncarregados = data.encarregados.map(String);
+
+                    /* ============================================================
+                       CAMPOS BASE
                        ============================================================ */
                     document.getElementById('reu_id').value = data.id;
                     document.getElementById('reu_titulo').value = data.titulo;
@@ -445,17 +442,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     /* ============================================================
                        FUNCIONÁRIOS — MARCAR AUTOMATICAMENTE
                        ============================================================ */
-                    const idsFunc = data.funcionarios.map(String); // garantir tudo como string
+                    const idsFunc = data.funcionarios.map(String);
 
                     document.querySelectorAll('.chk-func').forEach(chk => {
-                        if (idsFunc.includes(chk.value)) {
-                            chk.checked = true;
-                        }
+                        if (idsFunc.includes(chk.value)) chk.checked = true;
                     });
-                    
-                    /* ============================================================
-                       FUNCIONÁRIOS — DETETAR "TODOS" OU "ESPECÍFICOS"
-                       ============================================================ */
+
                     const selFuncTipo   = document.getElementById('funcionario_tipo');
                     const boxFuncLista  = document.getElementById('funcionario_lista');
                     const totalFunc     = parseInt(boxFuncLista.dataset.total, 10);
@@ -472,17 +464,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         boxFuncLista.classList.add('hidden');
                     }
 
-                    /* FUNCIONÁRIOS — MARCAR AUTOMATICAMENTE (DEPOIS DE MOSTRAR/ESCONDER) */
-                    setTimeout(() => {
-                        document.querySelectorAll('.chk-func').forEach(chk => {
-                            if (data.funcionarios.includes(parseInt(chk.value))) {
-                                chk.checked = true;
-                            }
-                        });
-                    }, 10);
-
                     /* ============================================================
-                       EDUCADORES — CARREGAR SALA AUTOMATICAMENTE
+                       EDUCADORES — CARREGAR AUTOMATICAMENTE
                        ============================================================ */
                     if (data.educadores.length > 0) {
 
@@ -491,7 +474,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             .then(salaData => {
 
                                 const sala = salaData.sala;
-                                document.getElementById("educador_sala").value = sala;
+                                const select = document.getElementById("educador_sala");
+
+                                select.value = sala;
 
                                 fetch("listarreu.php?action=getEducadores&sala=" + sala)
                                     .then(r => r.text())
@@ -500,16 +485,25 @@ document.addEventListener('DOMContentLoaded', function () {
                                         box.innerHTML = html;
                                         box.classList.remove("hidden");
 
-                                        data.educadores.forEach(id => {
-                                            const chk = box.querySelector(`input[value="${id}"]`);
-                                            if (chk) chk.checked = true;
+                                        box.querySelectorAll('.chk-edu').forEach(chk => {
+                                            if (selecionadosEducadores.includes(chk.value)) chk.checked = true;
+
+                                            chk.addEventListener('change', function () {
+                                                if (this.checked) {
+                                                    if (!selecionadosEducadores.includes(this.value)) {
+                                                        selecionadosEducadores.push(this.value);
+                                                    }
+                                                } else {
+                                                    selecionadosEducadores = selecionadosEducadores.filter(id => id !== this.value);
+                                                }
+                                            });
                                         });
                                     });
                             });
                     }
 
                     /* ============================================================
-                       ENCARREGADOS — CARREGAR SALA AUTOMATICAMENTE
+                       ENCARREGADOS — CARREGAR AUTOMATICAMENTE
                        ============================================================ */
                     if (data.encarregados.length > 0) {
 
@@ -518,7 +512,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             .then(salaData => {
 
                                 const sala = salaData.sala;
-                                document.getElementById("encarregado_sala").value = sala;
+                                const select = document.getElementById("encarregado_sala");
+
+                                select.value = sala;
 
                                 fetch("listarreu.php?action=getEncarregados&sala=" + sala)
                                     .then(r => r.text())
@@ -527,9 +523,18 @@ document.addEventListener('DOMContentLoaded', function () {
                                         box.innerHTML = html;
                                         box.classList.remove("hidden");
 
-                                        data.encarregados.forEach(id => {
-                                            const chk = box.querySelector(`input[value="${id}"]`);
-                                            if (chk) chk.checked = true;
+                                        box.querySelectorAll('.chk-enc').forEach(chk => {
+                                            if (selecionadosEncarregados.includes(chk.value)) chk.checked = true;
+
+                                            chk.addEventListener('change', function () {
+                                                if (this.checked) {
+                                                    if (!selecionadosEncarregados.includes(this.value)) {
+                                                        selecionadosEncarregados.push(this.value);
+                                                    }
+                                                } else {
+                                                    selecionadosEncarregados = selecionadosEncarregados.filter(id => id !== this.value);
+                                                }
+                                            });
                                         });
                                     });
                             });
@@ -543,9 +548,78 @@ document.addEventListener('DOMContentLoaded', function () {
     calendar.render();
 
     /* ============================================================
+       LISTENER — MUDAR SALA EDUCADORES
+       ============================================================ */
+    document.getElementById("educador_sala").addEventListener("change", function () {
+        const sala = this.value;
+        const box = document.getElementById("educador_lista");
+
+        if (!sala) {
+            box.innerHTML = "";
+            box.classList.add("hidden");
+            return;
+        }
+
+        fetch("listarreu.php?action=getEducadores&sala=" + sala)
+            .then(r => r.text())
+            .then(html => {
+                box.innerHTML = html;
+                box.classList.remove("hidden");
+
+                box.querySelectorAll('.chk-edu').forEach(chk => {
+                    if (selecionadosEducadores.includes(chk.value)) chk.checked = true;
+
+                    chk.addEventListener('change', function () {
+                        if (this.checked) {
+                            if (!selecionadosEducadores.includes(this.value)) {
+                                selecionadosEducadores.push(this.value);
+                            }
+                        } else {
+                            selecionadosEducadores = selecionadosEducadores.filter(id => id !== this.value);
+                        }
+                    });
+                });
+            });
+    });
+
+    /* ============================================================
+       LISTENER — MUDAR SALA ENCARREGADOS
+       ============================================================ */
+    document.getElementById("encarregado_sala").addEventListener("change", function () {
+        const sala = this.value;
+        const box = document.getElementById("encarregado_lista");
+
+        if (!sala) {
+            box.innerHTML = "";
+            box.classList.add("hidden");
+            return;
+        }
+
+        fetch("listarreu.php?action=getEncarregados&sala=" + sala)
+            .then(r => r.text())
+            .then(html => {
+                box.innerHTML = html;
+                box.classList.remove("hidden");
+
+                box.querySelectorAll('.chk-enc').forEach(chk => {
+                    if (selecionadosEncarregados.includes(chk.value)) chk.checked = true;
+
+                    chk.addEventListener('change', function () {
+                        if (this.checked) {
+                            if (!selecionadosEncarregados.includes(this.value)) {
+                                selecionadosEncarregados.push(this.value);
+                            }
+                        } else {
+                            selecionadosEncarregados = selecionadosEncarregados.filter(id => id !== this.value);
+                        }
+                    });
+                });
+            });
+    });
+
+    /* ============================================================
        SUBMETER EDIÇÃO
        ============================================================ */
-
     document.getElementById('formReuniao').addEventListener('submit', function (e) {
         e.preventDefault();
 
@@ -556,12 +630,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const objetivo = document.getElementById('reu_objetivo').value;
 
         const funcionarios = [];
-        const educadores = [];
-        const encarregados = [];
-
         document.querySelectorAll('.chk-func:checked').forEach(chk => funcionarios.push(chk.value));
-        document.querySelectorAll('.chk-edu:checked').forEach(chk => educadores.push(chk.value));
-        document.querySelectorAll('.chk-enc:checked').forEach(chk => encarregados.push(chk.value));
+
+        const educadores = [...new Set(selecionadosEducadores)];
+        const encarregados = [...new Set(selecionadosEncarregados)];
 
         const formData = new URLSearchParams();
         formData.append('id', id);
@@ -570,7 +642,6 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('localidade', localidade);
         formData.append('objetivo', objetivo);
 
-        // IMPORTANTE: enviar o tipo selecionado
         formData.append('funcionario_tipo', document.getElementById('funcionario_tipo').value);
 
         funcionarios.forEach(v => formData.append('funcionarios[]', v));
@@ -597,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ============================================================
        ELIMINAR REUNIÃO
        ============================================================ */
-
+       
     document.getElementById('btnEliminar').addEventListener('click', function () {
         const id = document.getElementById('reu_id').value;
 

@@ -102,7 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <title>Editar Criança</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">

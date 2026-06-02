@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="utf-8">
     <title>Adicionar Sala</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 
@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div>
                 <label for="capacidade" class="block text-sm font-medium text-gray-700">Capacidade</label>
-                <input name="capacidade" id="capacidade" type="text"
+                <input name="capacidade" id="capacidade" type="number"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
                     placeholder="Escreve um capacidade para a sala!"
                     required>

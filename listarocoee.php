@@ -16,7 +16,8 @@ $IDEE = intval($_SESSION['id']);
 <head>
     <meta charset="utf-8">
     <title>Ocorrências — Encarregado de Educação</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 min-h-screen">

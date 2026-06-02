@@ -152,7 +152,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 <head>
     <meta charset="utf-8">
     <title>Reuniões — Funcionário</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <!-- FullCalendar -->
     <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>

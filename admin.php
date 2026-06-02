@@ -10,7 +10,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
 <head>
     <meta charset="utf-8">
     <title>Página do Administrador</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 

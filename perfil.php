@@ -27,6 +27,9 @@ if ($tipo === "superadministrador") {
 } elseif ($tipo === "funcionario") {
     $paginaCancelar = "funcionario.php";
 
+} elseif ($tipo === "superadmin") {
+    $paginaCancelar = "superadmin.php";
+
 } else {
     $paginaCancelar = "index.php"; // fallback de segurança
 }
@@ -74,7 +77,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="utf-8">
     <title>Perfil</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?= time() ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <script>

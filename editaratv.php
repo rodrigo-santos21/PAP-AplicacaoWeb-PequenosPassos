@@ -72,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <title>Editar Atividade</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
@@ -110,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <option value="">Selecione um educador</option>
 
                     <?php
-                    // Buscar educadores ativos (SEM JOIN)
+                    // Buscar educadores ativos
                     $resEdu = mysqli_query($link, "SELECT IDedu, IDutl FROM educador WHERE estado = 1");
 
                     while ($e = mysqli_fetch_assoc($resEdu)) {

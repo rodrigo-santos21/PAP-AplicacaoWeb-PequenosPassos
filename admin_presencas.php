@@ -50,7 +50,8 @@ if ($id_sala_sel) {
 <head>
     <meta charset="utf-8">
     <title>Presenças - Administrador</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="assets/fullcalendar/index.global.min.js"></script>
 </head>
 

@@ -66,6 +66,8 @@ if ($stmt) {
                 header("Location: educador.php");
             } elseif ($tipo === 'funcionario') {
                 header("Location: funcionario.php");
+            } elseif ($tipo === 'superadmin') {
+                header("Location: superadmin.php");
             } else {
                 header("Location: index.php?erro=2");
             }

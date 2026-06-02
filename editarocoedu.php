@@ -110,7 +110,8 @@ if ($resCri && mysqli_num_rows($resCri) > 0) {
 <head>
     <meta charset="utf-8">
     <title>Editar Ocorrência</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>
     function toggleOutro() {

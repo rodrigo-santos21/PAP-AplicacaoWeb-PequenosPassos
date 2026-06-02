@@ -1,0 +1,155 @@
+<?php
+session_start();
+include "DBConnection.php";
+
+// Apenas superadministradores podem aceder
+if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
+    header("Location: index.php?erro=permissao");
+    exit();
+}
+
+// Verificar se veio um ID pela URL
+if (!isset($_GET['id'])) {
+    header("Location: listarutlsuper.php?erro=sem_id");
+    exit();
+}
+
+$id = intval($_GET['id']);
+
+// Buscar dados do utilizador
+$stmt = mysqli_prepare($link, "SELECT * FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$utilizador = mysqli_fetch_assoc($result);
+
+// Se não existir
+if (!$utilizador) {
+    header("Location: listarutlsuper.php?erro=nao_existe");
+    exit();
+}
+
+// PROCESSAR ATUALIZAÇÃO
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $nome = $_POST['nome'];
+    $email = $_POST['email'];
+    $tipo = $_POST['tipo'];
+    $datanascimento = $_POST['datanascimento'];
+    $telefone = $_POST['telefone'];
+
+    // VALIDAR IDADE (mínimo 18 anos)
+    $hoje = new DateTime();
+    $nascimento = new DateTime($datanascimento);
+    $idade = $hoje->diff($nascimento)->y;
+
+    if ($idade < 18) {
+        $erro = "O utilizador deve ter pelo menos 18 anos.";
+    }
+
+    if (!isset($erro)) {
+
+        $stmt = mysqli_prepare($link, "UPDATE utilizador 
+                                       SET nome=?, email=?, tipo=?, datanascimento=?, telefone=? 
+                                       WHERE IDutl=?");
+
+        mysqli_stmt_bind_param($stmt, "sssssi", 
+            $nome, $email, $tipo, $datanascimento, $telefone, $id
+        );
+
+        $success = mysqli_stmt_execute($stmt);
+
+        if ($success) {
+            // Registar log
+            date_default_timezone_set("Europe/Lisbon");
+            $fdatahora = date("Y-m-d H:i:s");
+
+            mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                                 VALUES ('Edição de Conta (Superadmin)', '$fdatahora', '$id')");
+
+            header("Location: listarutlsuper.php?sucesso=editado");
+            exit();
+        } else {
+            $erro = "Erro ao atualizar utilizador.";
+        }
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8">
+    <title>Editar Utilizador (Superadmin)</title>
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Editar Utilizador (Superadmin)
+        </h2>
+
+        <?php if (isset($erro)): ?>
+            <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                <?= $erro ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" class="space-y-5">
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nome</label>
+                <input type="text" name="nome" value="<?= $utilizador['nome'] ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" name="email" value="<?= $utilizador['email'] ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                <select name="tipo" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                    <option value="encarregado" <?= $utilizador['tipo'] === 'encarregado' ? 'selected' : '' ?>>Encarregado</option>
+                    <option value="educador" <?= $utilizador['tipo'] === 'educador' ? 'selected' : '' ?>>Educador</option>
+                    <option value="funcionario" <?= $utilizador['tipo'] === 'funcionario' ? 'selected' : '' ?>>Funcionário</option>
+                    <option value="administrador" <?= $utilizador['tipo'] === 'administrador' ? 'selected' : '' ?>>Administrador</option>
+                    <option value="superadmin" <?= $utilizador['tipo'] === 'superadmin' ? 'selected' : '' ?>>Superadministrador</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                <input type="date" name="datanascimento" max="<?= date('Y-m-d') ?>" value="<?= $utilizador['datanascimento'] ?>"
+                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                <input type="tel" name="telefone" maxlength="9" pattern="\d{9}" placeholder="9 dígitos" value="<?= $utilizador['telefone'] ?>"
+                        class="mt-1 w-full px-4 py-2 border rounded-lg" 
+                        required
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+
+            <div class="flex justify-between mt-6">
+                <a href="listarutlsuper.php"
+                   class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                    Cancelar
+                </a>
+
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Guardar Alterações
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</body>
+</html>

@@ -7,7 +7,8 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <title>Recuperar Password</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">

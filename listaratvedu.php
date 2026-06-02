@@ -23,8 +23,8 @@ if (!$resEdu || mysqli_num_rows($resEdu) === 0) {
     die("Erro: Educador não encontrado.");
 }
 
-$edu = mysqli_fetch_assoc($resEdu);
-$IDedu = $edu['IDedu'];
+$edu    = mysqli_fetch_assoc($resEdu);
+$IDedu  = $edu['IDedu'];
 $IDsala = $edu['IDsala'];
 
 /* ================================
@@ -33,6 +33,17 @@ $IDsala = $edu['IDsala'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
     $id = intval($_POST['eliminar_id']);
+
+    // Verificar se a atividade pertence ao educador
+    $resCheck = mysqli_query($link, "
+        SELECT IDatv FROM atividade 
+        WHERE IDatv = $id AND criadopor = $IDutl AND estado = 1
+    ");
+
+    if (mysqli_num_rows($resCheck) == 0) {
+        echo "erro_permissao";
+        exit;
+    }
 
     // 1) Soft delete da atividade
     $stmt = mysqli_prepare($link, "UPDATE atividade SET estado = 0 WHERE IDatv = ?");
@@ -68,7 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 <head>
     <meta charset="utf-8">
     <title>Atividades da Sala</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>
     function eliminarAtividade(id) {
@@ -84,7 +96,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                 if (data.trim() === "ok") {
                     alert("Atividade eliminada com sucesso.");
                     location.reload();
-                } else {
+                } 
+                else if (data.trim() === "erro_permissao") {
+                    alert("Não tem permissão para eliminar esta atividade.");
+                }
+                else {
                     alert("Erro ao eliminar atividade.");
                 }
             });

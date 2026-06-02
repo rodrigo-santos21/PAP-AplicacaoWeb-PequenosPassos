@@ -2,31 +2,83 @@
 session_start();
 include("DBConnection.php");
 
-// Administradores e funcionários podem aceder
+/* ============================================================
+   PERMISSÕES
+   ============================================================ */
+
 if (!isset($_SESSION['tipo']) || 
-   ($_SESSION['tipo'] !== 'administrador' && $_SESSION['tipo'] !== 'funcionario')) {
+   ($_SESSION['tipo'] !== 'administrador' && 
+    $_SESSION['tipo'] !== 'funcionario' &&
+    $_SESSION['tipo'] !== 'superadmin')) {
+
     header("Location: index.php?erro=permissao");
     exit();
 }
 
-// Buscar logs
-$sql = "SELECT * FROM logs ORDER BY datahora DESC"; //ordena pela data de hoje para a antiga
+/* ============================================================
+   RESET TOTAL DOS LOGS (APENAS SUPERADMIN)
+   ============================================================ */
+
+if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
+
+    // Apagar todos os logs
+    mysqli_query($link, "TRUNCATE TABLE logs");
+
+    // Registar que o superadmin fez reset (opcional)
+    date_default_timezone_set("Europe/Lisbon");
+    $fdatahora = date("Y-m-d H:i:s");
+    $IDutl = $_SESSION['id'];
+
+    mysqli_query($link, "
+        INSERT INTO logs (descricao, datahora, IDutl)
+        VALUES ('Superadministrador fez reset total aos logs', '$fdatahora', $IDutl)
+    ");
+
+    header("Location: logs.php?reset=ok");
+    exit();
+}
+
+/* ============================================================
+   BUSCAR LOGS
+   ============================================================ */
+
+$sql = "SELECT * FROM logs ORDER BY datahora DESC";
 $result = mysqli_query($link, $sql);
+
 ?>
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
     <title>Registo de Logs</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 min-h-screen p-8">
 
     <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6">
+
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">
             Registo de Logs
         </h2>
+
+        <?php if (isset($_GET['reset']) && $_GET['reset'] === 'ok'): ?>
+            <p class="text-center text-green-600 font-semibold mb-4">
+                Logs resetados com sucesso.
+            </p>
+        <?php endif; ?>
+
+        <!-- BOTÃO RESETAR LOGS (APENAS SUPERADMIN) -->
+        <?php if ($_SESSION['tipo'] === 'superadmin'): ?>
+            <form method="POST" class="text-center mb-6"
+                  onsubmit="return confirm('Tem a certeza que deseja apagar TODOS os logs? Esta ação é irreversível.')">
+                <button type="submit" name="reset_logs"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Resetar Logs
+                </button>
+            </form>
+        <?php endif; ?>
 
         <?php if (mysqli_num_rows($result) === 0): ?>
             <p class="text-center text-gray-600">Não existem logs registados.</p>
@@ -48,7 +100,6 @@ $result = mysqli_query($link, $sql);
                         <?php while ($log = mysqli_fetch_assoc($result)): ?>
 
                             <?php
-                            // Buscar dados do utilizador associado ao log
                             $IDutl = $log['IDutl'];
                             $sqlUser = "SELECT nome, email, tipo FROM utilizador WHERE IDutl = $IDutl";
                             $resUser = mysqli_query($link, $sqlUser);
@@ -81,7 +132,10 @@ $result = mysqli_query($link, $sql);
         <?php endif; ?>
 
         <div class="text-center mt-6">
-            <a href="<?= $_SESSION['tipo'] === 'administrador' ? 'admin.php' : 'funcionario.php' ?>"
+            <a href="<?=
+                $_SESSION['tipo'] === 'superadmin' ? 'superadmin.php' :
+                ($_SESSION['tipo'] === 'administrador' ? 'admin.php' : 'funcionario.php')
+            ?>"
                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
                 Voltar
             </a>

@@ -45,7 +45,8 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
 <head>
     <meta charset="utf-8">
     <title>Presenças e Faltas</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="assets/fullcalendar/index.global.min.js"></script>
 </head>
 

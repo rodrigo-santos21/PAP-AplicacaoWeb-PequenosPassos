@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
     $stmt = mysqli_prepare($link, "UPDATE atividade SET estado = 0 WHERE IDatv = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
     $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
 
     // 2) Soft delete das relações com crianças
     if ($success) {
@@ -47,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 <head>
     <meta charset="utf-8">
     <title>Listar Atividades</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>
     function eliminarAtividade(id) {

@@ -8,29 +8,32 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'administrador') {
     exit;
 }
 
-// Variáveis auxiliares para recarregar selects
-$selectedSalaEdu = $_POST['sala_educador'] ?? "";
-$selectedSalaEnc = $_POST['sala_encarregado'] ?? "";
-$tipoFuncionario = $_POST['tipo_funcionario'] ?? "";
-
-// Guardar estado das checkboxes após refresh
-$checkedFuncionarios = $_POST['funcionarios_especificos'] ?? [];
-$checkedEducadores   = $_POST['educadores_sala'] ?? [];
-$checkedEncarregados = $_POST['encarregados_sala'] ?? [];
-
-// Controlar quais secções devem estar abertas após refresh
-$showFunc = !empty($tipoFuncionario);
-$showEdu  = !empty($selectedSalaEdu);
-$showEnc  = !empty($selectedSalaEnc);
-
-// PROCESSAR SUBMISSÃO FINAL
-if (isset($_POST['criar_reuniao'])) {
+// PROCESSAR SUBMISSÃO FINAL (AJAX)
+if (isset($_GET['action']) && $_GET['action'] === 'criar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $titulo = $_POST['titulo'];
     $datahora = $_POST['datahora'];
     $localidade = $_POST['localidade'];
     $objetivo = $_POST['objetivo'];
     $criadopor = $_SESSION['id'];
+
+    $func = $_POST['funcionarios'] ?? [];
+    $edu  = $_POST['educadores'] ?? [];
+    $enc  = $_POST['encarregados'] ?? [];
+
+    /* ============================================================
+       TRATAR "TODOS OS FUNCIONÁRIOS"
+       ============================================================ */
+    if (is_array($func) && in_array("todos", $func)) {
+
+        $func = []; // limpar
+
+        $res = mysqli_query($link, "SELECT IDutl FROM utilizador WHERE tipo='funcionario' AND estado=1");
+
+        while ($row = mysqli_fetch_assoc($res)) {
+            $func[] = $row['IDutl'];
+        }
+    }
 
     // Inserir reunião
     $sql = "INSERT INTO reuniao (titulo, datahora, localidade, objetivo, criadopor)
@@ -43,43 +46,11 @@ if (isset($_POST['criar_reuniao'])) {
 
         $IDreu = mysqli_insert_id($link);
 
-        // ============================
-        // FUNCIONÁRIOS
-        // ============================
-        if (!empty($tipoFuncionario)) {
+        // Participantes (sem duplicados)
+        $todos = array_unique(array_merge($func, $edu, $enc));
 
-            // Todos os funcionários
-            if ($tipoFuncionario === "todos") {
-                $res = mysqli_query($link, "SELECT IDutl FROM utilizador WHERE tipo='funcionario' AND estado=1");
-                while ($u = mysqli_fetch_assoc($res)) {
-                    mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl) VALUES ($IDreu, {$u['IDutl']})");
-                }
-            }
-
-            // Funcionários específicos
-            if ($tipoFuncionario === "especificos" && !empty($checkedFuncionarios)) {
-                foreach ($checkedFuncionarios as $IDutl) {
-                    mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl) VALUES ($IDreu, $IDutl)");
-                }
-            }
-        }
-
-        // ============================
-        // EDUCADORES
-        // ============================
-        if (!empty($selectedSalaEdu) && !empty($checkedEducadores)) {
-            foreach ($checkedEducadores as $IDutl) {
-                mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl) VALUES ($IDreu, $IDutl)");
-            }
-        }
-
-        // ============================
-        // ENCARREGADOS
-        // ============================
-        if (!empty($selectedSalaEnc) && !empty($checkedEncarregados)) {
-            foreach ($checkedEncarregados as $IDutl) {
-                mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl) VALUES ($IDreu, $IDutl)");
-            }
+        foreach ($todos as $IDutl) {
+            mysqli_query($link, "INSERT INTO reuniao_participante (IDreu, IDutl, estado) VALUES ($IDreu, $IDutl, 1)");
         }
 
         // LOG
@@ -89,25 +60,69 @@ if (isset($_POST['criar_reuniao'])) {
         mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                              VALUES ('Admin criou reunião (ID $IDreu)', '$fdatahora', '$criadopor')");
 
-        header("Location: listarreu.php?sucesso=adicionado");
-        exit();
-    } else {
-        $erro = "Erro ao adicionar reunião: " . mysqli_error($link);
+        echo json_encode(['success' => true]);
+        exit;
     }
+
+    echo json_encode(['success' => false, 'erro' => mysqli_error($link)]);
+    exit;
 }
+
+/* ============================================================
+   AJAX: DEVOLVER EDUCADORES POR SALA
+   ============================================================ */
+if (isset($_GET['action']) && $_GET['action'] === 'getEducadores') {
+    $sala = (int)$_GET['sala'];
+
+    $res = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDsala = $sala AND estado = 1");
+
+    while ($e = mysqli_fetch_assoc($res)) {
+        $IDutl = $e['IDutl'];
+        $u = mysqli_fetch_assoc(mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutl AND estado = 1"));
+
+        echo "<label class='block ml-2'>
+                <input type='checkbox' class='chk-edu' value='$IDutl'>
+                {$u['nome']}
+              </label>";
+    }
+    exit;
+}
+
+/* ============================================================
+   AJAX: DEVOLVER ENCARREGADOS POR SALA
+   ============================================================ */
+if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
+    $sala = (int)$_GET['sala'];
+
+    $res = mysqli_query($link, "SELECT IDutl FROM crianca WHERE IDsala = $sala AND estado = 1");
+
+    $mostrados = [];
+
+    while ($c = mysqli_fetch_assoc($res)) {
+        $IDutl = $c['IDutl'];
+
+        if (in_array($IDutl, $mostrados)) continue;
+        $mostrados[] = $IDutl;
+
+        $u = mysqli_fetch_assoc(mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutl AND estado = 1"));
+
+        echo "<label class='block ml-2'>
+                <input type='checkbox' class='chk-enc' value='$IDutl'>
+                {$u['nome']}
+              </label>";
+    }
+    exit;
+}
+
 ?>
+
+<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Reunião</title>
-    <link rel="stylesheet" href="style.css">
-
-    <script>
-        function toggleSection(id) {
-            const sec = document.getElementById(id);
-            sec.style.display = sec.style.display === "none" ? "block" : "none";
-        }
-    </script>
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -115,36 +130,29 @@ if (isset($_POST['criar_reuniao'])) {
 
         <h2 class="text-xl font-bold text-gray-800 mb-6">Adicionar Reunião</h2>
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4"><?= $erro ?></div>
-        <?php endif; ?>
+        <div id="erroBox" class="hidden bg-red-200 text-red-800 p-3 rounded mb-4"></div>
 
-        <form method="post" class="space-y-6">
+        <form id="formReuniao" class="space-y-6">
 
             <!-- CAMPOS BASE -->
             <div>
                 <label class="block text-sm font-medium">Título</label>
-                <input name="titulo" type="text" class="w-full border p-2 rounded"
-                        value="<?= htmlspecialchars($_POST['titulo'] ?? '') ?>" required>
+                <input name="titulo" id="titulo" type="text" class="w-full border p-2 rounded" required>
             </div>
 
             <div>
                 <label class="block text-sm font-medium">Data e Hora</label>
-                <input name="datahora" type="datetime-local" class="w-full border p-2 rounded"
-                        value="<?= $_POST['datahora'] ?? '' ?>" required>
+                <input name="datahora" id="datahora" type="datetime-local" class="w-full border p-2 rounded" required>
             </div>
 
             <div>
                 <label class="block text-sm font-medium">Localidade</label>
-                <input name="localidade" type="text" class="w-full border p-2 rounded"
-                        value="<?= htmlspecialchars($_POST['localidade'] ?? '') ?>" required>
+                <input name="localidade" id="localidade" type="text" class="w-full border p-2 rounded" required>
             </div>
 
             <div>
                 <label class="block text-sm font-medium">Objetivo</label>
-                <textarea name="objetivo" rows="4" class="w-full border p-2 rounded" required><?= 
-                    htmlspecialchars($_POST['objetivo'] ?? '') 
-                ?></textarea>
+                <textarea name="objetivo" id="objetivo" rows="4" class="w-full border p-2 rounded" required></textarea>
             </div>
 
             <hr>
@@ -153,129 +161,220 @@ if (isset($_POST['criar_reuniao'])) {
             <h3 class="text-lg font-semibold">Participantes</h3>
 
             <!-- FUNCIONÁRIOS -->
-            <button type="button" onclick="toggleSection('sec_func')" class="w-full bg-gray-200 p-2 rounded">
+            <button type="button" onclick="toggle('sec_func')" class="w-full bg-gray-200 p-2 rounded">
                 Funcionários
             </button>
-            <div id="sec_func" style="display:<?= $showFunc ? 'block' : 'none' ?>" class="p-3 border rounded">
+            <div id="sec_func" class="hidden p-3 border rounded">
 
                 <label>Selecionar:</label>
-                <select name="tipo_funcionario" class="border p-2 rounded w-full mb-3" onchange="this.form.submit()">
+                <select id="tipo_funcionario" class="border p-2 rounded w-full mb-3">
                     <option value="">-- Escolher --</option>
-                    <option value="todos" <?= ($tipoFuncionario=='todos') ? 'selected' : '' ?>>Todos os funcionários</option>
-                    <option value="especificos" <?= ($tipoFuncionario=='especificos') ? 'selected' : '' ?>>Selecionar específicos</option>
+                    <option value="todos">Todos os funcionários</option>
+                    <option value="especificos">Selecionar específicos</option>
                 </select>
 
-                <?php
-                if ($tipoFuncionario === "especificos") {
+                <div id="lista_funcionarios" class="hidden border p-3 rounded">
+                    <?php
                     $res = mysqli_query($link, "SELECT IDutl, nome FROM utilizador WHERE tipo='funcionario' AND estado=1");
                     while ($u = mysqli_fetch_assoc($res)) {
-
-                        $checked = in_array($u['IDutl'], $checkedFuncionarios) ? "checked" : "";
-
                         echo "<label class='block ml-2'>
-                                <input type='checkbox' name='funcionarios_especificos[]' value='{$u['IDutl']}' $checked>
+                                <input type='checkbox' class='chk-func' value='{$u['IDutl']}'>
                                 {$u['nome']}
                               </label>";
                     }
-                }
-                ?>
+                    ?>
+                </div>
+
             </div>
 
             <!-- EDUCADORES -->
-            <button type="button" onclick="toggleSection('sec_edu')" class="w-full bg-gray-200 p-2 rounded">
+            <button type="button" onclick="toggle('sec_edu')" class="w-full bg-gray-200 p-2 rounded">
                 Educadores
             </button>
-            <div id="sec_edu" style="display:<?= $showEdu ? 'block' : 'none' ?>" class="p-3 border rounded">
+            <div id="sec_edu" class="hidden p-3 border rounded">
 
                 <label>Sala:</label>
-                <select name="sala_educador" class="border p-2 rounded w-full mb-3" onchange="this.form.submit()">
+                <select id="sala_educador" class="border p-2 rounded w-full mb-3">
                     <option value="">-- Escolher sala --</option>
                     <?php
                     $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
                     while ($s = mysqli_fetch_assoc($salas)) {
-                        $sel = ($selectedSalaEdu == $s['IDsala']) ? "selected" : "";
-                        echo "<option value='{$s['IDsala']}' $sel>{$s['nome']}</option>";
+                        echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
                     }
                     ?>
                 </select>
 
-                <?php
-                if ($selectedSalaEdu) {
+                <div id="lista_educadores" class="hidden border p-3 rounded"></div>
 
-                    $resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDsala = $selectedSalaEdu AND estado = 1");
-
-                    while ($e = mysqli_fetch_assoc($resEdu)) {
-
-                        $IDutl = $e['IDutl'];
-
-                        $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutl AND estado = 1");
-                        $u = mysqli_fetch_assoc($resU);
-
-                        $checked = in_array($IDutl, $checkedEducadores) ? "checked" : "";
-
-                        echo "<label class='block ml-2'>
-                                <input type='checkbox' name='educadores_sala[]' value='$IDutl' $checked>
-                                {$u['nome']}
-                              </label>";
-                    }
-                }
-                ?>
             </div>
 
             <!-- ENCARREGADOS -->
-            <button type="button" onclick="toggleSection('sec_enc')" class="w-full bg-gray-200 p-2 rounded">
+            <button type="button" onclick="toggle('sec_enc')" class="w-full bg-gray-200 p-2 rounded">
                 Encarregados
             </button>
-            <div id="sec_enc" style="display:<?= $showEnc ? 'block' : 'none' ?>" class="p-3 border rounded">
+            <div id="sec_enc" class="hidden p-3 border rounded">
 
                 <label>Sala:</label>
-                <select name="sala_encarregado" class="border p-2 rounded w-full mb-3" onchange="this.form.submit()">
+                <select id="sala_encarregado" class="border p-2 rounded w-full mb-3">
                     <option value="">-- Escolher sala --</option>
                     <?php
                     $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
                     while ($s = mysqli_fetch_assoc($salas)) {
-                        $sel = ($selectedSalaEnc == $s['IDsala']) ? "selected" : "";
-                        echo "<option value='{$s['IDsala']}' $sel>{$s['nome']}</option>";
+                        echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
                     }
                     ?>
                 </select>
 
-                <?php
-                if ($selectedSalaEnc) {
+                <div id="lista_encarregados" class="hidden border p-3 rounded"></div>
 
-                    $resCri = mysqli_query($link, "SELECT IDutl FROM crianca WHERE IDsala = $selectedSalaEnc AND estado = 1");
-
-                    $encarregadosMostrados = [];
-
-                    while ($c = mysqli_fetch_assoc($resCri)) {
-
-                        $IDutl = $c['IDutl'];
-
-                        if (in_array($IDutl, $encarregadosMostrados)) {
-                            continue;
-                        }
-                        $encarregadosMostrados[] = $IDutl;
-
-                        $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutl AND estado = 1");
-                        $u = mysqli_fetch_assoc($resU);
-
-                        $checked = in_array($IDutl, $checkedEncarregados) ? "checked" : "";
-
-                        echo "<label class='block ml-2'>
-                                <input type='checkbox' name='encarregados_sala[]' value='$IDutl' $checked>
-                                {$u['nome']}
-                              </label>";
-                    }
-                }
-                ?>
             </div>
 
             <div class="flex justify-between mt-6">
                 <a href="admin.php" class="px-4 py-2 bg-gray-500 text-white rounded">Cancelar</a>
-                <button name="criar_reuniao" class="px-4 py-2 bg-blue-600 text-white rounded">Criar Reunião</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Criar Reunião</button>
             </div>
 
         </form>
     </div>
-</body>
-</html>
+<script>
+
+function toggle(id) {
+    document.getElementById(id).classList.toggle("hidden");
+}
+
+let selecionadosEducadores = [];
+let selecionadosEncarregados = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    /* ============================================================
+       FUNCIONÁRIOS
+       ============================================================ */
+    const tipoFunc = document.getElementById("tipo_funcionario");
+    const listaFunc = document.getElementById("lista_funcionarios");
+
+    tipoFunc.addEventListener("change", () => {
+        if (tipoFunc.value === "especificos") {
+            listaFunc.classList.remove("hidden");
+        } else {
+            listaFunc.classList.add("hidden");
+        }
+    });
+
+    /* ============================================================
+       EDUCADORES — MUDAR SALA
+       ============================================================ */
+    document.getElementById("sala_educador").addEventListener("change", function () {
+        const sala = this.value;
+        const box = document.getElementById("lista_educadores");
+
+        if (!sala) {
+            box.innerHTML = "";
+            box.classList.add("hidden");
+            return;
+        }
+
+        fetch("adicionarreu.php?action=getEducadores&sala=" + sala)
+            .then(r => r.text())
+            .then(html => {
+                box.innerHTML = html;
+                box.classList.remove("hidden");
+
+                box.querySelectorAll('.chk-edu').forEach(chk => {
+                    if (selecionadosEducadores.includes(chk.value)) chk.checked = true;
+
+                    chk.addEventListener("change", function () {
+                        if (this.checked) {
+                            if (!selecionadosEducadores.includes(this.value)) {
+                                selecionadosEducadores.push(this.value);
+                            }
+                        } else {
+                            selecionadosEducadores = selecionadosEducadores.filter(id => id !== this.value);
+                        }
+                    });
+                });
+            });
+    });
+
+    /* ============================================================
+       ENCARREGADOS — MUDAR SALA
+       ============================================================ */
+    document.getElementById("sala_encarregado").addEventListener("change", function () {
+        const sala = this.value;
+        const box = document.getElementById("lista_encarregados");
+
+        if (!sala) {
+            box.innerHTML = "";
+            box.classList.add("hidden");
+            return;
+        }
+
+        fetch("adicionarreu.php?action=getEncarregados&sala=" + sala)
+            .then(r => r.text())
+            .then(html => {
+                box.innerHTML = html;
+                box.classList.remove("hidden");
+
+                box.querySelectorAll('.chk-enc').forEach(chk => {
+                    if (selecionadosEncarregados.includes(chk.value)) chk.checked = true;
+
+                    chk.addEventListener("change", function () {
+                        if (this.checked) {
+                            if (!selecionadosEncarregados.includes(this.value)) {
+                                selecionadosEncarregados.push(this.value);
+                            }
+                        } else {
+                            selecionadosEncarregados = selecionadosEncarregados.filter(id => id !== this.value);
+                        }
+                    });
+                });
+            });
+    });
+
+    /* ============================================================
+       SUBMETER FORMULÁRIO (AJAX)
+       ============================================================ */
+    document.getElementById("formReuniao").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        let funcionarios = [];
+        const tipoFunc = document.getElementById("tipo_funcionario").value;
+
+        if (tipoFunc === "todos") {
+            funcionarios = ["todos"];
+        } else {
+            document.querySelectorAll('.chk-func:checked').forEach(chk => funcionarios.push(chk.value));
+        }
+
+        const educadores = [...new Set(selecionadosEducadores)];
+        const encarregados = [...new Set(selecionadosEncarregados)];
+
+        const formData = new URLSearchParams();
+        formData.append("titulo", document.getElementById("titulo").value);
+        formData.append("datahora", document.getElementById("datahora").value);
+        formData.append("localidade", document.getElementById("localidade").value);
+        formData.append("objetivo", document.getElementById("objetivo").value);
+
+        funcionarios.forEach(v => formData.append("funcionarios[]", v));
+        educadores.forEach(v => formData.append("educadores[]", v));
+        encarregados.forEach(v => formData.append("encarregados[]", v));
+
+        fetch("adicionarreu.php?action=criar", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert("Reunião criada com sucesso!");
+                window.location.href = "listarreu.php";
+            } else {
+                document.getElementById("erroBox").innerText = data.erro;
+                document.getElementById("erroBox").classList.remove("hidden");
+            }
+        });
+    });
+
+});
+</script>

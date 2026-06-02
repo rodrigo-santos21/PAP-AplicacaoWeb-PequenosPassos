@@ -9,87 +9,67 @@ if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'educador') {
 }
 
 $IDutl = $_SESSION['id'];
-$nome = $_SESSION['user'];
+$nome  = $_SESSION['user'];
 
 /* ================================
    1) BUSCAR ID DO EDUCADOR
 ================================ */
-$resEdu = mysqli_query($link, "SELECT IDedu, IDsala FROM educador WHERE IDutl = $IDutl AND estado = 1");
+$resEdu = mysqli_query($link, "
+    SELECT IDedu, IDsala 
+    FROM educador 
+    WHERE IDutl = $IDutl AND estado = 1
+");
 
 if (!$resEdu || mysqli_num_rows($resEdu) === 0) {
     die("Erro: Educador não encontrado ou inativo.");
 }
 
-$edu = mysqli_fetch_assoc($resEdu);
-$IDedu = $edu['IDedu'];
+$edu    = mysqli_fetch_assoc($resEdu);
+$IDedu  = $edu['IDedu'];
 $IDsala = $edu['IDsala'];
 
 /* ================================
    2) BUSCAR NOME DA SALA
 ================================ */
 $nomeSala = "—";
-$resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = $IDsala");
+$resSala  = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = $IDsala");
 
 if ($resSala && mysqli_num_rows($resSala) > 0) {
     $nomeSala = mysqli_fetch_assoc($resSala)['nome'];
 }
 
 /* ================================
-   3) PROCESSO DE ELIMINAÇÃO (SOFT DELETE)
+   3) BLOQUEAR QUALQUER TENTATIVA DE ELIMINAÇÃO
+      (educador não pode eliminar crianças)
 ================================ */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
-
-    $id = $_POST['eliminar_id'];
-
-    // Desativar relações com educadores
-    mysqli_query($link, "
-        UPDATE crianca_educador 
-        SET estado = 0 
-        WHERE IDcri = $id
-    ");
-
-    // Soft delete da criança
-    $stmt = mysqli_prepare($link, "UPDATE crianca SET estado = 0 WHERE IDcri = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    $success = mysqli_stmt_execute($stmt);
-
-    // Log
-    if ($success) {
-        date_default_timezone_set("Europe/Lisbon");
-        $fdatahora = date("Y-m-d H:i:s");
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Educador eliminou criança (ID $id)', '$fdatahora', '$IDutl')");
-    }
-
-    echo $success ? "ok" : "erro";
+    echo "erro_permissao";
     exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8">
     <title>Crianças da Sala</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>
     function eliminarCrianca(id) {
-        if (confirm("Tem a certeza que deseja eliminar esta criança?")) {
-
+        // Segurança extra: mesmo que alguém tente forçar via JS, o PHP responde erro_permissao
+        if (confirm("Não tem permissão para eliminar crianças. Fale com o administrador.")) {
             fetch("listarcriedu.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: "eliminar_id=" + encodeURIComponent(id)
             })
-            .then(response => response.text())
+            .then(r => r.text())
             .then(data => {
-                if (data.trim() === "ok") {
-                    alert("Criança eliminada com sucesso.");
-                    location.reload();
+                if (data.trim() === "erro_permissao") {
+                    alert("Não tem permissão para eliminar crianças. Contacte o administrador.");
                 } else {
-                    alert("Erro ao eliminar criança.");
+                    alert("Operação inválida.");
                 }
             });
         }
@@ -106,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         </h1>
 
         <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-            Crianças da Sala: <?= $nomeSala ?>
+            Crianças da Sala: <?= htmlspecialchars($nomeSala) ?>
         </h3>
 
         <div class="overflow-x-auto">
@@ -141,9 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                     while ($cri = mysqli_fetch_assoc($resCri)) {
 
-                        /* ================================
-                           5) BUSCAR ENCARREGADO
-                        ================================= */
+                        /* 5) BUSCAR ENCARREGADO */
                         $encNome = "—";
 
                         if (!empty($cri['IDutl'])) {
@@ -179,11 +157,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                                     class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
                                     Editar
                                 </a>
-
-                                <button onclick='eliminarCrianca({$cri['IDcri']})'
-                                    class=\"px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition\">
-                                    Eliminar
-                                </button>
                             </td>
                         </tr>";
                     }

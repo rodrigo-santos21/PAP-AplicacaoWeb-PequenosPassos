@@ -55,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
 <head>
     <meta charset="utf-8">
     <title>Ocorrências do Educador</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <script>
     function desativarOcorrencia(id) {
@@ -126,20 +127,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
 
                     // Verificar se a criança pertence ao educador (SEM JOIN)
                     $resRel = mysqli_query($link, "
-                        SELECT estado FROM crianca_educador
-                        WHERE IDcri = $IDcri AND IDedu = $IDedu
+                        SELECT 1 FROM crianca_educador
+                        WHERE IDcri = $IDcri AND IDedu = $IDedu AND estado = 1
                     ");
 
-                    $pertence = false;
-                    while ($r = mysqli_fetch_assoc($resRel)) {
-                        if ($r['estado'] == 1) {
-                            $pertence = true;
-                        }
-                    }
-
-                    if (!$pertence) {
-                        continue;
-                    }
+                    if (mysqli_num_rows($resRel) == 0) continue;
 
                     // Nome da criança
                     $criNome = "—";
@@ -153,15 +145,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['desativar_id'])) {
                     $eduNome = "—";
                     $IDeduCriador = intval($o['IDedu']);
 
-                    $resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDedu = $IDeduCriador");
-                    if ($resEdu && mysqli_num_rows($resEdu) > 0) {
-                        $edu = mysqli_fetch_assoc($resEdu);
-                        $IDutlCriador = intval($edu['IDutl']);
+                    if ($IDeduCriador == 0) {
+                        $eduNome = "Administrador";
+                    } else {
+                        $resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDedu = $IDeduCriador");
+                        if ($resEdu && mysqli_num_rows($resEdu) > 0) {
+                            $edu = mysqli_fetch_assoc($resEdu);
+                            $IDutlCriador = intval($edu['IDutl']);
 
-                        $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlCriador");
-                        if ($resU && mysqli_num_rows($resU) > 0) {
-                            $u = mysqli_fetch_assoc($resU);
-                            $eduNome = $u['nome'];
+                            $resU = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlCriador");
+                            if ($resU && mysqli_num_rows($resU) > 0) {
+                                $u = mysqli_fetch_assoc($resU);
+                                $eduNome = $u['nome'];
+                            }
                         }
                     }
 

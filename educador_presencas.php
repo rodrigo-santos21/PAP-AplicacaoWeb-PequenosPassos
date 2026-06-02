@@ -3,51 +3,7 @@ session_start();
 include "DBConnection.php";
 
 /* ============================================================
-   1) TRATAR PEDIDOS AJAX (EDITAR / REMOVER / FALTA)
-   ============================================================ */
-
-if (isset($_POST['acao'])) {
-
-    // EDITAR PRESENÇA
-    if ($_POST['acao'] === 'editar') {
-        $idPres = $_POST['idPres'];
-        $horaE = $_POST['horaE'];
-        $horaS = $_POST['horaS'];
-
-        $sql = "UPDATE presenca SET horaE='$horaE', horaS='$horaS' WHERE IDpre=$idPres";
-        mysqli_query($link, $sql);
-
-        echo "OK";
-        exit();
-    }
-
-    // REMOVER PRESENÇA (SOFT DELETE)
-    if ($_POST['acao'] === 'remover') {
-        $idPres = $_POST['idPres'];
-
-        $sql = "UPDATE presenca SET estado = 0 WHERE IDpre = $idPres";
-        mysqli_query($link, $sql);
-
-        echo "OK";
-        exit();
-    }
-
-    // MARCAR FALTA
-    if ($_POST['acao'] === 'falta') {
-        $id_crianca = $_POST['id_crianca'];
-        $data = $_POST['data'];
-
-        $sql = "INSERT INTO presenca (IDcri, data, horaE, horaS, tipo, estado)
-                VALUES ($id_crianca, '$data', NULL, NULL, 'falta', 1)";
-        mysqli_query($link, $sql);
-
-        echo "OK";
-        exit();
-    }
-}
-
-/* ============================================================
-   2) VERIFICAR PERMISSÕES E CARREGAR DADOS DO EDUCADOR
+   1) VERIFICAR PERMISSÕES E CARREGAR DADOS DO EDUCADOR
    ============================================================ */
 
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
@@ -68,6 +24,105 @@ $dadosEdu = mysqli_fetch_assoc($resEdu);
 $id_educador = $dadosEdu['IDedu'];
 
 $_SESSION['IDedu'] = $id_educador;
+
+/* ============================================================
+   2) TRATAR PEDIDOS AJAX (EDITAR / REMOVER / FALTA)
+   ============================================================ */
+
+if (isset($_POST['acao'])) {
+
+    // EDITAR PRESENÇA
+    if ($_POST['acao'] === 'editar') {
+
+        $idPres = intval($_POST['idPres']);
+        $horaE = $_POST['horaE'];
+        $horaS = $_POST['horaS'];
+
+        // Buscar criança da presença
+        $res = mysqli_query($link, "SELECT IDcri, tipo FROM presenca WHERE IDpre = $idPres AND estado = 1");
+        $p = mysqli_fetch_assoc($res);
+
+        if (!$p) { echo "ERRO"; exit; }
+
+        // Bloquear edição de faltas
+        if ($p['tipo'] === 'falta') { echo "ERRO_FALTA"; exit; }
+
+        $id_crianca = $p['IDcri'];
+
+        // Verificar se pertence ao educador
+        $res2 = mysqli_query($link, "
+            SELECT 1 FROM crianca_educador 
+            WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
+        ");
+
+        if (mysqli_num_rows($res2) == 0) { echo "ERRO_PERMISSAO"; exit; }
+
+        // Validar horas
+        if ($horaE && $horaS && $horaE > $horaS) {
+            echo "ERRO_HORAS";
+            exit;
+        }
+
+        mysqli_query($link, "
+            UPDATE presenca 
+            SET horaE='$horaE', horaS='$horaS' 
+            WHERE IDpre=$idPres
+        ");
+
+        echo "OK";
+        exit;
+    }
+
+    // REMOVER PRESENÇA
+    if ($_POST['acao'] === 'remover') {
+
+        $idPres = intval($_POST['idPres']);
+
+        // Buscar criança da presença
+        $res = mysqli_query($link, "SELECT IDcri FROM presenca WHERE IDpre = $idPres AND estado = 1");
+        $p = mysqli_fetch_assoc($res);
+
+        if (!$p) { echo "ERRO"; exit; }
+
+        $id_crianca = $p['IDcri'];
+
+        // Verificar se pertence ao educador
+        $res2 = mysqli_query($link, "
+            SELECT 1 FROM crianca_educador 
+            WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
+        ");
+
+        if (mysqli_num_rows($res2) == 0) { echo "ERRO_PERMISSAO"; exit; }
+
+        mysqli_query($link, "UPDATE presenca SET estado = 0 WHERE IDpre = $idPres");
+
+        echo "OK";
+        exit;
+    }
+
+    // MARCAR FALTA
+    if ($_POST['acao'] === 'falta') {
+
+        $id_crianca = intval($_POST['id_crianca']);
+        $data = $_POST['data'];
+
+        // Verificar se pertence ao educador
+        $res2 = mysqli_query($link, "
+            SELECT 1 FROM crianca_educador 
+            WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
+        ");
+
+        if (mysqli_num_rows($res2) == 0) { echo "ERRO_PERMISSAO"; exit; }
+
+        mysqli_query($link, "
+            INSERT INTO presenca (IDcri, data, horaE, horaS, tipo, estado)
+            VALUES ($id_crianca, '$data', NULL, NULL, 'falta', 1)
+        ");
+
+        echo "OK";
+        exit;
+    }
+}
 
 /* ============================================================
    3) BUSCAR CRIANÇAS ASSOCIADAS AO EDUCADOR
@@ -94,7 +149,8 @@ while ($row = mysqli_fetch_assoc($res)) {
 <head>
     <meta charset="utf-8">
     <title>Marcar Presenças (Educador)</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
 </head>
 
