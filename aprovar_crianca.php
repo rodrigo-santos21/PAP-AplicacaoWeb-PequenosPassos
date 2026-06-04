@@ -56,36 +56,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $IDsala = intval($_POST['IDsala']);
     $educs = $_POST['educadores'] ?? [];
 
-    // Atualizar criança
-    mysqli_query($link,
-        "UPDATE crianca 
-         SET estado = 1, aprovado = 1, IDsala = $IDsala, analise_por = NULL
-         WHERE IDcri = $id"
-    );
-
-    // Apagar associações antigas
-    mysqli_query($link, "DELETE FROM crianca_educador WHERE IDcri = $id");
-
-    // Inserir novas associações
-    foreach ($educs as $e) {
-        $e = intval($e);
-        mysqli_query($link,
-            "INSERT INTO crianca_educador (IDcri, IDedu, estado)
-             VALUES ($id, $e, 1)"
-        );
+    // ❌ NOVO: impedir aprovação sem educadores
+    if (empty($educs)) {
+        $erro = "Tem de selecionar pelo menos um educador para aprovar a criança.";
     }
 
-    // Log
-    date_default_timezone_set("Europe/Lisbon");
-    $datahora = date("Y-m-d H:i:s");
+    if (!isset($erro)) {
 
-    mysqli_query($link,
-        "INSERT INTO logs (descricao, datahora, IDutl)
-         VALUES ('Funcionário $IDfunc aprovou a criança $id', '$datahora', $IDfunc)"
-    );
+        // Atualizar criança
+        mysqli_query($link,
+            "UPDATE crianca 
+             SET estado = 1, aprovado = 1, IDsala = $IDsala, analise_por = NULL
+             WHERE IDcri = $id"
+        );
 
-    header("Location: criancaspendentes.php?sucesso=aprovado");
-    exit();
+        // Apagar associações antigas
+        mysqli_query($link, "DELETE FROM crianca_educador WHERE IDcri = $id");
+
+        // Inserir novas associações
+        foreach ($educs as $e) {
+            $e = intval($e);
+            mysqli_query($link,
+                "INSERT INTO crianca_educador (IDcri, IDedu, estado)
+                 VALUES ($id, $e, 1)"
+            );
+        }
+
+        // Log
+        date_default_timezone_set("Europe/Lisbon");
+        $datahora = date("Y-m-d H:i:s");
+
+        mysqli_query($link,
+            "INSERT INTO logs (descricao, datahora, IDutl)
+             VALUES ('Funcionário $IDfunc aprovou a criança $id', '$datahora', $IDfunc)"
+        );
+
+        header("Location: criancaspendentes.php?sucesso=aprovado");
+        exit();
+    }
 }
 
 ?>
@@ -105,6 +113,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
         Aprovar Criança
     </h2>
+
+    <?php if (isset($erro)): ?>
+        <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+            <?= $erro ?>
+        </div>
+    <?php endif; ?>
 
     <p><strong>Nome:</strong> <?= $c['nome'] ?></p>
     <p><strong>Data Nascimento:</strong> <?= $c['datanascimento'] ?></p>
@@ -183,8 +197,18 @@ document.querySelectorAll(".educadorCheck").forEach(chk => {
         }
     });
 });
-</script>
 
+// ❌ NOVO: impedir submit sem educadores
+document.querySelector("form").addEventListener("submit", function(e) {
+    const algumMarcado = [...document.querySelectorAll(".educadorCheck")]
+        .some(c => c.checked);
+
+    if (!algumMarcado) {
+        alert("Selecione pelo menos um educador.");
+        e.preventDefault();
+    }
+});
+</script>
 
 </body>
 </html>

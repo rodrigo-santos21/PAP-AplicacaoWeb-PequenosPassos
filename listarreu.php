@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault.png";
+
 // Verifica se o utilizador é administrador
 if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'administrador') {
     header("Location: index.php?erro=permissao");
@@ -233,150 +244,322 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
     </style>
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-5xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Página do Administrador</h1>
-        <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">Reuniões (Calendário)</h3>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <div id="calendar"></div>
+        <!-- SIDEBAR -->
+        <aside class="w-1/5 bg-white shadow-lg p-6 flex flex-col justify-between fixed left-0 top-0 h-screen overflow-y-auto no-scrollbar">
 
-        <div class="mt-6 text-center">
-            <a href="admin.php" class="px-6 py-2 bg-blue-600 text-white rounded-lg">Página Inicial</a>
-        </div>
-    </div>
+            <!-- LOGO + TEXTO -->
+            <div class="flex items-center space-x-3 mb-8">
+                <a href="admin.php" class="flex items-center space-x-3">
+                <img src="imagens/logo.png" class="w-18 h-12 object-cover rounded-lg" alt="Logo">
+                <span class="text-2xl font-bold text-blue-400">Pequenos Passos</span>
+                </a>
+            </div>
 
-    <!-- MODAL -->
-    <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div class="border-t-2 border-blue-400 pt-8">
 
-            <h2 class="text-xl font-bold mb-4">Editar Reunião</h2>
+            <!-- MENU -->
+            <?php $pagina = basename($_SERVER['PHP_SELF']); ?> <!-- Devolve a página atual-->
 
-            <form id="formReuniao" class="space-y-4">
-                <input type="hidden" id="reu_id">
+            <nav class="space-y-3 flex-1">
+                <a href="admin.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'admin.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Página Inicial
+                </a>
 
-                <!-- CAMPOS BASE -->
-                <div>
-                    <label class="block text-sm font-medium">Título</label>
-                    <input type="text" id="reu_titulo" class="w-full border p-2 rounded" required>
-                </div>
+                <a href="adicionarutl.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'adicionarutl.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Adicionar Utilizador
+                </a>
 
-                <div>
-                    <label class="block text-sm font-medium">Data e Hora</label>
-                    <input type="datetime-local" id="reu_datahora" class="w-full border p-2 rounded" required>
-                </div>
+                <a href="listarutl.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listarutl.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Lista Utilizadores
+                </a>
 
-                <div>
-                    <label class="block text-sm font-medium">Localidade</label>
-                    <input type="text" id="reu_localidade" class="w-full border p-2 rounded" required>
-                </div>
+                <a href="adicionaratv.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'adicionaratv.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Adicionar Atividade
+                </a>
 
-                <div>
-                    <label class="block text-sm font-medium">Objetivo</label>
-                    <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded" required></textarea>
-                </div>
+                <a href="listaratv.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listaratv.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Listar Atividades
+                </a>
 
-                <hr>
+                <a href="adicionarreu.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'adicionarreu.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Adicionar Reunião
+                </a>
 
-                <!-- PARTICIPANTES -->
-                <h3 class="text-lg font-semibold mb-3">Participantes</h3>
+                <a href="listarreu.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listarreu.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Listar Reuniões
+                </a>
 
-                <!-- BOTÕES -->
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <button type="button" id="btn_func" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Funcionários
-                    </button>
+                <a href="adicionarsala.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'adicionarsala.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Adicionar Sala
+                </a>
 
-                    <button type="button" id="btn_edu" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Educadores
-                    </button>
+                <a href="listarsala.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listarsala.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Listar Salas
+                </a>
 
-                    <button type="button" id="btn_enc" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Encarregados
-                    </button>
-                </div>
+                <a href="adicionarcri.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'adicionarcri.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Adicionar Criança
+                </a>
 
-                <!-- FUNCIONÁRIOS -->
-                <div id="sec_func" class="hidden border p-4 rounded mb-4">
+                <a href="listacri.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listacri.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Listar Crianças
+                </a>
 
-                    <label class="block font-medium">Selecionar:</label>
-                    <select id="funcionario_tipo" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher --</option>
-                        <option value="todos">Todos os funcionários</option>
-                        <option value="especificos">Selecionar específicos</option>
-                    </select>
+                <a href="listaroco.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'listaroco.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Listar Ocorrências
+                </a>
 
-                    <div id="funcionario_lista" 
-                         class="hidden border p-3 rounded"
-                         data-total="<?= count($listaFuncionarios) ?>">
+                <a href="admin_presencas.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'admin_presencas.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Presenças
+                </a>
 
-                        <?php foreach ($listaFuncionarios as $f): ?>
-                            <label class="block ml-2">
-                                <input type="checkbox" class="chk-func" value="<?= $f['IDutl'] ?>">
-                                <?= htmlspecialchars($f['nome']) ?>
-                            </label>
-                        <?php endforeach; ?>
+                <a href="logs.php"
+                class="flex items-center px-2 py-2 font-bold 
+                <?= $pagina === 'logs.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
+                rounded-md transition">
+                Consultar Logs
+                </a>
+            </nav>
+
+            <!-- PERFIL + LOGOUT -->
+            <div class="mt-8 border-t-2 border-blue-400 pt-6">
+
+                <!-- PERFIL (AGORA É UM LINK) -->
+                <a href="perfil.php"
+                class="flex items-center space-x-3 mb-4 px-2 py-2 rounded-md transition
+                <?= $pagina === 'perfil.php' 
+                        ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600' 
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
+
+                    <img src="<?= $fotoPerfil ?>" class="w-12 h-12 rounded-full object-cover border" alt="Foto de Perfil">
+
+                    <div>
+                        <p class="font-semibold text-gray-800 truncate max-w-[180px]"><?= $_SESSION['user']; ?></p>
+                        <p class="text-sm text-gray-500">Administrador</p>
                     </div>
+                </a>
 
+                <!-- LOGOUT -->
+                <a href="logout.php"
+                class="flex items-center justify-center gap-2 w-full text-center px-4 py-2 
+                        bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold">
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="lucide lucide-log-out">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Terminar Sessão
+                </a>
+            </div>
+        </aside>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Reuniões da creche </h1>
+
+            <a href="admin.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <div id="calendar"></div>
+
+            </div>
+
+            <!-- MODAL -->
+            <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+
+                    <h2 class="text-xl font-bold mb-4">Editar Reunião</h2>
+
+                    <form id="formReuniao" class="space-y-4">
+                        <input type="hidden" id="reu_id">
+
+                        <!-- CAMPOS BASE -->
+                        <div>
+                            <label class="block text-sm font-medium">Título</label>
+                            <input type="text" id="reu_titulo" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Data e Hora</label>
+                            <input type="datetime-local" id="reu_datahora" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Localidade</label>
+                            <input type="text" id="reu_localidade" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Objetivo</label>
+                            <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded" required></textarea>
+                        </div>
+
+                        <hr>
+
+                        <!-- PARTICIPANTES -->
+                        <h3 class="text-lg font-semibold mb-3">Participantes</h3>
+
+                        <!-- BOTÕES -->
+                        <div class="grid grid-cols-3 gap-3 mb-4">
+                            <button type="button" id="btn_func" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Funcionários
+                            </button>
+
+                            <button type="button" id="btn_edu" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Educadores
+                            </button>
+
+                            <button type="button" id="btn_enc" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Encarregados
+                            </button>
+                        </div>
+
+                        <!-- FUNCIONÁRIOS -->
+                        <div id="sec_func" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Selecionar:</label>
+                            <select id="funcionario_tipo" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher --</option>
+                                <option value="todos">Todos os funcionários</option>
+                                <option value="especificos">Selecionar específicos</option>
+                            </select>
+
+                            <div id="funcionario_lista" 
+                                class="hidden border p-3 rounded"
+                                data-total="<?= count($listaFuncionarios) ?>">
+
+                                <?php foreach ($listaFuncionarios as $f): ?>
+                                    <label class="block ml-2">
+                                        <input type="checkbox" class="chk-func" value="<?= $f['IDutl'] ?>">
+                                        <?= htmlspecialchars($f['nome']) ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+
+                        </div>
+
+                        <!-- EDUCADORES -->
+                        <div id="sec_edu" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Sala:</label>
+                            <select id="educador_sala" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher sala --</option>
+                                <?php
+                                $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
+                                while ($s = mysqli_fetch_assoc($salas)) {
+                                    echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
+                                }
+                                ?>
+                            </select>
+
+                            <div id="educador_lista" class="hidden border p-3 rounded"></div>
+
+                        </div>
+
+                        <!-- ENCARREGADOS -->
+                        <div id="sec_enc" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Sala:</label>
+                            <select id="encarregado_sala" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher sala --</option>
+                                <?php
+                                $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
+                                while ($s = mysqli_fetch_assoc($salas)) {
+                                    echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
+                                }
+                                ?>
+                            </select>
+
+                            <div id="encarregado_lista" class="hidden border p-3 rounded"></div>
+
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="flex justify-between mt-4">
+                            <button type="button" id="btnEliminar"
+                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                Eliminar
+                            </button>
+
+                            <div class="flex gap-2">
+                                <button type="button" onclick="fecharModal()"
+                                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
                 </div>
-
-                <!-- EDUCADORES -->
-                <div id="sec_edu" class="hidden border p-4 rounded mb-4">
-
-                    <label class="block font-medium">Sala:</label>
-                    <select id="educador_sala" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher sala --</option>
-                        <?php
-                        $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
-                        while ($s = mysqli_fetch_assoc($salas)) {
-                            echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
-                        }
-                        ?>
-                    </select>
-
-                    <div id="educador_lista" class="hidden border p-3 rounded"></div>
-
-                </div>
-
-                <!-- ENCARREGADOS -->
-                <div id="sec_enc" class="hidden border p-4 rounded mb-4">
-
-                    <label class="block font-medium">Sala:</label>
-                    <select id="encarregado_sala" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher sala --</option>
-                        <?php
-                        $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
-                        while ($s = mysqli_fetch_assoc($salas)) {
-                            echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
-                        }
-                        ?>
-                    </select>
-
-                    <div id="encarregado_lista" class="hidden border p-3 rounded"></div>
-
-                </div>
-
-                <!-- BOTÕES -->
-                <div class="flex justify-between mt-4">
-                    <button type="button" id="btnEliminar"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                        Eliminar
-                    </button>
-
-                    <div class="flex gap-2">
-                        <button type="button" onclick="fecharModal()"
-                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                            Cancelar
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Guardar
-                        </button>
-                    </div>
-                </div>
-
-            </form>
-        </div>
+            </div>
+        </main>
     </div>
 
 <script>
@@ -416,14 +599,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     /* ============================================================
-                       ARRAYS GLOBAIS — MANTER SELECIONADOS
-                       ============================================================ */
+                    ARRAYS GLOBAIS — MANTER SELECIONADOS
+                    ============================================================ */
                     selecionadosEducadores = data.educadores.map(String);
                     selecionadosEncarregados = data.encarregados.map(String);
 
                     /* ============================================================
-                       CAMPOS BASE
-                       ============================================================ */
+                    CAMPOS BASE
+                    ============================================================ */
                     document.getElementById('reu_id').value = data.id;
                     document.getElementById('reu_titulo').value = data.titulo;
                     document.getElementById('reu_localidade').value = data.localidade;
@@ -433,15 +616,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('reu_datahora').value = dt;
 
                     /* ============================================================
-                       LIMPAR LISTAS
-                       ============================================================ */
+                    LIGAR BOTÃO ELIMINAR AO MODAL DE CONFIRMAÇÃO
+                    ============================================================ */
+                    document.getElementById("btnEliminar").onclick = function () {
+                        fecharModal(); // fecha o modal de edição
+                        setTimeout(() => eliminarReuniao(id), 50); // abre o modal de eliminação
+                    };
+
+                    /* ============================================================
+                    LIMPAR LISTAS
+                    ============================================================ */
                     document.querySelectorAll('.chk-func').forEach(chk => chk.checked = false);
                     document.getElementById("educador_lista").innerHTML = "";
                     document.getElementById("encarregado_lista").innerHTML = "";
 
                     /* ============================================================
-                       FUNCIONÁRIOS — MARCAR AUTOMATICAMENTE
-                       ============================================================ */
+                    FUNCIONÁRIOS — MARCAR AUTOMATICAMENTE
+                    ============================================================ */
                     const idsFunc = data.funcionarios.map(String);
 
                     document.querySelectorAll('.chk-func').forEach(chk => {
@@ -465,8 +656,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     /* ============================================================
-                       EDUCADORES — CARREGAR AUTOMATICAMENTE
-                       ============================================================ */
+                    EDUCADORES — CARREGAR AUTOMATICAMENTE
+                    ============================================================ */
                     if (data.educadores.length > 0) {
 
                         fetch("listarreu.php?action=getSalaEducador&id=" + data.educadores[0])
@@ -503,8 +694,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     /* ============================================================
-                       ENCARREGADOS — CARREGAR AUTOMATICAMENTE
-                       ============================================================ */
+                    ENCARREGADOS — CARREGAR AUTOMATICAMENTE
+                    ============================================================ */
                     if (data.encarregados.length > 0) {
 
                         fetch("listarreu.php?action=getSalaEncarregado&id=" + data.encarregados[0])
@@ -665,35 +856,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 
-    /* ============================================================
-       ELIMINAR REUNIÃO
-       ============================================================ */
-       
-    document.getElementById('btnEliminar').addEventListener('click', function () {
-        const id = document.getElementById('reu_id').value;
-
-        if (!confirm('Tem a certeza que deseja eliminar esta reunião?')) return;
-
-        const formData = new URLSearchParams();
-        formData.append('id', id);
-
-        fetch('listarreu.php?action=delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData.toString()
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Reunião eliminada com sucesso.');
-                    fecharModal();
-                    calendar.refetchEvents();
-                } else {
-                    alert('Erro ao eliminar reunião.');
-                }
-            });
-    });
-
 });
 
 /* ============================================================
@@ -731,6 +893,83 @@ document.getElementById("funcionario_tipo").addEventListener("change", function 
     lista.classList.toggle("hidden", this.value !== "especificos");
 });
 </script>
+
+<!-- SCRIPT para eliminar reunião -->
+<script>
+    let idReuniaoParaEliminar = null;
+
+    function eliminarReuniao(id) {
+        idReuniaoParaEliminar = id;
+        const modal = document.getElementById("modalEliminarReuniao");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function fecharModalReuniao() {
+        const modal = document.getElementById("modalEliminarReuniao");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        idReuniaoParaEliminar = null;
+    }
+
+    document.getElementById("btnConfirmarEliminarReuniao").addEventListener("click", function () {
+
+        if (idReuniaoParaEliminar === null) return;
+
+        fetch("listarreu.php?action=delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "id=" + idReuniaoParaEliminar
+        })
+        .then(r => r.json())
+        .then(res => {
+
+            if (res.success) {
+                fecharModalReuniao();
+                fecharModal(); // fecha modal de edição
+                mostrarMensagem("Reunião eliminada com sucesso.", "green");
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                mostrarMensagem("Erro ao eliminar reunião.", "red");
+            }
+        });
+    });
+
+    function mostrarMensagem(texto, cor) {
+        const div = document.createElement("div");
+        div.className = `fixed top-5 right-5 px-4 py-2 rounded shadow-lg text-white bg-${cor}-600`;
+        div.textContent = texto;
+        document.body.appendChild(div);
+
+        setTimeout(() => div.remove(), 2000);
+    }
+</script>
+
+<!-- MODAL DE CONFIRMAÇÃO PARA ELIMINAR REUNIÃO -->
+<div id="modalEliminarReuniao" 
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Eliminação</h2>
+
+        <p class="text-gray-700 mb-6">
+            Tens a certeza que desejas eliminar esta reunião?
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <button onclick="fecharModalReuniao()"
+                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                Cancelar
+            </button>
+
+            <button id="btnConfirmarEliminarReuniao"
+                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
 
 </body>
 </html>

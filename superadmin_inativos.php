@@ -137,7 +137,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 
         <div class="text-center mt-16">
             <a href="superadmin.php"
-               class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-gray-700">
+               class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
                 Voltar
             </a>
         </div>

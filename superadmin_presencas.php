@@ -96,18 +96,8 @@ if ($id_sala_sel) {
         <div id="calendar"></div>
     <?php endif; ?>
 
-    <a href="superadmin.php" 
-    style="
-        display:inline-block;
-        padding:10px 18px;
-        background:#2563eb;
-        color:white;
-        text-decoration:none;
-        border-radius:6px;
-        font-weight:600;
-        margin-top:20px;
-        font-family:Arial, sans-serif;
-    ">
+    <a href="superadmin.php"
+    class="inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
         ← Voltar
     </a>
 
