@@ -2,6 +2,17 @@
 session_start();
 include("DBConnection.php");
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -50,48 +61,72 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Adicionar Sala (Superadmin)</h2>
+<body class="bg-gray-100 min-h-screen">
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-                <?= $erro ?>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_superadmin.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Sala </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                        <?= $erro ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-5">
+
+                    <div>
+                        <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
+                        <input name="nome" id="nome" type="text"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            placeholder="Escreve um nome para a sala!"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="capacidade" class="block text-sm font-medium text-gray-700">Capacidade</label>
+                        <input name="capacidade" id="capacidade" type="number"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            placeholder="Escreve uma capacidade para a sala!"
+                            required>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <a href="superadmin.php"
+                            class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                            class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Adicionar
+                        </button>
+                    </div>
+
+                </form>
             </div>
-        <?php endif; ?>
-
-        <form method="post" class="space-y-5">
-
-            <div>
-                <label for="nome" class="block text-sm font-medium text-gray-700">Nome</label>
-                <input name="nome" id="nome" type="text"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    placeholder="Escreve um nome para a sala!"
-                    required>
-            </div>
-
-            <div>
-                <label for="capacidade" class="block text-sm font-medium text-gray-700">Capacidade</label>
-                <input name="capacidade" id="capacidade" type="number"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    placeholder="Escreve uma capacidade para a sala!"
-                    required>
-            </div>
-
-            <div class="flex justify-between">
-                <a href="superadmin.php"
-                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    Cancelar
-                </a>
-
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Adicionar
-                </button>
-            </div>
-
-        </form>
+        </main>
     </div>
 </body>
 </html>

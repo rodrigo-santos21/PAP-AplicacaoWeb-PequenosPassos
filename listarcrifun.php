@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Verifica se o utilizador é funcionarios e está autenticado
 if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
@@ -20,106 +31,101 @@ $nome = $_SESSION['user'];
 
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-            Página do Funcionário
-        </h1>
-        <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-            Listar Crianças
-        </h3>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse bg-white shadow rounded-lg">
-                <thead>
-                    <tr class="bg-blue-600 text-white">
-                        <th class="p-3 text-left">ID</th>
-                        <th class="p-3 text-left">Nome</th>
-                        <th class="p-3 text-left">Data Nasc.</th>
-                        <th class="p-3 text-left">Sexo</th>
-                        <th class="p-3 text-left">Sala</th>
-                        <th class="p-3 text-left">Encarregado</th>
-                        <th class="p-3 text-left">Observações</th>
-                        <th class="p-3 text-left">Ações</th>
-                    </tr>
-                </thead>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_funcionario.php");
+        ?>
 
-                <tbody>
-                    <?php
-                    // Buscar todas as crianças ativas
-                    $query = "SELECT * FROM crianca WHERE estado = 1 ORDER BY IDcri";
-                    $result = mysqli_query($link, $query);
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-                    if (!$result) {
-                        die('Erro na query: ' . mysqli_error($link));
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">listar Crianças </h1>
+
+            <!-- GRID DE CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <?php
+            $query = "SELECT * FROM crianca WHERE estado = 1 ORDER BY IDcri";
+            $result = mysqli_query($link, $query);
+
+            while ($cri = mysqli_fetch_assoc($result)) {
+
+                // Sala
+                $salaNome = "—";
+                if (!empty($cri['IDsala'])) {
+                    $resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = {$cri['IDsala']}");
+                    if ($resSala && mysqli_num_rows($resSala) > 0) {
+                        $sala = mysqli_fetch_assoc($resSala);
+                        $salaNome = $sala['nome'];
                     }
+                }
 
-                    while ($cri = mysqli_fetch_assoc($result)) {
-
-                        // Buscar sala
-                        $salaNome = "—";
-                        if (!empty($cri['IDsala'])) {
-                            $resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = {$cri['IDsala']}");
-                            if ($resSala && mysqli_num_rows($resSala) > 0) {
-                                $sala = mysqli_fetch_assoc($resSala);
-                                $salaNome = $sala['nome'];
-                            }
-                        }
-
-                        // Buscar encarregado
-                        $encNome = "—";
-                        if (!empty($cri['IDutl'])) {
-                            $resEnc = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$cri['IDutl']}");
-                            if ($resEnc && mysqli_num_rows($resEnc) > 0) {
-                                $enc = mysqli_fetch_assoc($resEnc);
-                                $encNome = $enc['nome'];
-                            }
-                        }
-
-                        // Sexo formatado
-                        if ($cri['sexo'] === "M") {
-                            $sexo = "Masculino";
-                        } elseif ($cri['sexo'] === "F") {
-                            $sexo = "Feminino";
-                        } else {
-                            $sexo = "Indefinido";
-                        }
-
-                        // Observações
-                        $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
-
-                        echo "
-                        <tr class='border-b hover:bg-gray-100'>
-                            <td class='p-3'>{$cri['IDcri']}</td>
-                            <td class='p-3'>{$cri['nome']}</td>
-                            <td class='p-3'>{$cri['datanascimento']}</td>
-                            <td class='p-3'>{$sexo}</td>
-                            <td class='p-3'>{$salaNome}</td>
-                            <td class='p-3'>{$encNome}</td>
-                            <td class='p-3'>{$obs}</td>
-
-                            <td class='p-3 flex gap-2'>
-                                <a href='editarcrifun.php?id={$cri['IDcri']}'
-                                    class='px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 transition'>
-                                    Editar
-                                </a>
-
-                                
-                            </td>
-                        </tr>";
+                // Encarregado
+                $encNome = "—";
+                if (!empty($cri['IDutl'])) {
+                    $resEnc = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$cri['IDutl']}");
+                    if ($resEnc && mysqli_num_rows($resEnc) > 0) {
+                        $enc = mysqli_fetch_assoc($resEnc);
+                        $encNome = $enc['nome'];
                     }
-                    ?>
-                </tbody>
-            </table>
-        </div>
+                }
 
-        <div class="mt-6 text-center">
-            <a href="funcionario.php"
-                class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
-                Página Inicial
-            </a>
-        </div>
+                // Sexo
+                $sexo = ($cri['sexo'] === "M") ? "Masculino" :
+                        (($cri['sexo'] === "F") ? "Feminino" : "Indefinido");
+
+                // Observações
+                $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
+            ?>
+
+                <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+
+                    <h2 class="text-xl font-bold text-gray-800 mb-2"><?= $cri['nome'] ?></h2>
+
+                    <div class="text-gray-700 space-y-1 mb-4">
+                        <p><strong>ID:</strong> <?= $cri['IDcri'] ?></p>
+                        <p><strong>Data Nasc.:</strong> <?= $cri['datanascimento'] ?></p>
+                        <p><strong>Sexo:</strong> <?= $sexo ?></p>
+                        <p><strong>Sala:</strong> <?= $salaNome ?></p>
+                        <p><strong>Encarregado:</strong> <?= $encNome ?></p>
+                        <p><strong>Observações:</strong> <?= $obs ?></p>
+                    </div>
+
+                    <div class="flex gap-3">
+
+                        <!-- Ícone Editar -->
+                        <button onclick="window.location.href='editarcrifun.php?id=<?= $cri['IDcri'] ?>'"
+                            class="text-gray-500 hover:text-yellow-500 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                            </svg>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            <?php } ?>
+
+            </div>
+        </main>
     </div>
 </body>
 </html>

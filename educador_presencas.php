@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 /* ============================================================
    1) VERIFICAR PERMISSÕES E CARREGAR DADOS DO EDUCADOR
    ============================================================ */
@@ -154,92 +165,114 @@ while ($row = mysqli_fetch_assoc($res)) {
     <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-6">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
+<body class="bg-gray-100 min-h-screen">
 
-        <h2 class="text-2xl font-bold mb-4">Marcar Presenças</h2>
-        
-        <label class="font-semibold">Escolha a criança:</label>
-        <select id="crianca" class="border p-2 rounded w-full mb-6">
-            <option value="">-- Selecionar --</option>
-            <?php foreach ($criancas as $c): ?>
-                <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
-            <?php endforeach; ?>
-        </select>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <div id="calendar"></div>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_educador.php");
+        ?>
 
-        <a href="educador.php" 
-        style="
-            display:inline-block;
-            padding:10px 18px;
-            background:#2563eb;
-            color:white;
-            text-decoration:none;
-            border-radius:6px;
-            font-weight:600;
-            margin-top:20px;
-            font-family:Arial, sans-serif;
-        ">
-            ← Voltar
-        </a>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Marcar e Ver presenças das crianças da sua sala </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+                
+                <label class="font-semibold">Escolha a criança:</label>
+                <select id="crianca" class="border p-2 rounded w-full mb-6">
+                    <option value="">-- Selecionar --</option>
+                    <?php foreach ($criancas as $c): ?>
+                        <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+
+                <div id="calendar"></div>
+
+                <a href="educador.php" 
+                style="
+                    display:inline-block;
+                    padding:10px 18px;
+                    background:#2563eb;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:6px;
+                    font-weight:600;
+                    margin-top:20px;
+                    font-family:Arial, sans-serif;
+                ">
+                    ← Voltar
+                </a>
+
+            </div>
+
+            <!-- ============================================================
+                MODAL PARA EDITAR / REMOVER PRESENÇA
+                ============================================================ -->
+
+            <div id="modalEditar" 
+                style="
+                    display:none; 
+                    position:fixed; 
+                    top:0; 
+                    left:0; 
+                    width:100%; 
+                    height:100%; 
+                    background:rgba(0,0,0,0.5); 
+                    padding-top:100px;
+                    z-index:9999;
+                ">
+
+                <div style="
+                    background:white; 
+                    width:300px; 
+                    margin:auto; 
+                    padding:20px; 
+                    border-radius:8px;
+                    z-index:10000;
+                    position:relative;
+                ">
+                    <h3 class="text-xl font-bold mb-3">Editar Presença</h3>
+
+                    <input type="hidden" id="edit_idPres">
+
+                    <label>Hora Entrada:</label>
+                    <input type="time" id="edit_horaE" class="border p-2 w-full mb-3">
+
+                    <label>Hora Saída:</label>
+                    <input type="time" id="edit_horaS" class="border p-2 w-full mb-3">
+
+                    <button onclick="guardarEdicao()" 
+                            style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
+                        Guardar
+                    </button>
+
+                    <button onclick="removerPresenca()" 
+                            style="background:#dc2626; color:white; padding:8px 12px; border-radius:5px;">
+                        Remover
+                    </button>
+
+                    <button onclick="fecharModal()" 
+                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </main>
     </div>
-
-<!-- ============================================================
-     MODAL PARA EDITAR / REMOVER PRESENÇA
-     ============================================================ -->
-
-<div id="modalEditar" 
-     style="
-        display:none; 
-        position:fixed; 
-        top:0; 
-        left:0; 
-        width:100%; 
-        height:100%; 
-        background:rgba(0,0,0,0.5); 
-        padding-top:100px;
-        z-index:9999;
-     ">
-
-    <div style="
-        background:white; 
-        width:300px; 
-        margin:auto; 
-        padding:20px; 
-        border-radius:8px;
-        z-index:10000;
-        position:relative;
-    ">
-        <h3 class="text-xl font-bold mb-3">Editar Presença</h3>
-
-        <input type="hidden" id="edit_idPres">
-
-        <label>Hora Entrada:</label>
-        <input type="time" id="edit_horaE" class="border p-2 w-full mb-3">
-
-        <label>Hora Saída:</label>
-        <input type="time" id="edit_horaS" class="border p-2 w-full mb-3">
-
-        <button onclick="guardarEdicao()" 
-                style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
-            Guardar
-        </button>
-
-        <button onclick="removerPresenca()" 
-                style="background:#dc2626; color:white; padding:8px 12px; border-radius:5px;">
-            Remover
-        </button>
-
-        <button onclick="fecharModal()" 
-                style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
-            Cancelar
-        </button>
-    </div>
-</div>
-
 
 <script>
 

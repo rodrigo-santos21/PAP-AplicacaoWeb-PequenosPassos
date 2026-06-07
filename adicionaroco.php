@@ -2,6 +2,17 @@
 session_start();
 include("DBConnection.php");
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -118,99 +129,124 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Registar Ocorrência</h2>
+<body class="bg-gray-100 min-h-screen">
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4"><?= $erro ?></div>
-        <?php endif; ?>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <?php if (isset($_GET['sucesso'])): ?>
-            <div class="bg-green-200 text-green-800 p-3 rounded mb-4">
-                Ocorrência registada com sucesso!
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_educador.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Criança </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Registar Ocorrência</h2>
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4"><?= $erro ?></div>
+                <?php endif; ?>
+
+                <?php if (isset($_GET['sucesso'])): ?>
+                    <div class="bg-green-200 text-green-800 p-3 rounded mb-4">
+                        Ocorrência registada com sucesso!
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-5">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Criança</label>
+                        <select name="IDcri" class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecionar criança...</option>
+                            <?php foreach ($criancas as $c): ?>
+                                <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tipo de Ocorrência</label>
+                        <select name="tipo" id="tipoSelect"
+                                class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecionar...</option>
+                            <option value="Doença">Doença</option>
+                            <option value="Queda">Queda</option>
+                            <option value="Comportamento">Comportamento</option>
+                            <option value="Agressão">Agressão</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div id="outroCampo" style="display:none;">
+                        <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
+                        <input type="text" name="tipo_outro"
+                            class="mt-1 block w-full px-4 py-2 border rounded-lg"
+                            placeholder="Descreva o tipo de ocorrência...">
+                    </div>
+
+                    <script>
+                    document.getElementById('tipoSelect').addEventListener('change', function() {
+                        if (this.value === "Outro") {
+                            document.getElementById('outroCampo').style.display = "block";
+                        } else {
+                            document.getElementById('outroCampo').style.display = "none";
+                        }
+                    });
+                    </script>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Gravidade</label>
+                        <select name="gravidade" class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecionar...</option>
+                            <option value="Leve">Leve</option>
+                            <option value="Moderada">Moderada</option>
+                            <option value="Grave">Grave</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <textarea name="descricao" rows="3"
+                            class="mt-1 block w-full px-4 py-2 border rounded-lg"
+                            placeholder="Descreva o que aconteceu..." required></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Data</label>
+                        <input type="date" value="<?= date('Y-m-d') ?>" disabled
+                            class="mt-1 block w-full px-4 py-2 border rounded-lg bg-gray-200">
+                    </div>
+
+                    <div class="flex justify-between">
+                        <a href="educador.php"
+                            class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                            class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Registar
+                        </button>
+                    </div>
+                </form>
             </div>
-        <?php endif; ?>
-
-        <form method="post" class="space-y-5">
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Criança</label>
-                <select name="IDcri" class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
-                    <option value="">Selecionar criança...</option>
-                    <?php foreach ($criancas as $c): ?>
-                        <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Tipo de Ocorrência</label>
-                <select name="tipo" id="tipoSelect"
-                        class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
-                    <option value="">Selecionar...</option>
-                    <option value="Doença">Doença</option>
-                    <option value="Queda">Queda</option>
-                    <option value="Comportamento">Comportamento</option>
-                    <option value="Agressão">Agressão</option>
-                    <option value="Outro">Outro</option>
-                </select>
-            </div>
-
-            <div id="outroCampo" style="display:none;">
-                <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
-                <input type="text" name="tipo_outro"
-                    class="mt-1 block w-full px-4 py-2 border rounded-lg"
-                    placeholder="Descreva o tipo de ocorrência...">
-            </div>
-
-            <script>
-            document.getElementById('tipoSelect').addEventListener('change', function() {
-                if (this.value === "Outro") {
-                    document.getElementById('outroCampo').style.display = "block";
-                } else {
-                    document.getElementById('outroCampo').style.display = "none";
-                }
-            });
-            </script>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Gravidade</label>
-                <select name="gravidade" class="mt-1 block w-full px-4 py-2 border rounded-lg" required>
-                    <option value="">Selecionar...</option>
-                    <option value="Leve">Leve</option>
-                    <option value="Moderada">Moderada</option>
-                    <option value="Grave">Grave</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Descrição</label>
-                <textarea name="descricao" rows="3"
-                    class="mt-1 block w-full px-4 py-2 border rounded-lg"
-                    placeholder="Descreva o que aconteceu..." required></textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Data</label>
-                <input type="date" value="<?= date('Y-m-d') ?>" disabled
-                       class="mt-1 block w-full px-4 py-2 border rounded-lg bg-gray-200">
-            </div>
-
-            <div class="flex justify-between">
-                <a href="educador.php"
-                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    Cancelar
-                </a>
-
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Registar
-                </button>
-            </div>
-
-        </form>
+        </main>
     </div>
 </body>
 </html>

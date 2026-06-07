@@ -53,7 +53,7 @@ function gerarTabela($titulo, $dados, $tipo) {
         $html .= "<tr class='border-b hover:bg-gray-100'>";
 
         foreach ($linha as $valor) {
-            $html .= "<td class='p-3'>" . htmlspecialchars($valor) . "</td>";
+            $html .= "<td class='p-3'>" . htmlspecialchars($valor ?? "") . "</td>";
         }
 
         $id = $linha[array_key_first($linha)];
@@ -80,18 +80,57 @@ function gerarTabela($titulo, $dados, $tipo) {
 switch ($tipo) {
 
     case "criancas":
-        $sql = "SELECT IDcri, nome, datanascimento, IDsala FROM crianca WHERE estado = 0";
+        $sql = "SELECT IDcri, nome, datanascimento, IDsala FROM crianca WHERE estado = 0 AND aprovado = 1 ";
         break;
 
     case "educadores":
-        // Buscar educadores + nome/email do utilizador
-        $sql = "
-            SELECT e.IDedu, u.nome, u.email, e.especialidade, e.IDsala
-            FROM educador e
-            LEFT JOIN utilizador u ON u.IDutl = e.IDutl
-            WHERE e.estado = 0
-        ";
-        break;
+
+    // 1) Buscar educadores inativos
+    $sql = "SELECT IDedu, IDutl, especialidade, IDsala 
+            FROM educador 
+            WHERE estado = 0";
+
+    $res = mysqli_query($link, $sql);
+    $dados = [];
+
+    while ($e = mysqli_fetch_assoc($res)) {
+
+        $IDutl = intval($e['IDutl']);
+        $IDsala = $e['IDsala'];
+
+        // 2) Buscar nome e email do utilizador (SEM JOIN)
+        $nome = "—";
+        $email = "—";
+
+        $resU = mysqli_query($link, "SELECT nome, email FROM utilizador WHERE IDutl = $IDutl");
+        if ($resU && mysqli_num_rows($resU) > 0) {
+            $u = mysqli_fetch_assoc($resU);
+            $nome = $u['nome'] ?? "—";
+            $email = $u['email'] ?? "—";
+        }
+
+        // 3) Buscar nome da sala (SEM JOIN)
+        $salaNome = "—";
+        if (!empty($IDsala)) {
+            $resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = $IDsala");
+            if ($resSala && mysqli_num_rows($resSala) > 0) {
+                $s = mysqli_fetch_assoc($resSala);
+                $salaNome = $s['nome'] ?? "—";
+            }
+        }
+
+        // 4) Construir linha final
+        $dados[] = [
+            "IDedu"        => $e['IDedu'],
+            "nome"         => $nome,
+            "email"        => $email,
+            "especialidade"=> $e['especialidade'] ?? "—",
+            "sala"         => $salaNome
+        ];
+    }
+
+    echo gerarTabela("Registos Inativos — Educadores", $dados, "educadores");
+    exit();
 
     case "utilizadores":
         $sql = "SELECT IDutl, nome, email, tipo FROM utilizador WHERE estado = 0";

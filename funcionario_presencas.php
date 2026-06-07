@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 /* ============================================================
    1) VERIFICAR PERMISSÕES (FUNCIONÁRIO)
    ============================================================ */
@@ -55,105 +66,128 @@ if ($id_sala_sel) {
     <script src="assets/fullcalendar/index.global.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-6">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-<div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow">
+<body class="bg-gray-100 min-h-screen">
 
-    <h2 class="text-2xl font-bold mb-4">Gestão de Presenças</h2>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-    <!-- FILTRO POR SALA -->
-    <form method="get">
-        <label class="font-semibold">Sala:</label>
-        <select name="sala" onchange="this.form.submit()" class="border p-2 rounded w-full mb-4">
-            <option value="">-- Selecionar Sala --</option>
-            <?php foreach ($salas as $s): ?>
-                <option value="<?= $s['IDsala'] ?>" <?= ($id_sala_sel == $s['IDsala']) ? 'selected' : '' ?>>
-                    <?= $s['nome'] ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </form>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_funcionario.php");
+        ?>
 
-    <!-- FILTRO POR CRIANÇA -->
-    <?php if ($id_sala_sel): ?>
-    <form method="get">
-        <input type="hidden" name="sala" value="<?= $id_sala_sel ?>">
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-        <label class="font-semibold">Criança:</label>
-        <select name="crianca" onchange="this.form.submit()" class="border p-2 rounded w-full mb-6">
-            <option value="">-- Selecionar Criança --</option>
-            <?php foreach ($criancas as $c): ?>
-                <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
-                    <?= $c['nome'] ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </form>
-    <?php endif; ?>
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Ver Presenças </h1>
+    
+            <a href="funcionario.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-    <!-- CALENDÁRIO -->
-    <?php if ($id_crianca_sel): ?>
-        <div id="calendar"></div>
-    <?php endif; ?>
+                <!-- FILTRO POR SALA -->
+                <form method="get">
+                    <label class="font-semibold">Sala:</label>
+                    <select name="sala" onchange="this.form.submit()" class="border p-2 rounded w-full mb-4">
+                        <option value="">-- Selecionar Sala --</option>
+                        <?php foreach ($salas as $s): ?>
+                            <option value="<?= $s['IDsala'] ?>" <?= ($id_sala_sel == $s['IDsala']) ? 'selected' : '' ?>>
+                                <?= $s['nome'] ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
 
-    <a href="funcionario.php"
-    class="inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
-        ← Voltar
-    </a>
+                <!-- FILTRO POR CRIANÇA -->
+                <?php if ($id_sala_sel): ?>
+                <form method="get">
+                    <input type="hidden" name="sala" value="<?= $id_sala_sel ?>">
 
-</div>
+                    <label class="font-semibold">Criança:</label>
+                    <select name="crianca" onchange="this.form.submit()" class="border p-2 rounded w-full mb-6">
+                        <option value="">-- Selecionar Criança --</option>
+                        <?php foreach ($criancas as $c): ?>
+                            <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
+                                <?= $c['nome'] ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </form>
+                <?php endif; ?>
 
-<!-- MODAL PRESENÇA -->
-<div id="modalPresenca" 
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
-    <div style="background:white; width:350px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
-        <h3 class="text-xl font-bold mb-3">Detalhes da Presença</h3>
+                <!-- CALENDÁRIO -->
+                <?php if ($id_crianca_sel): ?>
+                    <div id="calendar"></div>
+                <?php endif; ?>
 
-        <p><b>Data:</b> <span id="presData"></span></p>
-        <p><b>Entrada:</b> <span id="presEntrada"></span></p>
-        <p><b>Saída:</b> <span id="presSaida"></span></p>
+            </div>
 
-        <button onclick="document.getElementById('modalPresenca').style.display='none'"
-                style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px; margin-top:15px;">
-            Fechar
-        </button>
+            <!-- MODAL PRESENÇA -->
+            <div id="modalPresenca" 
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                        background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
+                <div style="background:white; width:350px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
+                    <h3 class="text-xl font-bold mb-3">Detalhes da Presença</h3>
+
+                    <p><b>Data:</b> <span id="presData"></span></p>
+                    <p><b>Entrada:</b> <span id="presEntrada"></span></p>
+                    <p><b>Saída:</b> <span id="presSaida"></span></p>
+
+                    <button onclick="document.getElementById('modalPresenca').style.display='none'"
+                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px; margin-top:15px;">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL FALTA -->
+            <div id="modalFalta" 
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                        background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
+                <div style="background:white; width:400px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
+                    <h3 class="text-xl font-bold mb-3">Justificação da Falta</h3>
+
+                    <p><b>Data:</b> <span id="faltData"></span></p>
+                    <p><b>Justificação enviada:</b></p>
+                    <textarea id="faltTexto" class="border p-2 w-full mb-3" readonly></textarea>
+
+                    <form method="post" action="processarJustificacaoFuncionario.php">
+                        <input type="hidden" name="idPres" id="faltIdPres">
+                        <input type="hidden" name="sala" value="<?= $id_sala_sel ?>">
+                        <input type="hidden" name="crianca" value="<?= $id_crianca_sel ?>">
+
+                        <button name="acao" value="aceitar"
+                                style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
+                            Aceitar
+                        </button>
+
+                        <button name="acao" value="recusar"
+                                style="background:#dc2626; color:white; padding:8px 12px; border-radius:5px;">
+                            Recusar
+                        </button>
+
+                        <button type="button" onclick="document.getElementById('modalFalta').style.display='none'"
+                                style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
+                            Fechar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
-
-<!-- MODAL FALTA -->
-<div id="modalFalta" 
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
-    <div style="background:white; width:400px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
-        <h3 class="text-xl font-bold mb-3">Justificação da Falta</h3>
-
-        <p><b>Data:</b> <span id="faltData"></span></p>
-        <p><b>Justificação enviada:</b></p>
-        <textarea id="faltTexto" class="border p-2 w-full mb-3" readonly></textarea>
-
-        <form method="post" action="processarJustificacaoFuncionario.php">
-            <input type="hidden" name="idPres" id="faltIdPres">
-            <input type="hidden" name="sala" value="<?= $id_sala_sel ?>">
-            <input type="hidden" name="crianca" value="<?= $id_crianca_sel ?>">
-
-            <button name="acao" value="aceitar"
-                    style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
-                Aceitar
-            </button>
-
-            <button name="acao" value="recusar"
-                    style="background:#dc2626; color:white; padding:8px 12px; border-radius:5px;">
-                Recusar
-            </button>
-
-            <button type="button" onclick="document.getElementById('modalFalta').style.display='none'"
-                    style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
-                Fechar
-            </button>
-        </form>
-    </div>
-</div>
 
 <script>
 <?php if ($id_crianca_sel): ?>

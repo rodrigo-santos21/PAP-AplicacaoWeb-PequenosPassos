@@ -1,5 +1,18 @@
 <?php
 session_start();
+include("DBConnection.php");
+
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     header("Location: index.php?erro=permissao");
     exit();
@@ -13,107 +26,74 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body class="bg-gray-100 overflow-y-auto min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-        <h2 class="text-xl font-bold text-gray-800 mb-6">
-            Bem-vindo, <?php echo $_SESSION['user']; ?> (Superadministrador)
-        </h2>
+<body class="bg-gray-100 min-h-screen">
 
-        <nav class="space-y-4">
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-            <!-- GESTÃO DE UTILIZADORES -->
-            <a href="adicionarutlsuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Adicionar Utilizador
-            </a>
+        <!-- SIDEBAR -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_superadmin.php"); ?>
+        </div>
 
-            <a href="listarutlsuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Lista de Utilizadores
-            </a>
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_superadmin.php"); ?>
 
-            <!-- GESTÃO DE ATIVIDADES -->
-            <a href="adicionaratvsuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Adicionar Atividade
-            </a>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <a href="listaratvsuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Listar Atividades
-            </a>
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard do Super Administrador / Bem-vindo, <?= $_SESSION['user']; ?> </h1>
 
-            <!-- GESTÃO DE REUNIÕES -->
-            <a href="adicionarreusuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Adicionar Reunião
-            </a>
+            <!-- CARDS -->
+            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <a href="listarreusuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Listar Reuniões
-            </a>
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Utilizadores</h3>
+                    <p class="text-gray-600 mb-4">Gerir contas e permissões.</p>
+                    <a href="listarutlsuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
 
-            <!-- GESTÃO DE SALAS -->
-            <a href="adicionarsalasuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Adicionar Sala
-            </a>
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Atividades</h3>
+                    <p class="text-gray-600 mb-4">Criar e gerir atividades.</p>
+                    <a href="listaratvsuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
 
-            <a href="listarsalasuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Listar Salas
-            </a>
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Reuniões</h3>
+                    <p class="text-gray-600 mb-4">Gerir reuniões e participantes.</p>
+                    <a href="listarreusuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
 
-            <!-- GESTÃO DE CRIANÇAS -->
-            <a href="adicionarcrisuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Adicionar Criança
-            </a>
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Salas</h3>
+                    <p class="text-gray-600 mb-4">Gerir salas e educadores.</p>
+                    <a href="listarsalasuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
 
-            <a href="listarcrisuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Listar Crianças
-            </a>
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
+                    <a href="listacrisuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
 
-            <!-- OCORRÊNCIAS -->
-            <a href="listarocosuper.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Listar Ocorrências
-            </a>
-
-            <!-- PRESENÇAS -->
-            <a href="superadmin_presencas.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Presenças
-            </a>
-
-            <!-- LOGS -->
-            <a href="logs.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Consultar Logs
-            </a>
-
-            <!-- PERFIL -->
-            <a href="perfil.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Perfil
-            </a>
-
-            <!-- NOVO: INATIVOS -->
-            <a href="superadmin_inativos.php" 
-               class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-               Gerir Inativos
-            </a>
-
-        </nav>
-
-        <a href="logout.php"
-           class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 block text-center mt-6">
-           Terminar Sessão
-        </a>
-
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
+                    <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
+                    <a href="listarocosuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+            </div>
+        </main>
     </div>
 </body>
 </html>

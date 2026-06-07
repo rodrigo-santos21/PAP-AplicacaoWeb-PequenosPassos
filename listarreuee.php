@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Verifica se o utilizador é encarregado de educação
 if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'encarregado') {
     header("Location: index.php?erro=permissao");
@@ -169,84 +180,101 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
     </style>
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-5xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-            Reuniões do Encarregado de Educação
-        </h1>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-            Apenas reuniões onde está associado
-        </h3>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_encarregado.php");
+        ?>
 
-        <div id="calendar"></div>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-        <div class="mt-6 text-center">
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Reuniões do Encarregado de Educaçõa </h1>
+    
             <a href="encarregado.php"
-                class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
-                Página Inicial
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
             </a>
-        </div>
-    </div>
+            
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-    <!-- MODAL -->
-    <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+                <div id="calendar"></div>
 
-            <h2 class="text-xl font-bold mb-4">Detalhes da Reunião</h2>
+            </div>
 
-            <form class="space-y-4">
-                <input type="hidden" id="reu_id">
+            <!-- MODAL -->
+            <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
 
-                <!-- CAMPOS BASE (APENAS LEITURA) -->
-                <div>
-                    <label class="block text-sm font-medium">Título</label>
-                    <input type="text" id="reu_titulo" class="w-full border p-2 rounded bg-gray-100" readonly>
+                    <h2 class="text-xl font-bold mb-4">Detalhes da Reunião</h2>
+
+                    <form class="space-y-4">
+                        <input type="hidden" id="reu_id">
+
+                        <!-- CAMPOS BASE (APENAS LEITURA) -->
+                        <div>
+                            <label class="block text-sm font-medium">Título</label>
+                            <input type="text" id="reu_titulo" class="w-full border p-2 rounded bg-gray-100" readonly>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Data e Hora</label>
+                            <input type="text" id="reu_datahora" class="w-full border p-2 rounded bg-gray-100" readonly>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Localidade</label>
+                            <input type="text" id="reu_localidade" class="w-full border p-2 rounded bg-gray-100" readonly>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Objetivo</label>
+                            <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded bg-gray-100" readonly></textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-3">
+                            <label class="font-semibold">Funcionários:</label>
+                            <ul id="lista_funcionarios" class="list-disc ml-6 text-gray-700"></ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="font-semibold">Educadores:</label>
+                            <ul id="lista_educadores" class="list-disc ml-6 text-gray-700"></ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="font-semibold">Encarregados:</label>
+                            <ul id="lista_encarregados" class="list-disc ml-6 text-gray-700"></ul>
+                        </div>
+
+                        <!-- BOTÃO FECHAR -->
+                        <div class="flex justify-end mt-4">
+                            <button type="button" onclick="fecharModal()"
+                                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                Fechar
+                            </button>
+                        </div>
+
+                    </form>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Data e Hora</label>
-                    <input type="text" id="reu_datahora" class="w-full border p-2 rounded bg-gray-100" readonly>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Localidade</label>
-                    <input type="text" id="reu_localidade" class="w-full border p-2 rounded bg-gray-100" readonly>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Objetivo</label>
-                    <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded bg-gray-100" readonly></textarea>
-                </div>
-
-                <hr class="my-4">
-
-                <div class="mb-3">
-                    <label class="font-semibold">Funcionários:</label>
-                    <ul id="lista_funcionarios" class="list-disc ml-6 text-gray-700"></ul>
-                </div>
-
-                <div class="mb-3">
-                    <label class="font-semibold">Educadores:</label>
-                    <ul id="lista_educadores" class="list-disc ml-6 text-gray-700"></ul>
-                </div>
-
-                <div class="mb-3">
-                    <label class="font-semibold">Encarregados:</label>
-                    <ul id="lista_encarregados" class="list-disc ml-6 text-gray-700"></ul>
-                </div>
-
-                <!-- BOTÃO FECHAR -->
-                <div class="flex justify-end mt-4">
-                    <button type="button" onclick="fecharModal()"
-                            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                        Fechar
-                    </button>
-                </div>
-
-            </form>
-        </div>
+            </div>
+        </main>
     </div>
 
 <script>

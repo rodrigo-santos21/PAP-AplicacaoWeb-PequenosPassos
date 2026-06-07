@@ -1,5 +1,17 @@
 <?php
 session_start();
+include "DBConnection.php";
+
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     header("Location: index.php?erro=permissao");
     exit();
@@ -14,28 +26,61 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
     <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
 </head>
 
-<body class="bg-gray-100 overflow-y-auto min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">
-            Bem-vindo, <?php echo $_SESSION['user']; ?> (Educador)
-        </h2>
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-        <nav class="space-y-4">
-            <a href="listarcriedu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar crianças da sua sala</a>
-            <a href="adicionaroco.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Marcar ocorrência</a>
-            <a href="listarocoedu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Ocorrência</a>
-            <a href="adicionaratvedu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Adcionar atividade</a>
-            <a href="listaratvedu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar as suas atividades</a>
-            <a href="listarreuedu.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Listar Reunião à qual pertence</a>
-            <a href="educador_presencas.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Presenças</a>
-            <a href="perfil.php" class="block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Perfil</a>
+<body class="bg-gray-100 min-h-screen">
 
-        </nav>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <a href="logout.php"
-            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 block text-center mt-6">
-            Terminar Sessão
-        </a>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_educador.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard do Educador / Bem-vindo, <?= $_SESSION['user']; ?> </h1>
+
+            <!-- CARDS -->
+            <div class="grid grid-cols-3 gap-6">
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Atividades</h3>
+                    <p class="text-gray-600 mb-4">Criar e gerir atividades.</p>
+                    <a href="listaratvedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Reuniões</h3>
+                    <p class="text-gray-600 mb-4">Gerir reuniões e participantes.</p>
+                    <a href="listarreuedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
+                    <a href="listarcriedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
+                    <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
+                    <a href="listarocoedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+            </div>
+
+        </main>
     </div>
 </body>
 </html>

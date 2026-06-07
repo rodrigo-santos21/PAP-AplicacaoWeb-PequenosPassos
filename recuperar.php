@@ -6,12 +6,13 @@ session_start();
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperar Password</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-[#90b77d] flex items-center justify-center min-h-screen">
 
     <div class="w-full max-w-md bg-white p-8 rounded-lg shadow">
 

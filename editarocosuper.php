@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Apenas superadministradores podem aceder
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     header("Location: index.php?erro=permissao");
@@ -110,74 +121,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-    <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Editar Ocorrência (Superadmin)
-        </h2>
+<body class="bg-gray-100 min-h-screen">
 
-        <p class="text-center text-gray-600 mb-4">
-            Criança: <b><?= $criNome ?></b><br>
-            Criado por: <b><?= $eduNome ?></b>
-        </p>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-                <?= $erro ?>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_superadmin.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Ocorrências </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <p class="text-center text-gray-600 mb-4">
+                    Criança: <b><?= $criNome ?></b><br>
+                    Criado por: <b><?= $eduNome ?></b>
+                </p>
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                        <?= $erro ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-5">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <select name="tipo" id="tipoSelect" onchange="toggleOutro()"
+                                class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            <option value="Doença" <?= $oc['tipo'] === 'Doença' ? 'selected' : '' ?>>Doença</option>
+                            <option value="Queda" <?= $oc['tipo'] === 'Queda' ? 'selected' : '' ?>>Queda</option>
+                            <option value="Comportamento" <?= $oc['tipo'] === 'Comportamento' ? 'selected' : '' ?>>Comportamento</option>
+                            <option value="Agressão" <?= $oc['tipo'] === 'Agressão' ? 'selected' : '' ?>>Agressão</option>
+                            <option value="Outro" <?= $oc['tipo'] === 'Outro' ? 'selected' : '' ?>>Outro</option>
+                        </select>
+                    </div>
+
+                    <div id="outroCampo" style="display: <?= $oc['tipo'] === 'Outro' ? 'block' : 'none' ?>;">
+                        <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
+                        <input type="text" name="tipo_outro"
+                            value="<?= $oc['tipo_outro'] ?>"
+                            class="mt-1 w-full px-4 py-2 border rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Gravidade</label>
+                        <select name="gravidade" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            <option value="Leve" <?= $oc['gravidade'] === 'Leve' ? 'selected' : '' ?>>Leve</option>
+                            <option value="Moderada" <?= $oc['gravidade'] === 'Moderada' ? 'selected' : '' ?>>Moderada</option>
+                            <option value="Grave" <?= $oc['gravidade'] === 'Grave' ? 'selected' : '' ?>>Grave</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <textarea name="descricao" rows="4"
+                                class="mt-1 w-full px-4 py-2 border rounded-lg"
+                                required><?= $oc['descricao'] ?></textarea>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <a href="listarocosuper.php"
+                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                                class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Guardar Alterações
+                        </button>
+                    </div>
+
+                </form>
             </div>
-        <?php endif; ?>
-
-        <form method="post" class="space-y-5">
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Tipo</label>
-                <select name="tipo" id="tipoSelect" onchange="toggleOutro()"
-                        class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-                    <option value="Doença" <?= $oc['tipo'] === 'Doença' ? 'selected' : '' ?>>Doença</option>
-                    <option value="Queda" <?= $oc['tipo'] === 'Queda' ? 'selected' : '' ?>>Queda</option>
-                    <option value="Comportamento" <?= $oc['tipo'] === 'Comportamento' ? 'selected' : '' ?>>Comportamento</option>
-                    <option value="Agressão" <?= $oc['tipo'] === 'Agressão' ? 'selected' : '' ?>>Agressão</option>
-                    <option value="Outro" <?= $oc['tipo'] === 'Outro' ? 'selected' : '' ?>>Outro</option>
-                </select>
-            </div>
-
-            <div id="outroCampo" style="display: <?= $oc['tipo'] === 'Outro' ? 'block' : 'none' ?>;">
-                <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
-                <input type="text" name="tipo_outro"
-                       value="<?= $oc['tipo_outro'] ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Gravidade</label>
-                <select name="gravidade" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-                    <option value="Leve" <?= $oc['gravidade'] === 'Leve' ? 'selected' : '' ?>>Leve</option>
-                    <option value="Moderada" <?= $oc['gravidade'] === 'Moderada' ? 'selected' : '' ?>>Moderada</option>
-                    <option value="Grave" <?= $oc['gravidade'] === 'Grave' ? 'selected' : '' ?>>Grave</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Descrição</label>
-                <textarea name="descricao" rows="4"
-                          class="mt-1 w-full px-4 py-2 border rounded-lg"
-                          required><?= $oc['descricao'] ?></textarea>
-            </div>
-
-            <div class="flex justify-between mt-6">
-                <a href="listarocosuper.php"
-                   class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    Cancelar
-                </a>
-
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Guardar Alterações
-                </button>
-            </div>
-
-        </form>
+        </main>
     </div>
 
 </body>

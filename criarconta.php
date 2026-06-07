@@ -64,99 +64,110 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html lang="pt">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar Conta</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
-    <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <script>
-    // FUNNÇÃO PARA SÓ PERMITIR COM QUE SEJAM CRIADOS ENCARREGAODS DE EDUCAÇÃO AO CRIAR CONTA 
     function avaliar(frm) {
-        frm.tipo.value = "encarregado"; // ajusta conforme o perfil desejado
+        frm.tipo.value = "encarregado";
         return true;
     }
 
-    // FUNÇÃO DE VER PASSWORD
     function togglePassword(inputId, eyeId) {
         const input = document.getElementById(inputId);
         const eye = document.getElementById(eyeId);
 
         if (input.type === "password") {
             input.type = "text";
-            eye.textContent = "👁️"; // olho fechado
+            eye.textContent = "👁️";
         } else {
             input.type = "password";
-            eye.textContent = "👁️‍🗨️"; // olho aberto
+            eye.textContent = "👁️‍🗨️";
         }
     }
 </script>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Criar Conta</h2>
+<body class="bg-[#90b77d] items-center justify-center min-h-screen p-4">
 
-        <form name="criarconta" method="post" action="criarconta.php" onsubmit="return avaliar(criarconta)" class="space-y-5">
+    <div class="w-full max-w-lg bg-white rounded-lg shadow-md p-6 md:p-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Criar Conta</h2>
+
+        <form name="criarconta" method="post" action="criarconta.php" 
+              onsubmit="return avaliar(criarconta)" class="space-y-5">
+
             <div>
                 <label for="nome">Nome</label>
-                <input name="nome" id="nome" type="text" 
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                <input name="nome" id="nome" type="text"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira o seu nome" required>
             </div>
+
             <div>
                 <label for="email">Email</label>
-                <input name="email" id="email" type="email" 
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                <input name="email" id="email" type="email"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira o seu email" required>
             </div>
+
             <div class="relative">
                 <label for="pass">Password</label>
                 <input name="pass" id="pass" type="password"
-                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira a sua password" required>
 
-                <!-- Botão do olho -->
                 <button type="button" onclick="togglePassword('pass', 'eyePass')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyePass">👁️‍🗨️</span>
                 </button>
             </div>
+
             <div class="relative">
                 <label for="confirmarpass">Confirmar Password</label>
                 <input name="confirmarpass" id="confirmarpass" type="password"
-                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira novamente a password" required>
 
-                <!-- Botão do olho -->
                 <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyeConfirm">👁️‍🗨️</span>
                 </button>
             </div>
+
             <input type="hidden" name="tipo" id="tipo">
+
             <div>
                 <label for="datanascimento">Data de nascimento</label>
                 <input name="datanascimento" id="datanascimento" type="date"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm" required>
             </div>
 
-            <div><!-- O maxlength serve para limitar até 9 caracteres e o pattern serve para obrigar a ter 9 caracteres -->
+            <div>
                 <label for="telefone">Telefone</label>
-                <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" 
-                    required
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras--> 
+                <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}"
+                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+                    placeholder="9 dígitos" required
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
-            <div class="flex justify-center">
-                <button type="submit" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+
+            <!-- BOTÕES RESPONSIVOS -->
+            <div class="flex flex-col md:flex-row gap-3 justify-between">
+                <button type="button"
+                    onclick="window.location.href='index.php';"
+                    class="w-full md:w-[45%] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Voltar
+                </button>
+
+                <button type="submit"
+                    class="w-full md:w-[45%] px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     Finalizar Conta
                 </button>
             </div>
-            <div class="flex justify-center">
-                <button type="button" onclick="window.location.href='index.php';" class="px-4 w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                    Voltar
-                </button>
-            </div>
+
         </form>
     </div>
+
 </body>
 </html>

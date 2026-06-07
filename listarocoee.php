@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Apenas encarregados podem aceder
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'encarregado') {
     header("Location: index.php?erro=permissao");
@@ -20,33 +31,41 @@ $IDEE = intval($_SESSION['id']);
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-            Ocorrências — Encarregado de Educação
-        </h1>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_encarregado.php");
+        ?>
 
-        <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-            Apenas ocorrências das suas crianças
-        </h3>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-        <div class="overflow-x-auto">
-            <table class="w-full border-collapse bg-white shadow rounded-lg">
-                <thead>
-                    <tr class="bg-blue-600 text-white">
-                        <th class="p-3 text-left">ID</th>
-                        <th class="p-3 text-left">Data</th>
-                        <th class="p-3 text-left">Criança</th>
-                        <th class="p-3 text-left">Tipo</th>
-                        <th class="p-3 text-left">Gravidade</th>
-                        <th class="p-3 text-left">Descrição</th>
-                        <th class="p-3 text-left">Criado por</th>
-                    </tr>
-                </thead>
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Ocorrências das suas crianças </h1>
+    
+            <a href="encarregado.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-                <tbody>
+                <!-- GRID DE CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
                 <?php
 
                 // 1) Buscar todas as crianças associadas ao encarregado (SEM JOIN)
@@ -61,9 +80,10 @@ $IDEE = intval($_SESSION['id']);
                 }
 
                 if (empty($criancasEE)) {
-                    echo "<tr><td colspan='7' class='p-4 text-center text-gray-500'>
-                            Não tem crianças associadas.
-                          </td></tr>";
+                    echo "
+                    <div class='col-span-3 text-center text-gray-500'>
+                        Não tem crianças associadas.
+                    </div>";
                 } else {
 
                     // 2) Buscar ocorrências das crianças do EE (SEM JOIN)
@@ -79,7 +99,7 @@ $IDEE = intval($_SESSION['id']);
 
                             $IDeduCriador = intval($o['IDedu']);
 
-                            // Nome da criança (SEM JOIN)
+                            // Nome da criança
                             $criNome = "—";
                             $resC = mysqli_query($link, "SELECT nome FROM crianca WHERE IDcri = $IDcri");
                             if ($resC && mysqli_num_rows($resC) > 0) {
@@ -87,7 +107,7 @@ $IDEE = intval($_SESSION['id']);
                                 $criNome = $cri['nome'];
                             }
 
-                            // Nome do educador criador (SEM JOIN)
+                            // Nome do educador criador
                             $eduNome = "—";
                             $resEdu = mysqli_query($link, "SELECT IDutl FROM educador WHERE IDedu = $IDeduCriador");
                             if ($resEdu && mysqli_num_rows($resEdu) > 0) {
@@ -101,7 +121,7 @@ $IDEE = intval($_SESSION['id']);
                                 }
                             }
 
-                            // Tipo final com tipo_outro
+                            // Tipo final
                             if ($o['tipo'] === "Outro" && !empty($o['tipo_outro'])) {
                                 $tipoFinal = "Outro (" . $o['tipo_outro'] . ")";
                             } else {
@@ -109,36 +129,36 @@ $IDEE = intval($_SESSION['id']);
                             }
 
                             // Descrição curta
-                            $desc = strlen($o['descricao']) > 40
-                                    ? substr($o['descricao'], 0, 40) . "..."
+                            $desc = strlen($o['descricao']) > 60
+                                    ? substr($o['descricao'], 0, 60) . "..."
                                     : $o['descricao'];
+                ?>
 
-                            echo "
-                            <tr class='border-b hover:bg-gray-100'>
-                                <td class='p-3'>{$o['IDoc']}</td>
-                                <td class='p-3'>{$o['datahora']}</td>
-                                <td class='p-3'>{$criNome}</td>
-                                <td class='p-3'>{$tipoFinal}</td>
-                                <td class='p-3'>{$o['gravidade']}</td>
-                                <td class='p-3'>{$desc}</td>
-                                <td class='p-3'>{$eduNome}</td>
-                            </tr>";
+                    <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">Ocorrência #<?= $o['IDoc'] ?></h2>
+
+                        <div class="text-gray-700 space-y-1 mb-4">
+                            <p><strong>Data:</strong> <?= $o['datahora'] ?></p>
+                            <p><strong>Criança:</strong> <?= $criNome ?></p>
+                            <p><strong>Tipo:</strong> <?= $tipoFinal ?></p>
+                            <p><strong>Gravidade:</strong> <?= $o['gravidade'] ?></p>
+                            <p><strong>Descrição:</strong> <?= $desc ?></p>
+                            <p><strong>Criado por:</strong> <?= $eduNome ?></p>
+                        </div>
+
+                    </div>
+
+                <?php
                         }
                     }
                 }
-
                 ?>
-                </tbody>
-            </table>
-        </div>
 
-        <div class="mt-6 text-center">
-            <a href="encarregado.php"
-                class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
-                Página Inicial
-            </a>
-        </div>
+                </div>
 
+            </div>
+        </main>
     </div>
 
 </body>

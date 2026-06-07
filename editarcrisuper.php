@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Apenas superadmins podem aceder
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     header("Location: index.php?erro=permissao");
@@ -141,6 +152,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <script>
 document.querySelector("form").addEventListener("submit", function(e) {
     const checks = document.querySelectorAll(".educadorCheck:checked");
@@ -151,96 +172,108 @@ document.querySelector("form").addEventListener("submit", function(e) {
 });
 </script>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+<body class="bg-gray-100 min-h-screen">
 
-    <div class="w-full max-w-lg bg-white shadow-lg rounded-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Editar Criança (Superadmin)
-        </h2>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-                <?= $erro ?>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_superadmin.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Criança </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                        <?= $erro ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-5">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Nome</label>
+                        <input type="text" name="nome" value="<?= $crianca['nome'] ?>"
+                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                        <input type="date" name="datanascimento" value="<?= $crianca['datanascimento'] ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
+                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Sexo</label>
+                        <select name="sexo" class="mt-1 w-full px-4 py-2 border rounded-lg">
+                            <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
+                            <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
+                            <option value="N" <?= $crianca['sexo'] === "N" ? "selected" : "" ?>>Prefere não divulgar</option>
+                        </select>
+                    </div>
+
+                    <!-- EDUCADORES (CHECKBOXES) -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Educadores</label>
+                        <div class="mt-2 space-y-2">
+
+                            <?php mysqli_data_seek($educadores, 0); ?>
+                            <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
+
+                                <?php
+                                $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']}");
+                                $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Educador removido";
+                                ?>
+
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="educadorCheck"
+                                        data-idsala="<?= $ed['IDsala'] ?>"
+                                        value="<?= $ed['IDedu'] ?>"
+                                        name="educadores[]"
+                                        <?= in_array($ed['IDedu'], $educadoresAssociados) ? "checked" : "" ?>>
+                                    <span><?= $nomeEdu ?></span>
+                                </label>
+
+                            <?php endwhile; ?>
+                        </div>
+                    </div>
+
+                    <!-- SALA AUTOMÁTICA -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Sala</label>
+                        <input type="text" id="IDsala" name="IDsala"
+                            value="<?= $crianca['IDsala'] ?>"
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200"
+                            readonly required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Observações</label>
+                        <textarea name="observacoes" rows="4"
+                            class="mt-1 w-full px-4 py-2 border rounded-lg"><?= $crianca['observacoes'] ?></textarea>
+                    </div>
+
+                    <div class="flex justify-between mt-6">
+                        <a href="listarcrisuper.php"
+                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                                class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Guardar Alterações
+                        </button>
+                    </div>
+
+                </form>
             </div>
-        <?php endif; ?>
-
-        <form method="post" class="space-y-5">
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Nome</label>
-                <input type="text" name="nome" value="<?= $crianca['nome'] ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
-                <input type="date" name="datanascimento" value="<?= $crianca['datanascimento'] ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg" required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Sexo</label>
-                <select name="sexo" class="mt-1 w-full px-4 py-2 border rounded-lg">
-                    <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
-                    <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
-                    <option value="N" <?= $crianca['sexo'] === "N" ? "selected" : "" ?>>Prefere não divulgar</option>
-                </select>
-            </div>
-
-            <!-- EDUCADORES (CHECKBOXES) -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Educadores</label>
-                <div class="mt-2 space-y-2">
-
-                    <?php mysqli_data_seek($educadores, 0); ?>
-                    <?php while ($ed = mysqli_fetch_assoc($educadores)): ?>
-
-                        <?php
-                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']}");
-                        $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Educador removido";
-                        ?>
-
-                        <label class="flex items-center space-x-2">
-                            <input type="checkbox" class="educadorCheck"
-                                   data-idsala="<?= $ed['IDsala'] ?>"
-                                   value="<?= $ed['IDedu'] ?>"
-                                   name="educadores[]"
-                                   <?= in_array($ed['IDedu'], $educadoresAssociados) ? "checked" : "" ?>>
-                            <span><?= $nomeEdu ?></span>
-                        </label>
-
-                    <?php endwhile; ?>
-                </div>
-            </div>
-
-            <!-- SALA AUTOMÁTICA -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Sala</label>
-                <input type="text" id="IDsala" name="IDsala"
-                       value="<?= $crianca['IDsala'] ?>"
-                       class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200"
-                       readonly required>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Observações</label>
-                <textarea name="observacoes" rows="4"
-                    class="mt-1 w-full px-4 py-2 border rounded-lg"><?= $crianca['observacoes'] ?></textarea>
-            </div>
-
-            <div class="flex justify-between mt-6">
-                <a href="listarcrisuper.php"
-                   class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    Cancelar
-                </a>
-
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Guardar Alterações
-                </button>
-            </div>
-
-        </form>
+        </main>
     </div>
 
 <!-- SCRIPT PARA VALIDAR EDUCADORES E DEFINIR SALA -->

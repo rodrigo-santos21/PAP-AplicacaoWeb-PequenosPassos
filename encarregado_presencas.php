@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'encarregado') {
     header("Location: index.php?erro=permissao");
     exit();
@@ -50,92 +61,115 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
     <script src="assets/fullcalendar/index.global.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-6">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-<div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
+<body class="bg-gray-100 min-h-screen">
 
-    <h2 class="text-2xl font-bold mb-4">Presenças e Faltas</h2>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-    <label class="font-semibold">Escolha a criança:</label>
-    <select id="crianca" class="border p-2 rounded w-full mb-6">
-        <option value="">-- Selecionar --</option>
-        <?php foreach ($criancas as $c): ?>
-            <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
-                <?= $c['nome'] ?>
-            </option>
-        <?php endforeach; ?>
-    </select>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_encarregado.php");
+        ?>
 
-    <div id="calendar"></div>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-    <a href="encarregado.php"
-       style="display:inline-block; margin-top:20px; padding:10px 18px; background:#2563eb; color:white; border-radius:6px;">
-        ← Voltar
-    </a>
-</div>
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Ver Presenças e Faltas das suas crianças </h1>
+    
+            <a href="encarregado.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
 
-<!-- MODAL JUSTIFICAÇÃO -->
-<div id="modalJust" 
-     style="
-        display:none; 
-        position:fixed; 
-        top:0; 
-        left:0; 
-        width:100%; 
-        height:100%; 
-        background:rgba(0,0,0,0.5); 
-        padding-top:100px;
-        z-index:9999;
-     ">
-    <div style="
-        background:white;
-        width:400px;
-        margin:auto;
-        padding:20px;
-        border-radius:8px;
-        position:relative;
-        z-index:10000;
-    ">
-        <h3 class="text-xl font-bold mb-3">Justificar falta</h3>
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-        <form method="post">
-            <input type="hidden" name="acao" value="justificar">
-            <input type="hidden" name="idPres" id="just_idPres">
-            <input type="hidden" name="id_crianca_sel" id="just_idCri">
+                <label class="font-semibold">Escolha a criança:</label>
+                <select id="crianca" class="border p-2 rounded w-full mb-6">
+                    <option value="">-- Selecionar --</option>
+                    <?php foreach ($criancas as $c): ?>
+                        <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
+                            <?= $c['nome'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
-            <label>Justificação:</label>
-            <textarea name="justificacao" rows="4" class="border p-2 w-full mb-3" required></textarea>
+                <div id="calendar"></div>
 
-            <button type="submit" style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
-                Enviar
-            </button>
+            </div>
 
-            <button type="button" onclick="fecharJustificacao()" 
-                    style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
-                Cancelar
-            </button>
-        </form>
+            <!-- MODAL JUSTIFICAÇÃO -->
+            <div id="modalJust" 
+                style="
+                    display:none; 
+                    position:fixed; 
+                    top:0; 
+                    left:0; 
+                    width:100%; 
+                    height:100%; 
+                    background:rgba(0,0,0,0.5); 
+                    padding-top:100px;
+                    z-index:9999;
+                ">
+                <div style="
+                    background:white;
+                    width:400px;
+                    margin:auto;
+                    padding:20px;
+                    border-radius:8px;
+                    position:relative;
+                    z-index:10000;
+                ">
+                    <h3 class="text-xl font-bold mb-3">Justificar falta</h3>
+
+                    <form method="post">
+                        <input type="hidden" name="acao" value="justificar">
+                        <input type="hidden" name="idPres" id="just_idPres">
+                        <input type="hidden" name="id_crianca_sel" id="just_idCri">
+
+                        <label>Justificação:</label>
+                        <textarea name="justificacao" rows="4" class="border p-2 w-full mb-3" required></textarea>
+
+                        <button type="submit" style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
+                            Enviar
+                        </button>
+
+                        <button type="button" onclick="fecharJustificacao()" 
+                                style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
+                            Cancelar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal PRESENÇA NORMAL -->
+            <div id="modalPresenca" 
+                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                        background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
+                <div style="background:white; width:350px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
+                    <h3 class="text-xl font-bold mb-3">Detalhes da Presença</h3>
+
+                    <p><b>Data:</b> <span id="modalPresencaData"></span></p>
+                    <p><b>Entrada:</b> <span id="modalPresencaEntrada"></span></p>
+                    <p><b>Saída:</b> <span id="modalPresencaSaida"></span></p>
+
+                    <button onclick="document.getElementById('modalPresenca').style.display='none'"
+                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px; margin-top:15px;">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+        </main>
     </div>
-</div>
-
-<!-- Modal PRESENÇA NORMAL -->
-<div id="modalPresenca" 
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
-    <div style="background:white; width:350px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
-        <h3 class="text-xl font-bold mb-3">Detalhes da Presença</h3>
-
-        <p><b>Data:</b> <span id="modalPresencaData"></span></p>
-        <p><b>Entrada:</b> <span id="modalPresencaEntrada"></span></p>
-        <p><b>Saída:</b> <span id="modalPresencaSaida"></span></p>
-
-        <button onclick="document.getElementById('modalPresenca').style.display='none'"
-                style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px; margin-top:15px;">
-            Fechar
-        </button>
-    </div>
-</div>
-
 
 <script>
 let calendar;

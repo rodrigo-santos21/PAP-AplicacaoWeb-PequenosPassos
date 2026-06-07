@@ -7,6 +7,17 @@ require "PHPMailer/src/Exception.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Buscar salas (sem JOIN)
 $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado = 1");
 
@@ -129,6 +140,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <script>
     function togglePassword(inputId, eyeId) {
         const input = document.getElementById(inputId);
@@ -156,122 +177,136 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     };
 </script>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
+<body class="bg-gray-100 min-h-screen">
 
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Adicionar Utilizador (Superadmin)</h2>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <?php if (isset($erro)): ?>
-            <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-                <?= $erro ?>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_superadmin.php");
+        ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Utilizador </h1>
+    
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                        <?= $erro ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" class="space-y-5">
+
+                    <div>
+                        <label for="nome">Nome</label>
+                        <input name="nome" id="nome" type="text"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required>
+                    </div>
+
+                    <div>
+                        <label for="email">Email</label>
+                        <input name="email" id="email" type="email"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required>
+                    </div>
+
+                    <div class="relative">
+                        <label for="pass">Password</label>
+                        <input name="pass" id="pass" type="password"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required>
+                        
+                        <button type="button" onclick="togglePassword('pass', 'eyePass')"
+                            class="absolute right-3 top-9 text-gray-500">
+                            <span id="eyePass">👁️‍🗨️</span>
+                        </button>
+                    </div>
+
+                    <div class="relative">
+                        <label for="confirmarpass">Confirmar Password</label>
+                        <input name="confirmarpass" id="confirmarpass" type="password"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required>
+
+                        <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
+                            class="absolute right-3 top-9 text-gray-500">
+                            <span id="eyeConfirm">👁️‍🗨️</span>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label for="tipo">Tipo de Utilizador</label>
+                        <select name="tipo" id="tipo"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required>
+                            <option value="encarregado">Encarregado</option>
+                            <option value="educador">Educador</option>
+                            <option value="funcionario">Funcionário</option>
+                            <option value="administrador">Administrador</option>
+                            <option value="superadministrador">Superadministrador</option>
+                        </select>
+                    </div>
+
+                    <div id="camposEducador" style="display:none;">
+
+                        <div>
+                            <label for="especialidade">Especialidade</label>
+                            <input name="especialidade" id="especialidade" type="text"
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        </div>
+
+                        <div>
+                            <label for="sala">Sala</label>
+                            <select name="sala" id="sala"
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                <option value="">Selecione uma sala</option>
+
+                                <?php while ($s = mysqli_fetch_assoc($salas)): ?>
+                                    <option value="<?= $s['IDsala'] ?>">
+                                        <?= $s['nome'] ?>
+                                    </option>
+                                <?php endwhile; ?>
+
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <label for="datanascimento">Data de nascimento</label>
+                        <input name="datanascimento" id="datanascimento" type="date"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+
+                    <div>
+                        <label for="telefone">Telefone</label>
+                        <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            required
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    </div>
+
+                    <div class="flex justify-between">
+                        <a href="superadmin.php"
+                            class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                            class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Adicionar
+                        </button>
+                    </div>
+
+                </form>
             </div>
-        <?php endif; ?>
-
-        <form method="post" class="space-y-5">
-
-            <div>
-                <label for="nome">Nome</label>
-                <input name="nome" id="nome" type="text"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-            </div>
-
-            <div>
-                <label for="email">Email</label>
-                <input name="email" id="email" type="email"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-            </div>
-
-            <div class="relative">
-                <label for="pass">Password</label>
-                <input name="pass" id="pass" type="password"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-                
-                <button type="button" onclick="togglePassword('pass', 'eyePass')"
-                    class="absolute right-3 top-9 text-gray-500">
-                    <span id="eyePass">👁️‍🗨️</span>
-                </button>
-            </div>
-
-            <div class="relative">
-                <label for="confirmarpass">Confirmar Password</label>
-                <input name="confirmarpass" id="confirmarpass" type="password"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-
-                <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
-                    class="absolute right-3 top-9 text-gray-500">
-                    <span id="eyeConfirm">👁️‍🗨️</span>
-                </button>
-            </div>
-
-            <div>
-                <label for="tipo">Tipo de Utilizador</label>
-                <select name="tipo" id="tipo"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required>
-                    <option value="encarregado">Encarregado</option>
-                    <option value="educador">Educador</option>
-                    <option value="funcionario">Funcionário</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="superadministrador">Superadministrador</option>
-                </select>
-            </div>
-
-            <div id="camposEducador" style="display:none;">
-
-                <div>
-                    <label for="especialidade">Especialidade</label>
-                    <input name="especialidade" id="especialidade" type="text"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
-                </div>
-
-                <div>
-                    <label for="sala">Sala</label>
-                    <select name="sala" id="sala"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
-                        <option value="">Selecione uma sala</option>
-
-                        <?php while ($s = mysqli_fetch_assoc($salas)): ?>
-                            <option value="<?= $s['IDsala'] ?>">
-                                <?= $s['nome'] ?>
-                            </option>
-                        <?php endwhile; ?>
-
-                    </select>
-                </div>
-
-            </div>
-
-            <div>
-                <label for="datanascimento">Data de nascimento</label>
-                <input name="datanascimento" id="datanascimento" type="date"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-            </div>
-
-            <div>
-                <label for="telefone">Telefone</label>
-                <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    required
-                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-            </div>
-
-            <div class="flex justify-between">
-                <a href="superadmin.php"
-                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                    Cancelar
-                </a>
-
-                <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Adicionar
-                </button>
-            </div>
-
-        </form>
+        </main>
     </div>
 </body>
 </html>

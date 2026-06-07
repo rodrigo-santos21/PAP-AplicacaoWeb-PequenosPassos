@@ -1,61 +1,91 @@
 <html>
-    <head>
-        <meta http-equiv="Content-Language" content="pt" />
-        <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
-        <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
-        <meta charset="utf-8">
-        <title>Login</title>
-    </head>
+<head>
+    <meta http-equiv="Content-Language" content="pt" />
+    <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
 
-    <script> //verifica se os campos do email e da password estão preenchidos
-        function avaliar(frm)
-        {
-            if (frm.email.value == "" || frm.password.value == ""){ 
-                alert ("É necessário preencher os campos!");
-                return (false);
-            } else
-                return (true);
+    <style>
+        .left-panel {
+            background-image: url('imagens/bg_default.png');
+            background-size: cover;
+            background-position: center;
         }
-    </script>
+    </style>
+</head>
 
-    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-        <div id="Body" class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-            <!-- Título -->
-            <h2 class="text-xl font-bold text-gray-800 mb-6">Login</h2>
-            <!-- Formulário -->
+<script>
+function avaliar(frm) {
+    if (frm.email.value == "" || frm.password.value == "") {
+        alert("É necessário preencher os campos!");
+        return false;
+    }
+    return true;
+}
+</script>
+
+<body class="bg-[#90b77d] min-h-screen">
+
+<div class="flex min-h-screen flex-col lg:flex-row">
+
+    <!-- LADO ESQUERDO -->
+    <div class="lg:flex lg:flex-col w-[52%] left-panel justify-center items-center text-blue-700 p-10 hidden">
+        <img src="imagens/logologin.png" class="w-60  drop-shadow-lg">
+        <h1 class="text-4xl font-bold drop-shadow-lg">Bem-vindo</h1>
+        <p class="text-2xl mt-4 drop-shadow-xl">Aceda à sua conta</p>
+    </div>
+
+    <!-- LADO DIREITO -->
+    <div class="w-full lg:w-[48%] flex items-center justify-center p-6 lg:p-10">
+        <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6 lg:p-8">
+
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Login</h2>
+
+            <div class="lg:hidden flex justify-center mb-6">
+                <img src="imagens/logologin.png" class="w-40 drop-shadow-lg">
+            </div>
+
             <form name="Login" method="post" action="autentica.php" onsubmit="return avaliar(Login)" class="space-y-5">
-            <!-- Email -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input name="email" id="email" type="email"
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Insira o seu email" required>
-            </div>
-            <!-- Password -->
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input name="password" id="password" type="password" 
-                    class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Insira a sua password" required>
-            </div>
-            <!-- Botões -->
-            <div class="flex justify-between items-center">
-                <button 
-                    type="submit" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                Entrar
-                </button>
 
-                <a href="criarconta.php"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition inline-block">
-                    Criar Conta
-                </a>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input name="email" type="email"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+                        placeholder="Insira o seu email" required>
+                </div>
 
-                <a href="recuperar.php" class="text-blue-600 hover:underline">Esqueci-me da password</a>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input name="password" type="password"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+                        placeholder="Insira a sua password" required>
+                </div>
 
-            </div>
-            
+                <div class="flex flex-col lg:flex-row gap-3 justify-between items-center">
+                    <button type="submit"
+                        class="w-full lg:w-[35%] px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700">
+                        Entrar
+                    </button>
+
+                    <a href="criarconta.php"
+                        class="w-full lg:w-[35%] px-4 py-2 bg-blue-600 text-white text-center rounded-lg hover:bg-blue-700">
+                        Criar Conta
+                    </a>
+                </div>
+
+                <div class="flex items-center justify-center p-1 "> Esqueceu-se da password?
+                    <a href="recuperar.php" class="text-red-500 ml-4 hover:underline">
+                        Redifinir Password
+                    </a>
+                </div>
             </form>
+
         </div>
-    </body>
+    </div>
+
+</div>
+
+</body>
 </html>

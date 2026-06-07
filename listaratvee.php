@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Verifica se é encarregado
 if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'encarregado') {
     header("Location: index.php?erro=permissao");
@@ -20,160 +31,166 @@ $IDEE = $_SESSION['id']; // ID do encarregado
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-<div class="max-w-full mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-    <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">
-        Atividades das Suas Crianças
-    </h1>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_encarregado.php");
+        ?>
 
-    <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">
-        Apenas atividades associadas às crianças da sua conta
-    </h3>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-    <div class="overflow-x-auto">
-        <table class="w-full border-collapse bg-white shadow rounded-lg">
-            <thead>
-                <tr class="bg-blue-600 text-white">
-                    <th class="p-3 text-left">ID</th>
-                    <th class="p-3 text-left">Criança</th>
-                    <th class="p-3 text-left">Título</th>
-                    <th class="p-3 text-left">Data/Hora</th>
-                    <th class="p-3 text-left">Responsável</th>
-                    <th class="p-3 text-left">Realizada</th>
-                    <th class="p-3 text-left">Descrição</th>
-                </tr>
-            </thead>
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar atividades das suas crianças </h1>
+    
+            <a href="encarregado.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-            <tbody>
-            <?php
+                <!-- GRID DE CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            /* ================================
-               1) BUSCAR CRIANÇAS DO ENCARREGADO
-            ================================= */
-            $resCri = mysqli_query($link, "
-                SELECT IDcri, nome 
-                FROM crianca 
-                WHERE estado = 1 AND IDutl = $IDEE
-            ");
-
-            if (mysqli_num_rows($resCri) === 0) {
-                echo "
-                <tr>
-                    <td colspan='7' class='p-4 text-center text-gray-500'>
-                        Não existem crianças associadas à sua conta.
-                    </td>
-                </tr>";
-            }
-
-            while ($cri = mysqli_fetch_assoc($resCri)) {
-
-                $IDcri = $cri['IDcri'];
-                $nomeCri = $cri['nome'];
+                <?php
 
                 /* ================================
-                   2) BUSCAR ATIVIDADES DA CRIANÇA
+                1) BUSCAR CRIANÇAS DO ENCARREGADO
                 ================================= */
-                $resRel = mysqli_query($link, "
-                    SELECT IDatv, realizada 
-                    FROM crianca_atividade 
-                    WHERE IDcri = $IDcri AND estado = 1
+                $resCri = mysqli_query($link, "
+                    SELECT IDcri, nome 
+                    FROM crianca 
+                    WHERE estado = 1 AND IDutl = $IDEE
                 ");
 
-                while ($rel = mysqli_fetch_assoc($resRel)) {
+                if (mysqli_num_rows($resCri) === 0) {
+                    echo "
+                    <div class='col-span-3 text-center text-gray-500'>
+                        Não existem crianças associadas à sua conta.
+                    </div>";
+                }
 
-                    $IDatv = $rel['IDatv'];
-                    $realizada = $rel['realizada'];
+                while ($cri = mysqli_fetch_assoc($resCri)) {
+
+                    $IDcri = $cri['IDcri'];
+                    $nomeCri = $cri['nome'];
 
                     /* ================================
-                       3) BUSCAR DADOS DA ATIVIDADE
+                    2) BUSCAR ATIVIDADES DA CRIANÇA
                     ================================= */
-                    $resAtv = mysqli_query($link, "
-                        SELECT * FROM atividade 
-                        WHERE IDatv = $IDatv AND estado = 1
+                    $resRel = mysqli_query($link, "
+                        SELECT IDatv, realizada 
+                        FROM crianca_atividade 
+                        WHERE IDcri = $IDcri AND estado = 1
                     ");
 
-                    $a = mysqli_fetch_assoc($resAtv);
-                    if (!$a) continue;
+                    while ($rel = mysqli_fetch_assoc($resRel)) {
 
-                    /* ================================
-                       4) BUSCAR RESPONSÁVEL
-                    ================================= */
-                    $responsavel = "—";
+                        $IDatv = $rel['IDatv'];
+                        $realizada = $rel['realizada'];
 
-                    if (!empty($a['IDedu'])) {
-
-                        // Buscar IDutl do educador
-                        $resEdu = mysqli_query($link, "
-                            SELECT IDutl FROM educador WHERE IDedu = {$a['IDedu']}
+                        /* ================================
+                        3) BUSCAR DADOS DA ATIVIDADE
+                        ================================= */
+                        $resAtv = mysqli_query($link, "
+                            SELECT * FROM atividade 
+                            WHERE IDatv = $IDatv AND estado = 1
                         ");
 
-                        if ($resEdu && mysqli_num_rows($resEdu) > 0) {
-                            $edu = mysqli_fetch_assoc($resEdu);
+                        $a = mysqli_fetch_assoc($resAtv);
+                        if (!$a) continue;
 
-                            // Buscar nome do utilizador
-                            $resU = mysqli_query($link, "
-                                SELECT nome FROM utilizador WHERE IDutl = {$edu['IDutl']}
+                        /* ================================
+                        4) BUSCAR RESPONSÁVEL
+                        ================================= */
+                        $responsavel = "—";
+
+                        if (!empty($a['IDedu'])) {
+
+                            // Buscar IDutl do educador
+                            $resEdu = mysqli_query($link, "
+                                SELECT IDutl FROM educador WHERE IDedu = {$a['IDedu']}
                             ");
 
-                            if ($resU && mysqli_num_rows($resU) > 0) {
-                                $u = mysqli_fetch_assoc($resU);
-                                $responsavel = $u['nome'];
+                            if ($resEdu && mysqli_num_rows($resEdu) > 0) {
+                                $edu = mysqli_fetch_assoc($resEdu);
+
+                                // Buscar nome do utilizador
+                                $resU = mysqli_query($link, "
+                                    SELECT nome FROM utilizador WHERE IDutl = {$edu['IDutl']}
+                                ");
+
+                                if ($resU && mysqli_num_rows($resU) > 0) {
+                                    $u = mysqli_fetch_assoc($resU);
+                                    $responsavel = $u['nome'];
+                                }
+                            }
+
+                        } else {
+                            // Responsável é o admin que criou
+                            $resAdmin = mysqli_query($link, "
+                                SELECT nome FROM utilizador WHERE IDutl = {$a['criadopor']}
+                            ");
+
+                            if ($resAdmin && mysqli_num_rows($resAdmin) > 0) {
+                                $adm = mysqli_fetch_assoc($resAdmin);
+                                $responsavel = $adm['nome'];
                             }
                         }
 
-                    } else {
-                        // Responsável é o admin que criou
-                        $resAdmin = mysqli_query($link, "
-                            SELECT nome FROM utilizador WHERE IDutl = {$a['criadopor']}
-                        ");
+                        /* ================================
+                        5) DESCRIÇÃO CURTA
+                        ================================= */
+                        $desc = strlen($a['descricao']) > 60
+                                ? substr($a['descricao'], 0, 60) . "..."
+                                : $a['descricao'];
 
-                        if ($resAdmin && mysqli_num_rows($resAdmin) > 0) {
-                            $adm = mysqli_fetch_assoc($resAdmin);
-                            $responsavel = $adm['nome'];
-                        }
+                        /* ================================
+                        6) REALIZADA?
+                        ================================= */
+                        $estadoRealizada = $realizada == 1
+                            ? "<span class='text-green-600 font-semibold'>Sim</span>"
+                            : "<span class='text-red-600 font-semibold'>Não</span>";
+                ?>
+
+                    <div class="bg-blue-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+
+                        <h2 class="text-xl font-bold text-gray-800 mb-2"><?= $a['titulo'] ?></h2>
+
+                        <div class="text-gray-700 space-y-1 mb-4">
+                            <p><strong>ID:</strong> <?= $IDatv ?></p>
+                            <p><strong>Criança:</strong> <?= $nomeCri ?></p>
+                            <p><strong>Data/Hora:</strong> <?= $a['datahora'] ?></p>
+                            <p><strong>Responsável:</strong> <?= $responsavel ?></p>
+                            <p><strong>Realizada:</strong> <?= $estadoRealizada ?></p>
+                            <p><strong>Descrição:</strong> <?= $desc ?></p>
+                        </div>
+
+                    </div>
+
+                <?php
                     }
-
-                    /* ================================
-                       5) DESCRIÇÃO CURTA
-                    ================================= */
-                    $desc = strlen($a['descricao']) > 40
-                            ? substr($a['descricao'], 0, 40) . "..."
-                            : $a['descricao'];
-
-                    /* ================================
-                       6) REALIZADA?
-                    ================================= */
-                    $estadoRealizada = $realizada == 1
-                        ? "<span class='text-green-600 font-semibold'>Sim</span>"
-                        : "<span class='text-red-600 font-semibold'>Não</span>";
-
-                    echo "
-                    <tr class='border-b hover:bg-gray-100'>
-                        <td class='p-3'>$IDatv</td>
-                        <td class='p-3'>$nomeCri</td>
-                        <td class='p-3'>{$a['titulo']}</td>
-                        <td class='p-3'>{$a['datahora']}</td>
-                        <td class='p-3'>$responsavel</td>
-                        <td class='p-3'>$estadoRealizada</td>
-                        <td class='p-3'>$desc</td>
-                    </tr>";
                 }
-            }
-            ?>
-            </tbody>
-        </table>
-    </div>
+                ?>
 
-    <div class="mt-6 text-center">
-        <a href="encarregado.php"
-            class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
-            Página Inicial
-        </a>
+                </div>
+            </div>
+        </main>
     </div>
-
-</div>
 
 </body>
 </html>

@@ -2,6 +2,17 @@
 session_start();
 include "DBConnection.php";
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Verifica se o utilizador é superadministrador
 if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'superadmin') {
     header("Location: index.php?erro=permissao");
@@ -233,150 +244,175 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
     </style>
 </head>
 
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
+
 <body class="bg-gray-100 min-h-screen">
 
-    <div class="max-w-5xl mx-auto mt-10 bg-white shadow-lg rounded-lg p-8">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-4">Página do SuperAdmin</h1>
-        <h3 class="text-xl font-semibold text-center text-gray-600 mb-6">Reuniões (Calendário)</h3>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-        <div id="calendar"></div>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_superadmin.php");
+        ?>
 
-        <div class="mt-6 text-center">
-            <a href="superadmin.php" class="px-6 py-2 bg-blue-600 text-white rounded-lg">Página Inicial</a>
-        </div>
-    </div>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-    <!-- MODAL -->
-    <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Reuniões </h1>
+    
+            <a href="superadmin.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
-            <h2 class="text-xl font-bold mb-4">Editar Reunião</h2>
+                <div id="calendar"></div>
 
-            <form id="formReuniao" class="space-y-4">
-                <input type="hidden" id="reu_id">
+            </div>
 
-                <!-- CAMPOS BASE -->
-                <div>
-                    <label class="block text-sm font-medium">Título</label>
-                    <input type="text" id="reu_titulo" class="w-full border p-2 rounded" required>
+            <!-- MODAL -->
+            <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+
+                    <h2 class="text-xl font-bold mb-4">Editar Reunião</h2>
+
+                    <form id="formReuniao" class="space-y-4">
+                        <input type="hidden" id="reu_id">
+
+                        <!-- CAMPOS BASE -->
+                        <div>
+                            <label class="block text-sm font-medium">Título</label>
+                            <input type="text" id="reu_titulo" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Data e Hora</label>
+                            <input type="datetime-local" id="reu_datahora" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Localidade</label>
+                            <input type="text" id="reu_localidade" class="w-full border p-2 rounded" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Objetivo</label>
+                            <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded" required></textarea>
+                        </div>
+
+                        <hr>
+
+                        <!-- PARTICIPANTES -->
+                        <h3 class="text-lg font-semibold mb-3">Participantes</h3>
+
+                        <!-- BOTÕES -->
+                        <div class="grid grid-cols-3 gap-3 mb-4">
+                            <button type="button" id="btn_func" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Funcionários
+                            </button>
+
+                            <button type="button" id="btn_edu" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Educadores
+                            </button>
+
+                            <button type="button" id="btn_enc" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                                Encarregados
+                            </button>
+                        </div>
+
+                        <!-- FUNCIONÁRIOS -->
+                        <div id="sec_func" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Selecionar:</label>
+                            <select id="funcionario_tipo" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher --</option>
+                                <option value="todos">Todos os funcionários</option>
+                                <option value="especificos">Selecionar específicos</option>
+                            </select>
+
+                            <div id="funcionario_lista" 
+                                class="hidden border p-3 rounded"
+                                data-total="<?= count($listaFuncionarios) ?>">
+
+                                <?php foreach ($listaFuncionarios as $f): ?>
+                                    <label class="block ml-2">
+                                        <input type="checkbox" class="chk-func" value="<?= $f['IDutl'] ?>">
+                                        <?= htmlspecialchars($f['nome']) ?>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+
+                        </div>
+
+                        <!-- EDUCADORES -->
+                        <div id="sec_edu" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Sala:</label>
+                            <select id="educador_sala" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher sala --</option>
+                                <?php
+                                $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
+                                while ($s = mysqli_fetch_assoc($salas)) {
+                                    echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
+                                }
+                                ?>
+                            </select>
+
+                            <div id="educador_lista" class="hidden border p-3 rounded"></div>
+
+                        </div>
+
+                        <!-- ENCARREGADOS -->
+                        <div id="sec_enc" class="hidden border p-4 rounded mb-4">
+
+                            <label class="block font-medium">Sala:</label>
+                            <select id="encarregado_sala" class="border p-2 rounded w-full mb-3">
+                                <option value="">-- Escolher sala --</option>
+                                <?php
+                                $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
+                                while ($s = mysqli_fetch_assoc($salas)) {
+                                    echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
+                                }
+                                ?>
+                            </select>
+
+                            <div id="encarregado_lista" class="hidden border p-3 rounded"></div>
+
+                        </div>
+
+                        <!-- BOTÕES -->
+                        <div class="flex justify-between mt-4">
+                            <button type="button" id="btnEliminar"
+                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                Eliminar
+                            </button>
+
+                            <div class="flex gap-2">
+                                <button type="button" onclick="fecharModal()"
+                                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    Guardar
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Data e Hora</label>
-                    <input type="datetime-local" id="reu_datahora" class="w-full border p-2 rounded" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Localidade</label>
-                    <input type="text" id="reu_localidade" class="w-full border p-2 rounded" required>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium">Objetivo</label>
-                    <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded" required></textarea>
-                </div>
-
-                <hr>
-
-                <!-- PARTICIPANTES -->
-                <h3 class="text-lg font-semibold mb-3">Participantes</h3>
-
-                <!-- BOTÕES -->
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <button type="button" id="btn_func" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Funcionários
-                    </button>
-
-                    <button type="button" id="btn_edu" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Educadores
-                    </button>
-
-                    <button type="button" id="btn_enc" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
-                        Encarregados
-                    </button>
-                </div>
-
-                <!-- FUNCIONÁRIOS -->
-                <div id="sec_func" class="hidden border p-4 rounded mb-4">
-
-                    <label class="block font-medium">Selecionar:</label>
-                    <select id="funcionario_tipo" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher --</option>
-                        <option value="todos">Todos os funcionários</option>
-                        <option value="especificos">Selecionar específicos</option>
-                    </select>
-
-                    <div id="funcionario_lista" 
-                         class="hidden border p-3 rounded"
-                         data-total="<?= count($listaFuncionarios) ?>">
-
-                        <?php foreach ($listaFuncionarios as $f): ?>
-                            <label class="block ml-2">
-                                <input type="checkbox" class="chk-func" value="<?= $f['IDutl'] ?>">
-                                <?= htmlspecialchars($f['nome']) ?>
-                            </label>
-                        <?php endforeach; ?>
-                    </div>
-
-                </div>
-
-                <!-- EDUCADORES -->
-                <div id="sec_edu" class="hidden border p-4 rounded mb-4">
-
-                    <label class="block font-medium">Sala:</label>
-                    <select id="educador_sala" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher sala --</option>
-                        <?php
-                        $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
-                        while ($s = mysqli_fetch_assoc($salas)) {
-                            echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
-                        }
-                        ?>
-                    </select>
-
-                    <div id="educador_lista" class="hidden border p-3 rounded"></div>
-
-                </div>
-
-                <!-- ENCARREGADOS -->
-                <div id="sec_enc" class="hidden border p-4 rounded mb-4">
-
-                    <label class="block font-medium">Sala:</label>
-                    <select id="encarregado_sala" class="border p-2 rounded w-full mb-3">
-                        <option value="">-- Escolher sala --</option>
-                        <?php
-                        $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
-                        while ($s = mysqli_fetch_assoc($salas)) {
-                            echo "<option value='{$s['IDsala']}'>{$s['nome']}</option>";
-                        }
-                        ?>
-                    </select>
-
-                    <div id="encarregado_lista" class="hidden border p-3 rounded"></div>
-
-                </div>
-
-                <!-- BOTÕES -->
-                <div class="flex justify-between mt-4">
-                    <button type="button" id="btnEliminar"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                        Eliminar
-                    </button>
-
-                    <div class="flex gap-2">
-                        <button type="button" onclick="fecharModal()"
-                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                            Cancelar
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Guardar
-                        </button>
-                    </div>
-                </div>
-
-            </form>
-        </div>
+            </div>
+        </main>
     </div>
 
 <script>

@@ -2,6 +2,17 @@
 session_start();
 include("DBConnection.php");
 
+//BUSCA A FOTO DE PERFIL DO UTILIZADOR
+$IDutl = $_SESSION['id'];
+
+$stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
+mysqli_stmt_execute($stmtFoto);
+$resFoto = mysqli_stmt_get_result($stmtFoto);
+$foto = mysqli_fetch_assoc($resFoto)['foto'] ?? null;
+
+$fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+
 // Apenas funcionários podem aceder
 if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
     header("Location: index.php?erro=permissao");
@@ -106,64 +117,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
-<body class="bg-gray-100 min-h-screen p-8">
+<!-- Esconde o scrollbar -->
+<style>
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    scrollbar-width: none;
+}
+</style>
 
-<div class="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6">
+<body class="bg-gray-100 min-h-screen">
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Aprovar Criança
-    </h2>
+    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <div class="flex min-h-screen">
 
-    <?php if (isset($erro)): ?>
-        <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-            <?= $erro ?>
-        </div>
-    <?php endif; ?>
+        <!-- SIDEBAR -->
+        <?php
+            include("sidebar_funcionario.php");
+        ?>
 
-    <p><strong>Nome:</strong> <?= $c['nome'] ?></p>
-    <p><strong>Data Nascimento:</strong> <?= $c['datanascimento'] ?></p>
-    <p><strong>Sexo:</strong> <?= $c['sexo'] ?></p>
-    <p><strong>Observações:</strong> <?= $c['observacoes'] ?></p>
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
 
-    <form method="post" class="mt-6 space-y-4">
+		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Aprovar Criança </h1>
+    
+            <a href="criancaspendentes.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Educadores</label>
-            <div id="educadoresLista" class="mt-2 space-y-2">
-                <?php foreach ($listaEducadores as $e): ?>
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" class="educadorCheck"
-                            data-idsala="<?= $e['IDsala'] ?>"
-                            value="<?= $e['IDedu'] ?>"
-                            name="educadores[]">
-                        <span><?= $e['nome'] ?></span>
-                    </label>
-                <?php endforeach; ?>
+            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+
+                <?php if (isset($erro)): ?>
+                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                        <?= $erro ?>
+                    </div>
+                <?php endif; ?>
+
+                <p><strong>Nome:</strong> <?= $c['nome'] ?></p>
+                <p><strong>Data Nascimento:</strong> <?= $c['datanascimento'] ?></p>
+                <p><strong>Sexo:</strong> <?= $c['sexo'] ?></p>
+                <p><strong>Observações:</strong> <?= $c['observacoes'] ?></p>
+
+                <form method="post" class="mt-6 space-y-4">
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Educadores</label>
+                        <div id="educadoresLista" class="mt-2 space-y-2">
+                            <?php foreach ($listaEducadores as $e): ?>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" class="educadorCheck"
+                                        data-idsala="<?= $e['IDsala'] ?>"
+                                        value="<?= $e['IDedu'] ?>"
+                                        name="educadores[]">
+                                    <span><?= $e['nome'] ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Sala</label>
+                        <input type="text" id="IDsala" name="IDsala"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-200"
+                            readonly required>
+                    </div>
+
+                    <button type="submit"
+                            class="w-[40%] px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Aprovar
+                    </button>
+
+                </form>
+
             </div>
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Sala</label>
-            <input type="text" id="IDsala" name="IDsala"
-                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-200"
-                readonly required>
-        </div>
-
-        <button type="submit"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Aprovar
-        </button>
-
-    </form>
-
-    <div class="text-center mt-6">
-        <a href="criancaspendentes.php"
-           class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-            Voltar
-        </a>
+        </main>
     </div>
-
-</div>
 
 <script>
 let salaSelecionada = null;
