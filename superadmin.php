@@ -84,13 +84,37 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
                     <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
-                    <a href="listacrisuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <a href="listarcrisuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
                     <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
                     <a href="listarocosuper.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Refeições</h3>
+                    <p class="text-gray-600 mb-4">Gerir refeições da creche</p>
+                    <a href="listarrefeicao.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Presenças</h3>
+                    <p class="text-gray-600 mb-4">Gerir presenças das crianças</p>
+                    <a href="superadmin_presencas.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Logs</h3>
+                    <p class="text-gray-600 mb-4">Registos de utilização</p>
+                    <a href="logs.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Inativos</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados desativados</p>
+                    <a href="superadmin_inativos.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
             </div>
         </main>

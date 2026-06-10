@@ -39,55 +39,85 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
 
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_funcionario.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_funcionario.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_funcionario.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard do Funcionário / Bem-vindo, <?= $_SESSION['user']; ?> </h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">
+                Dashboard do Funcionário / Bem-vindo, <?= $_SESSION['user']; ?>
+            </h1>
 
-            <!-- CARDS -->
-            <div class="grid grid-cols-3 gap-6">
+            <!-- CARDS RESPONSIVOS -->
+            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Utilizadores</h3>
-                    <p class="text-gray-600 mb-4">Gerir contas e permissões.</p>
-                    <a href="listarutl.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Inscricoes Pendentes</h3>
+                    <p class="text-gray-600 mb-4">Gerir contas pendentes.</p>
+                    <a href="inscricoespendentes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Atividades</h3>
-                    <p class="text-gray-600 mb-4">Criar e gerir atividades.</p>
-                    <a href="listaratv.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
-                </div>
-
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Reuniões</h3>
-                    <p class="text-gray-600 mb-4">Gerir reuniões e participantes.</p>
-                    <a href="listarreu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
-                </div>
-
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Salas</h3>
-                    <p class="text-gray-600 mb-4">Gerir salas e educadores.</p>
-                    <a href="listarsala.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças Pendentes</h3>
+                    <p class="text-gray-600 mb-4">Gerir crianças pendentes.</p>
+                    <a href="criancaspendentes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
                     <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
-                    <a href="listacri.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <a href="listarcrifun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Encarregados de Educação</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados dos encarregados.</p>
+                    <a href="listareefun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Educadores</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados dos educadores.</p>
+                    <a href="listaredufun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Reuniões</h3>
+                    <p class="text-gray-600 mb-4">Gerir reuniões e participantes.</p>
+                    <a href="listarreufun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
                     <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
-                    <a href="listaroco.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <a href="listarocofun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Refeições</h3>
+                    <p class="text-gray-600 mb-4">Gerir refeições da creche</p>
+                    <a href="funcionario_refeicoes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Presenças</h3>
+                    <p class="text-gray-600 mb-4">Gerir presenças das crianças</p>
+                    <a href="funcionario_presencas.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Logs</h3>
+                    <p class="text-gray-600 mb-4">Registos de utilização</p>
+                    <a href="logs.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
             </div>
         </main>

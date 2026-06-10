@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
                                  VALUES ('Superadmin adicionou criança: $nome', '$fdatahora', '$criadopor')");
 
-            header("Location: adicionarcrisuper.php?sucesso=1");
+            header("Location: listarcrisuper.php?sucesso=adicionado");
             exit();
         } else {
             $erro = "Erro ao adicionar criança: " . mysqli_error($link);
@@ -98,18 +98,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
    BUSCAR DADOS NECESSÁRIOS
    ============================================================ */
 
-// Buscar encarregados
+// Buscar encarregados (sem JOIN)
 $encarregados = mysqli_query($link,
-    "SELECT IDutl, nome FROM utilizador WHERE tipo = 'encarregado' AND estado = 1"
+    "SELECT IDutl, nome 
+     FROM utilizador 
+     WHERE tipo = 'encarregado' AND estado = 1"
 );
 
-// Buscar educadores + sala
+// Buscar educadores (sem JOIN)
 $educadoresLista = mysqli_query($link,
-    "SELECT educador.IDedu, educador.IDsala, utilizador.nome
-     FROM educador
-     INNER JOIN utilizador ON educador.IDutl = utilizador.IDutl
-     WHERE educador.estado = 1"
+    "SELECT IDedu, IDsala, IDutl 
+     FROM educador 
+     WHERE estado = 1"
 );
+
 ?>
 <html lang="pt">
 <head>
@@ -130,31 +132,34 @@ $educadoresLista = mysqli_query($link,
 </style>
 
 <body class="bg-gray-100 min-h-screen">
+    <!-- MENSAGEM GLOBAL -->
+    <div id="msgGlobal" 
+        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        <span id="msgIcon"></span>
+        <span id="msgTexto" class="font-medium"></span>
+    </div>
 
     <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
-        <?php
-            include("sidebar_superadmin.php");
-        ?>
+        <div class="hidden lg:block">
+            <?php include("sidebar_superadmin.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_superadmin.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Criança </h1>
-    
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Criança </h1>
+
             <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
                 <?php if (isset($erro)): ?>
                     <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
                         <?= $erro ?>
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_GET['sucesso'])): ?>
-                    <div class="bg-green-200 text-green-800 p-3 rounded mb-4">
-                        Criança adicionada com sucesso!
                     </div>
                 <?php endif; ?>
 
@@ -199,17 +204,28 @@ $educadoresLista = mysqli_query($link,
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Educadores</label>
                         <div id="educadoresLista" class="mt-2 space-y-2">
+
                             <?php mysqli_data_seek($educadoresLista, 0); ?>
                             <?php while ($ed = mysqli_fetch_assoc($educadoresLista)): ?>
+
+                                <?php
+                                    // Buscar nome do educador sem JOIN
+                                    $IDutlEdu = $ed['IDutl'];
+                                    $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlEdu");
+                                    $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Sem nome";
+                                ?>
+
                                 <label class="flex items-center space-x-2">
                                     <input type="checkbox" class="educadorCheck"
                                         data-idsala="<?= $ed['IDsala'] ?>"
                                         value="<?= $ed['IDedu'] ?>"
                                         name="educadores[]"
                                         <?= in_array($ed['IDedu'], $educadores) ? "checked" : "" ?>>
-                                    <span><?= $ed['nome'] ?></span>
+                                    <span><?= $nomeEdu ?></span>
                                 </label>
+
                             <?php endwhile; ?>
+
                         </div>
                     </div>
 
@@ -237,7 +253,7 @@ $educadoresLista = mysqli_query($link,
                     </div>
 
                     <div class="flex justify-between">
-                        <a href="superadmin.php"
+                        <a href="listarcrisuper.php"
                             class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
                             Cancelar
                         </a>

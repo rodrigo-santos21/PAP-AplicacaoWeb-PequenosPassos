@@ -257,22 +257,34 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 <body class="bg-gray-100 min-h-screen">
 
     <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_admin.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_admin.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_admin.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
             <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Reuniões da creche </h1>
 
-            <a href="admin.php"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
-                ← Voltar
-            </a>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+
+                <a href="admin.php"
+                class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
+                    ← Voltar
+                </a>
+
+                <a href="adicionarreu.php"
+                class="mb-6 px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
+                    + Adicionar Reunião
+                </a>
+
+            </div>
 
             <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
@@ -415,6 +427,31 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
         </main>
     </div>
 
+<!-- MODAL DE CONFIRMAÇÃO PARA ELIMINAR REUNIÃO -->
+<div id="modalEliminarReuniao" 
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Eliminação</h2>
+
+        <p class="text-gray-700 mb-6">
+            Tens a certeza que desejas eliminar esta reunião?
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <button onclick="fecharModalReuniao()"
+                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                Cancelar
+            </button>
+
+            <button id="btnConfirmarEliminarReuniao"
+                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 
 let selecionadosEducadores = [];
@@ -472,8 +509,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     LIGAR BOTÃO ELIMINAR AO MODAL DE CONFIRMAÇÃO
                     ============================================================ */
                     document.getElementById("btnEliminar").onclick = function () {
-                        fecharModal(); // fecha o modal de edição
-                        setTimeout(() => eliminarReuniao(id), 50); // abre o modal de eliminação
+                        fecharModal();
+                        setTimeout(() => abrirModalEliminar(id), 50);
                     };
 
                     /* ============================================================
@@ -751,7 +788,7 @@ document.getElementById("funcionario_tipo").addEventListener("change", function 
 <script>
     let idReuniaoParaEliminar = null;
 
-    function eliminarReuniao(id) {
+    function abrirModalEliminar(id) {
         idReuniaoParaEliminar = id;
         const modal = document.getElementById("modalEliminarReuniao");
         modal.classList.remove("hidden");
@@ -766,7 +803,6 @@ document.getElementById("funcionario_tipo").addEventListener("change", function 
     }
 
     document.getElementById("btnConfirmarEliminarReuniao").addEventListener("click", function () {
-
         if (idReuniaoParaEliminar === null) return;
 
         fetch("listarreu.php?action=delete", {
@@ -776,12 +812,11 @@ document.getElementById("funcionario_tipo").addEventListener("change", function 
         })
         .then(r => r.json())
         .then(res => {
-
             if (res.success) {
                 fecharModalReuniao();
-                fecharModal(); // fecha modal de edição
+                fecharModal();
                 mostrarMensagem("Reunião eliminada com sucesso.", "green");
-                setTimeout(() => location.reload(), 1200);
+                calendar.refetchEvents();
             } else {
                 mostrarMensagem("Erro ao eliminar reunião.", "red");
             }
@@ -793,36 +828,9 @@ document.getElementById("funcionario_tipo").addEventListener("change", function 
         div.className = `fixed top-5 right-5 px-4 py-2 rounded shadow-lg text-white bg-${cor}-600`;
         div.textContent = texto;
         document.body.appendChild(div);
-
         setTimeout(() => div.remove(), 2000);
     }
 </script>
-
-<!-- MODAL DE CONFIRMAÇÃO PARA ELIMINAR REUNIÃO -->
-<div id="modalEliminarReuniao" 
-     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Eliminação</h2>
-
-        <p class="text-gray-700 mb-6">
-            Tens a certeza que desejas eliminar esta reunião?
-        </p>
-
-        <div class="flex justify-end gap-3">
-            <button onclick="fecharModalReuniao()"
-                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                Cancelar
-            </button>
-
-            <button id="btnConfirmarEliminarReuniao"
-                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                Eliminar
-            </button>
-        </div>
-    </div>
-</div>
-
 
 </body>
 </html>

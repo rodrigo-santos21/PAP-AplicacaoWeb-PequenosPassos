@@ -74,15 +74,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <body class="bg-gray-100 min-h-screen">
 
     <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_admin.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_admin.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_admin.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
 		<h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Sala </h1>
             <div class="w-full bg-white shadow-lg rounded-lg p-8">

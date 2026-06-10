@@ -74,78 +74,133 @@ switch ($tipo) {
         break;
 
     /* ============================
-       EDUCADORES
-       ============================ */
-    case "educadores":
-
-        if ($acao === "um") {
-
-            reativarSimples($link, "educador", "IDedu", $id);
-
-            // Reativar utilizador associado
-            mysqli_query($link, "
-                UPDATE utilizador 
-                SET estado = 1 
-                WHERE IDutl = (SELECT IDutl FROM educador WHERE IDedu = $id)
-            ");
-
-            // Reativar relações
-            mysqli_query($link, "UPDATE crianca_educador SET estado = 1 WHERE IDedu = $id");
-            mysqli_query($link, "UPDATE ocorrencia SET estado = 1 WHERE IDedu = $id");
-            mysqli_query($link, "UPDATE atividade SET estado = 1 WHERE IDedu = $id");
-
-            mysqli_query($link, "
-                INSERT INTO logs (descricao, datahora, IDutl)
-                VALUES ('Superadmin reativou educador ID $id', '$fdatahora', $IDutl)
-            ");
-
-        } else {
-
-            reativarTodosSimples($link, "educador");
-            mysqli_query($link, "UPDATE utilizador SET estado = 1 WHERE tipo = 'educador'");
-            mysqli_query($link, "UPDATE crianca_educador SET estado = 1");
-            mysqli_query($link, "UPDATE ocorrencia SET estado = 1");
-            mysqli_query($link, "UPDATE atividade SET estado = 1");
-
-            mysqli_query($link, "
-                INSERT INTO logs (descricao, datahora, IDutl)
-                VALUES ('Superadmin reativou TODOS os educadores', '$fdatahora', $IDutl)
-            ");
-        }
-
-        break;
-
-    /* ============================
        UTILIZADORES
        ============================ */
     case "utilizadores":
 
-        if ($acao === "um") {
+    if ($acao === "um") {
 
-            reativarSimples($link, "utilizador", "IDutl", $id);
+        // 1) Reativar utilizador
+        reativarSimples($link, "utilizador", "IDutl", $id);
 
-            // Reativar educador/criança se existirem
-            mysqli_query($link, "UPDATE educador SET estado = 1 WHERE IDutl = $id");
-            mysqli_query($link, "UPDATE crianca SET estado = 1 WHERE IDutl = $id");
+        // 2) Buscar tipo do utilizador
+        $resTipo = mysqli_query($link, "SELECT tipo FROM utilizador WHERE IDutl = $id");
+        $tipoUser = mysqli_fetch_assoc($resTipo)['tipo'];
 
+        /* ============================================================
+           REGRAS POR TIPO
+        ============================================================ */
+
+        /* ============================
+           EDUCADORES
+        ============================ */
+        if ($tipoUser === "educador") {
+
+            // Buscar IDedu
+            $resEdu = mysqli_query($link, "SELECT IDedu FROM educador WHERE IDutl = $id");
+            if ($resEdu && mysqli_num_rows($resEdu) > 0) {
+
+                $IDedu = mysqli_fetch_assoc($resEdu)['IDedu'];
+
+                // Reativar educador
+                mysqli_query($link, "UPDATE educador SET estado = 1 WHERE IDedu = $IDedu");
+
+                // Reativar relações
+                mysqli_query($link, "UPDATE crianca_educador SET estado = 1 WHERE IDedu = $IDedu");
+                mysqli_query($link, "UPDATE ocorrencia SET estado = 1 WHERE IDedu = $IDedu");
+                mysqli_query($link, "UPDATE atividade SET estado = 1 WHERE IDedu = $IDedu");
+
+                // Reativar participações em reuniões
+                mysqli_query($link, "
+                    UPDATE reuniao_participante 
+                    SET estado = 1 
+                    WHERE IDutl = $id
+                ");
+            }
+        }
+
+        /* ============================
+        ADMINISTRADORES
+        ============================ */
+        if ($tipoUser === "administrador") {
+
+            // Reativar reuniões criadas pelo admin
             mysqli_query($link, "
-                INSERT INTO logs (descricao, datahora, IDutl)
-                VALUES ('Superadmin reativou utilizador ID $id', '$fdatahora', $IDutl)
+                UPDATE reuniao 
+                SET estado = 1 
+                WHERE criadopor = $id
             ");
 
-        } else {
-
-            reativarTodosSimples($link, "utilizador");
-            mysqli_query($link, "UPDATE educador SET estado = 1");
-            mysqli_query($link, "UPDATE crianca SET estado = 1");
-
+            // Reativar participações dessas reuniões
             mysqli_query($link, "
-                INSERT INTO logs (descricao, datahora, IDutl)
-                VALUES ('Superadmin reativou TODOS os utilizadores', '$fdatahora', $IDutl)
+                UPDATE reuniao_participante 
+                SET estado = 1
+                WHERE IDreu IN (
+                    SELECT IDreu FROM reuniao WHERE criadopor = $id
+                )
             ");
         }
 
-        break;
+        /* ============================
+           FUNCIONÁRIOS
+        ============================ */
+        if ($tipoUser === "funcionario") {
+
+            // Reativar participações em reuniões
+            mysqli_query($link, "
+                UPDATE reuniao_participante 
+                SET estado = 1 
+                WHERE IDutl = $id
+            ");
+        }
+
+        /* ============================
+           ENCARREGADOS
+        ============================ */
+        if ($tipoUser === "encarregado") {
+
+            // Reativar participações em reuniões
+            mysqli_query($link, "
+                UPDATE reuniao_participante 
+                SET estado = 1 
+                WHERE IDutl = $id
+            ");
+
+            // Reativar crianças associadas ao encarregado
+            mysqli_query($link, "
+                UPDATE crianca 
+                SET estado = 1 
+                WHERE IDutl = $id
+            ");
+        }
+
+        // LOG
+        mysqli_query($link, "
+            INSERT INTO logs (descricao, datahora, IDutl)
+            VALUES ('Superadmin reativou utilizador ID $id ($tipoUser)', '$fdatahora', $IDutl)
+        ");
+
+    } else {
+
+        // Reativar todos os utilizadores
+        reativarTodosSimples($link, "utilizador");
+
+        // Reativar tudo o que depende de utilizadores
+        mysqli_query($link, "UPDATE educador SET estado = 1");
+        mysqli_query($link, "UPDATE crianca SET estado = 1");
+        mysqli_query($link, "UPDATE crianca_educador SET estado = 1");
+        mysqli_query($link, "UPDATE ocorrencia SET estado = 1");
+        mysqli_query($link, "UPDATE atividade SET estado = 1");
+        mysqli_query($link, "UPDATE reuniao SET estado = 1");
+        mysqli_query($link, "UPDATE reuniao_participante SET estado = 1");
+
+        mysqli_query($link, "
+            INSERT INTO logs (descricao, datahora, IDutl)
+            VALUES ('Superadmin reativou TODOS os utilizadores', '$fdatahora', $IDutl)
+        ");
+    }
+
+    break;
 
     /* ============================
        ATIVIDADES

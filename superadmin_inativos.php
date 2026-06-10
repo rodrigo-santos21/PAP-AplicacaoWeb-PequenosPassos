@@ -56,41 +56,50 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 
     // Reativar um registo
     function reativarUm(tipo, id) {
-        if (!confirm("Tem a certeza que deseja reativar este registo?")) return;
 
-        fetch("reativar.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `acao=um&tipo=${tipo}&id=${id}`
-        })
-        .then(r => r.text())
-        .then(res => {
-            if (res.trim() === "OK") {
-                carregarTab(tipo);
-            } else {
-                alert("Erro ao reativar: " + res);
-            }
+        abrirModalConfirmar("Tem a certeza que deseja reativar este registo?", () => {
+
+            fetch("reativar.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `acao=um&tipo=${tipo}&id=${id}`
+            })
+            .then(r => r.text())
+            .then(res => {
+                if (res.trim() === "OK") {
+                    mostrarMensagemModal("Registo reativado com sucesso.");
+                    carregarTab(tipo);
+                } else {
+                    mostrarMensagemModal("Erro ao reativar: " + res);
+                }
+            });
+
         });
     }
 
     // Reativar todos os registos da tab
     function reativarTodos(tipo) {
-        if (!confirm("Tem a certeza que deseja reativar TODOS os registos desta categoria?")) return;
 
-        fetch("reativar.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `acao=todos&tipo=${tipo}`
-        })
-        .then(r => r.text())
-        .then(res => {
-            if (res.trim() === "OK") {
-                carregarTab(tipo);
-            } else {
-                alert("Erro ao reativar todos: " + res);
-            }
+        abrirModalConfirmar("Tem a certeza que deseja reativar TODOS os registos desta categoria?", () => {
+
+            fetch("reativar.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `acao=todos&tipo=${tipo}`
+            })
+            .then(r => r.text())
+            .then(res => {
+                if (res.trim() === "OK") {
+                    mostrarMensagemModal("Todos os registos foram reativados com sucesso.");
+                    carregarTab(tipo);
+                } else {
+                    mostrarMensagemModal("Erro ao reativar todos: " + res);
+                }
+            });
+
         });
     }
+
     </script>
 
 </head>
@@ -108,18 +117,26 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 <body class="bg-gray-100 min-h-screen">
 
     <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
-        <?php
-            include("sidebar_superadmin.php");
-        ?>
+        <div class="hidden lg:block">
+            <?php include("sidebar_superadmin.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_superadmin.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
 		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Gestão de Inativos </h1>
-    
+
+            <a href="superadmin.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
             <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
                 <!-- TABS -->
@@ -128,11 +145,6 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
                     <button id="tab-criancas" class="tab-btn bg-blue-600 text-white px-4 py-2 rounded"
                             onclick="carregarTab('criancas')">
                         Crianças
-                    </button>
-
-                    <button id="tab-educadores" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
-                            onclick="carregarTab('educadores')">
-                        Educadores
                     </button>
 
                     <button id="tab-utilizadores" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
@@ -166,14 +178,6 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
                 <div id="conteudo" class="mt-4">
                     <!-- Conteúdo carregado via AJAX -->
                 </div>
-
-                <div class="text-center mt-16">
-                    <a href="superadmin.php"
-                    class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        Voltar
-                    </a>
-                </div>
-
             </div>
         </main>
     </div>
@@ -181,6 +185,81 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     <script>
         // Carregar a primeira tab automaticamente
         carregarTab('criancas');
+    </script>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div id="modalConfirmar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar ação</h2>
+            <p id="modalConfirmarTexto" class="text-gray-700 mb-6"></p>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="fecharModalConfirmar()"
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Cancelar
+                </button>
+
+                <button id="btnConfirmarAcao"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MENSAGEM -->
+    <div id="modalMensagem" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
+            <p id="modalMensagemTexto" class="text-gray-800 text-lg mb-6"></p>
+
+            <button onclick="fecharModalMensagem()"
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+    let acaoPendente = null;
+
+    // Abrir modal de confirmação
+    function abrirModalConfirmar(texto, callback) {
+        document.getElementById("modalConfirmarTexto").textContent = texto;
+        acaoPendente = callback;
+
+        const modal = document.getElementById("modalConfirmar");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    // Fechar modal de confirmação
+    function fecharModalConfirmar() {
+        const modal = document.getElementById("modalConfirmar");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        acaoPendente = null;
+    }
+
+    // Confirmar ação
+    document.getElementById("btnConfirmarAcao").addEventListener("click", () => {
+        if (acaoPendente) acaoPendente();
+        fecharModalConfirmar();
+    });
+
+    // Modal de mensagem
+    function mostrarMensagemModal(texto) {
+        document.getElementById("modalMensagemTexto").textContent = texto;
+
+        const modal = document.getElementById("modalMensagem");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function fecharModalMensagem() {
+        const modal = document.getElementById("modalMensagem");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
     </script>
 
 </body>

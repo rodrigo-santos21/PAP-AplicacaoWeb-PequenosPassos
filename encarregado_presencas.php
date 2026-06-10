@@ -73,16 +73,19 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
 
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_encarregado.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_encarregado.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_encarregado.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
 		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Ver Presenças e Faltas das suas crianças </h1>
     

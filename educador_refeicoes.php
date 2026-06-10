@@ -39,12 +39,58 @@ $menu = mysqli_fetch_assoc(mysqli_query($link, "
     SELECT * FROM menu_semana WHERE data = '$dataSelecionada' AND estado = 1
 "));
 
-// Buscar crianças da sala
-$criancas = mysqli_query($link, "
-    SELECT * FROM crianca 
-    WHERE IDsala = $IDsala AND estado = 1
-    ORDER BY nome
+/* ================================
+   FILTROS
+================================ */
+$pesquisa = $_GET['pesquisa'] ?? "";
+
+/* ================================
+   BUSCAR CRIANÇAS DA SALA (SEM JOIN)
+================================ */
+$where = "WHERE IDsala = $IDsala AND estado = 1";
+
+if (!empty($pesquisa)) {
+    $p = mysqli_real_escape_string($link, $pesquisa);
+    $where .= " AND nome LIKE '%$p%'";
+}
+
+$resCriancas = mysqli_query($link, "
+    SELECT * FROM crianca
+    $where
+    ORDER BY nome ASC
 ");
+
+/* Converter para array */
+$criancasArray = [];
+while ($c = mysqli_fetch_assoc($resCriancas)) {
+    $criancasArray[] = $c;
+}
+
+/* ================================
+   PAGINAÇÃO POR CRIANÇAS
+================================ */
+$registosPorPagina = 1; // número de crianças por página
+$totalRegistos = count($criancasArray);
+$totalPaginas = max(1, ceil($totalRegistos / $registosPorPagina));
+
+$paginaAtual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($paginaAtual < 1) $paginaAtual = 1;
+if ($paginaAtual > $totalPaginas) $paginaAtual = $totalPaginas;
+
+$offset = ($paginaAtual - 1) * $registosPorPagina;
+
+$criancasPagina = array_slice($criancasArray, $offset, $registosPorPagina);
+
+/* ================================
+   PRESERVAR FILTROS NA PAGINAÇÃO
+================================ */
+$queryStringFiltros = "";
+foreach ($_GET as $key => $value) {
+    if ($key !== "pagina") {
+        $queryStringFiltros .= "&$key=" . urlencode($value);
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -94,15 +140,76 @@ $criancas = mysqli_query($link, "
 
 <body class="bg-gray-100 min-h-screen">
 
-<div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-    <?php include("sidebar_educador.php"); ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_educador.php"); ?>
+        </div>
 
-    <main class="flex-1 p-10 ml-[20%]">
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_educador.php"); ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
         <h1 class="text-3xl font-bold text-gray-800 mb-6">
             Refeições — <?= date('d/m/Y', strtotime($dataSelecionada)) ?>
         </h1>
+
+        <form method="GET" id="filtrosForm"
+            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
+                md:grid-cols-[2fr_auto] gap-4">
+
+            <!-- 🔍 PESQUISA -->
+            <div>
+                <label class="font-semibold">Pesquisar criança:</label>
+                <input type="text" name="pesquisa" id="pesquisaInput"
+                    placeholder="Nome..."
+                    value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
+                    class="border p-2 rounded w-full">
+            </div>
+
+            <!-- ✖️ RESET -->
+            <div class="flex mt-6 items-center justify-end">
+                <button type="button"
+                    onclick="window.location.href='educador_refeicoes.php?data=<?= $dataSelecionada ?>'"
+                    class="text-gray-500 hover:text-red-600 transition text-2xl"
+                    title="Limpar filtros">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Manter a data selecionada -->
+            <input type="hidden" name="data" value="<?= $dataSelecionada ?>">
+
+        </form>
+
+        <script>
+        const form = document.getElementById('filtrosForm');
+        const inputPesquisa = document.getElementById('pesquisaInput');
+
+        form.addEventListener('submit', function (e) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('pagina');
+            setTimeout(() => {
+                window.location.href = url.pathname + '?' + new URLSearchParams(new FormData(form)).toString();
+            }, 0);
+            e.preventDefault();
+        });
+
+        if (inputPesquisa) {
+            inputPesquisa.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+        }
+        </script>
 
         <!-- NAVEGAÇÃO ENTRE DIAS -->
         <div class="flex gap-4 mb-6">
@@ -168,7 +275,15 @@ $criancas = mysqli_query($link, "
             $disabled = $temMenu ? "" : "opacity-40 cursor-not-allowed";
             ?>
 
-            <?php while ($c = mysqli_fetch_assoc($criancas)): ?>
+            <?php if (empty($criancasPagina)): ?>
+
+                <p class="text-center text-gray-600 text-lg py-10">
+                    Nenhuma criança encontrada com os filtros aplicados.
+                </p>
+
+            <?php else: ?>
+
+                <?php foreach ($criancasPagina as $c): ?>
 
                 <div class="mb-6 p-4 bg-gray-50 rounded shadow">
 
@@ -239,9 +354,50 @@ $criancas = mysqli_query($link, "
 
                 </div>
 
-            <?php endwhile; ?>
+            <?php endforeach; ?>
+
+            <?php endif; ?>
 
         </div>
+        <!-- PAGINAÇÃO -->
+         <?php if ($totalPaginas > 1): ?>
+        <div class="flex justify-center mt-10 text-center">
+            <div class="flex items-center space-x-2">
+
+                <a href="?pagina=1<?= $queryStringFiltros ?>&data=<?= $dataSelecionada ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+
+                <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>&data=<?= $dataSelecionada ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+
+                <?php
+                    $inicio = max(1, $paginaAtual - 2);
+                    $fim = min($totalPaginas, $inicio + 4);
+
+                    if ($fim - $inicio < 4) {
+                        $inicio = max(1, $fim - 4);
+                    }
+
+                    for ($i = $inicio; $i <= $fim; $i++):
+                ?>
+
+                <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>&data=<?= $dataSelecionada ?>"
+                class="w-12 h-12 flex items-center justify-center rounded 
+                <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
+                    <?= $i ?>
+                </a>
+
+                <?php endfor; ?>
+
+                <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>&data=<?= $dataSelecionada ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+
+                <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>&data=<?= $dataSelecionada ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+
+            </div>
+        </div>
+        <?php endif; ?>
 
     </main>
 </div>

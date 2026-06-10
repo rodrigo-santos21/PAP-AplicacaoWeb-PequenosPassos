@@ -2,7 +2,7 @@
 session_start();
 include "DBConnection.php";
 
-if (!isset($_SESSION['tipo']) || !in_array($_SESSION['tipo'], ['admin', 'superadmin'])) {
+if (!isset($_SESSION['tipo']) || !in_array($_SESSION['tipo'], ['administrador', 'superadmin'])) {
     header("Location: index.php?erro=permissao");
     exit;
 }
@@ -20,5 +20,6 @@ mysqli_query($link, "
     WHERE IDmenu = $IDmenu
 ");
 
-header("Location: listarrefeicao.php?edit=ok&data=" . urlencode($_POST['data_original']));
+// REDIRECT COM TOAST DE SUCESSO
+header("Location: listarrefeicao.php?sucesso=editado&data=" . urlencode($_POST['data_original']));
 exit;

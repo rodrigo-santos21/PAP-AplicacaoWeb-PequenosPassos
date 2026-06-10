@@ -49,18 +49,15 @@ if (isset($_POST['acao'])) {
         $horaE = $_POST['horaE'];
         $horaS = $_POST['horaS'];
 
-        // Buscar criança da presença
         $res = mysqli_query($link, "SELECT IDcri, tipo FROM presenca WHERE IDpre = $idPres AND estado = 1");
         $p = mysqli_fetch_assoc($res);
 
         if (!$p) { echo "ERRO"; exit; }
 
-        // Bloquear edição de faltas
         if ($p['tipo'] === 'falta') { echo "ERRO_FALTA"; exit; }
 
         $id_crianca = $p['IDcri'];
 
-        // Verificar se pertence ao educador
         $res2 = mysqli_query($link, "
             SELECT 1 FROM crianca_educador 
             WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
@@ -68,7 +65,6 @@ if (isset($_POST['acao'])) {
 
         if (mysqli_num_rows($res2) == 0) { echo "ERRO_PERMISSAO"; exit; }
 
-        // Validar horas
         if ($horaE && $horaS && $horaE > $horaS) {
             echo "ERRO_HORAS";
             exit;
@@ -89,7 +85,6 @@ if (isset($_POST['acao'])) {
 
         $idPres = intval($_POST['idPres']);
 
-        // Buscar criança da presença
         $res = mysqli_query($link, "SELECT IDcri FROM presenca WHERE IDpre = $idPres AND estado = 1");
         $p = mysqli_fetch_assoc($res);
 
@@ -97,7 +92,6 @@ if (isset($_POST['acao'])) {
 
         $id_crianca = $p['IDcri'];
 
-        // Verificar se pertence ao educador
         $res2 = mysqli_query($link, "
             SELECT 1 FROM crianca_educador 
             WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
@@ -117,7 +111,6 @@ if (isset($_POST['acao'])) {
         $id_crianca = intval($_POST['id_crianca']);
         $data = $_POST['data'];
 
-        // Verificar se pertence ao educador
         $res2 = mysqli_query($link, "
             SELECT 1 FROM crianca_educador 
             WHERE IDcri = $id_crianca AND IDedu = $id_educador AND estado = 1
@@ -162,121 +155,206 @@ while ($row = mysqli_fetch_assoc($res)) {
     <title>Marcar Presenças (Educador)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
+    <script src="assets/fullcalendar/index.global.min.js"></script>
 </head>
 
-<!-- Esconde o scrollbar -->
 <style>
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    scrollbar-width: none;
-}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
 </style>
 
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+<div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_educador.php");
-        ?>
+    <div class="hidden lg:block">
+        <?php include("sidebar_educador.php"); ?>
+    </div>
 
-        <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+    <?php include("menu_mobile_educador.php"); ?>
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Marcar e Ver presenças das crianças da sua sala </h1>
-    
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
-                
-                <label class="font-semibold">Escolha a criança:</label>
-                <select id="crianca" class="border p-2 rounded w-full mb-6">
-                    <option value="">-- Selecionar --</option>
-                    <?php foreach ($criancas as $c): ?>
-                        <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
-                    <?php endforeach; ?>
-                </select>
+    <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-                <div id="calendar"></div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Marcar e Ver presenças das crianças da sua sala</h1>
 
-                <a href="educador.php" 
-                style="
-                    display:inline-block;
-                    padding:10px 18px;
-                    background:#2563eb;
-                    color:white;
-                    text-decoration:none;
-                    border-radius:6px;
-                    font-weight:600;
-                    margin-top:20px;
-                    font-family:Arial, sans-serif;
-                ">
-                    ← Voltar
-                </a>
+        <a href="educador.php"
+        class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+            ← Voltar
+        </a>
+
+        <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            
+            <label class="font-semibold">Escolha a criança:</label>
+            <select id="crianca" class="border p-2 rounded w-full mb-6">
+                <option value="">-- Selecionar --</option>
+                <?php foreach ($criancas as $c): ?>
+                    <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <div id="calendar"></div>
+
+        </div>
+
+        <!-- ============================================================
+            MODAL EDITAR PRESENÇA
+            ============================================================ -->
+
+        <div id="modalEditar" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+            <div class="bg-white w-80 p-6 rounded-lg shadow-lg">
+
+                <h3 class="text-xl font-bold mb-3">Editar Presença</h3>
+
+                <input type="hidden" id="edit_idPres">
+
+                <label>Hora Entrada:</label>
+                <input type="time" id="edit_horaE" class="border p-2 w-full mb-3">
+
+                <label>Hora Saída:</label>
+                <input type="time" id="edit_horaS" class="border p-2 w-full mb-3">
+
+                <div class="flex gap-2 mt-4">
+                    <button onclick="guardarEdicao()" class="bg-green-600 text-white px-4 py-2 rounded">Guardar</button>
+                    <button onclick="removerPresenca()" class="bg-red-600 text-white px-4 py-2 rounded">Remover</button>
+                    <button onclick="fecharModal()" class="bg-gray-600 text-white px-4 py-2 rounded">Cancelar</button>
+                </div>
 
             </div>
+        </div>
 
-            <!-- ============================================================
-                MODAL PARA EDITAR / REMOVER PRESENÇA
-                ============================================================ -->
+        <!-- ============================================================
+            MODAL ALERTA
+            ============================================================ -->
 
-            <div id="modalEditar" 
-                style="
-                    display:none; 
-                    position:fixed; 
-                    top:0; 
-                    left:0; 
-                    width:100%; 
-                    height:100%; 
-                    background:rgba(0,0,0,0.5); 
-                    padding-top:100px;
-                    z-index:9999;
-                ">
+        <div id="modalAlert" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+            <div class="bg-white w-80 p-6 rounded-lg shadow-lg text-center">
+                <h3 id="modalAlertTitulo" class="text-xl font-bold mb-3">Aviso</h3>
+                <p id="modalAlertMensagem" class="text-gray-700 mb-4"></p>
 
-                <div style="
-                    background:white; 
-                    width:300px; 
-                    margin:auto; 
-                    padding:20px; 
-                    border-radius:8px;
-                    z-index:10000;
-                    position:relative;
-                ">
-                    <h3 class="text-xl font-bold mb-3">Editar Presença</h3>
+                <button onclick="fecharModalAlert()" class="bg-blue-600 text-white px-4 py-2 rounded">
+                    OK
+                </button>
+            </div>
+        </div>
 
-                    <input type="hidden" id="edit_idPres">
+        <!-- ============================================================
+            MODAL CONFIRMAÇÃO
+            ============================================================ -->
 
-                    <label>Hora Entrada:</label>
-                    <input type="time" id="edit_horaE" class="border p-2 w-full mb-3">
+        <div id="modalConfirm" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+            <div class="bg-white w-80 p-6 rounded-lg shadow-lg text-center">
+                <h3 id="modalConfirmTitulo" class="text-xl font-bold mb-3">Confirmar</h3>
+                <p id="modalConfirmMensagem" class="text-gray-700 mb-4"></p>
 
-                    <label>Hora Saída:</label>
-                    <input type="time" id="edit_horaS" class="border p-2 w-full mb-3">
-
-                    <button onclick="guardarEdicao()" 
-                            style="background:#16a34a; color:white; padding:8px 12px; border-radius:5px;">
-                        Guardar
-                    </button>
-
-                    <button onclick="removerPresenca()" 
-                            style="background:#dc2626; color:white; padding:8px 12px; border-radius:5px;">
-                        Remover
-                    </button>
-
-                    <button onclick="fecharModal()" 
-                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
-                        Cancelar
-                    </button>
+                <div class="flex justify-center gap-3">
+                    <button id="modalConfirmSim" class="bg-green-600 text-white px-4 py-2 rounded">Sim</button>
+                    <button id="modalConfirmNao" class="bg-gray-600 text-white px-4 py-2 rounded">Não</button>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+
+        <!-- ============================================================
+            MODAL INPUT (para marcar presença)
+            ============================================================ -->
+
+        <div id="modalInput" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]">
+            <div class="bg-white w-80 p-6 rounded-lg shadow-lg">
+
+                <h3 class="text-xl font-bold mb-3">Marcar Presença</h3>
+
+                <label>Hora Entrada:</label>
+                <input type="time" id="input_horaE" class="border p-2 w-full mb-3">
+
+                <label>Hora Saída (opcional):</label>
+                <input type="time" id="input_horaS" class="border p-2 w-full mb-3">
+
+                <div class="flex gap-2 mt-4">
+                    <button id="modalInputConfirmar" class="bg-green-600 text-white px-4 py-2 rounded">Confirmar</button>
+                    <button onclick="fecharModalInput()" class="bg-gray-600 text-white px-4 py-2 rounded">Cancelar</button>
+                </div>
+
+            </div>
+        </div>
 
 <script>
 
-var calendar;
+let calendar;
+
+/* ============================================================
+   FUNÇÕES DE MODAIS (ALERTA / CONFIRMAÇÃO / INPUT)
+   ============================================================ */
+
+function abrirModalAlert(titulo, mensagem) {
+    document.getElementById("modalAlertTitulo").innerText = titulo;
+    document.getElementById("modalAlertMensagem").innerText = mensagem;
+    document.getElementById("modalAlert").classList.remove("hidden");
+}
+
+function fecharModalAlert() {
+    document.getElementById("modalAlert").classList.add("hidden");
+}
+
+let confirmCallback = null;
+
+let callbackSim = null;
+let callbackNao = null;
+
+function abrirModalConfirm(titulo, mensagem, sim, nao) {
+    document.getElementById("modalConfirmTitulo").innerText = titulo;
+    document.getElementById("modalConfirmMensagem").innerText = mensagem;
+    document.getElementById("modalConfirm").classList.remove("hidden");
+
+    callbackSim = sim;
+    callbackNao = nao;
+}
+
+
+function fecharModalConfirm() {
+    document.getElementById("modalConfirm").classList.add("hidden");
+    confirmCallback = null;
+}
+
+document.getElementById("modalConfirmSim").onclick = function () {
+    if (callbackSim) callbackSim();
+    fecharModalConfirm();
+};
+
+document.getElementById("modalConfirmNao").onclick = function () {
+    if (callbackNao) callbackNao();
+    fecharModalConfirm();
+};
+
+
+let inputCallback = null;
+
+function abrirModalInput(callback) {
+    document.getElementById("input_horaE").value = "";
+    document.getElementById("input_horaS").value = "";
+    document.getElementById("modalInput").classList.remove("hidden");
+    inputCallback = callback;
+}
+
+function fecharModalInput() {
+    document.getElementById("modalInput").classList.add("hidden");
+    inputCallback = null;
+}
+
+document.getElementById("modalInputConfirmar").onclick = function () {
+    const horaE = document.getElementById("input_horaE").value;
+    const horaS = document.getElementById("input_horaS").value;
+
+    if (!horaE) {
+        abrirModalAlert("Erro", "A hora de entrada é obrigatória.");
+        return;
+    }
+
+    if (inputCallback) inputCallback(horaE, horaS);
+    fecharModalInput();
+};
+
+/* ============================================================
+   FULLCALENDAR
+   ============================================================ */
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -292,19 +370,18 @@ document.addEventListener('DOMContentLoaded', function() {
             let id_crianca = document.getElementById('crianca').value;
 
             if (!id_crianca) {
-                successCallback([]); 
+                successCallback([]);
                 return;
             }
 
-            fetch("http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/getPresencas.php?id_crianca=" + id_crianca)
+            fetch("getPresencas.php?id_crianca=" + id_crianca)
                 .then(r => r.json())
                 .then(data => successCallback(data))
-                .catch(err => failureCallback(err));
+                .catch(() => abrirModalAlert("Erro", "Não foi possível carregar as presenças."));
         },
 
         eventClick: function(info) {
 
-            // FALTAS NÃO ABREM MODAL
             if (info.event.title.includes("FALTA")) {
                 return;
             }
@@ -318,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById("edit_horaE").value = horaE;
             document.getElementById("edit_horaS").value = horaS;
 
-            document.getElementById("modalEditar").style.display = "block";
+            document.getElementById("modalEditar").classList.remove("hidden");
         },
 
         dateClick: function(info) {
@@ -326,49 +403,53 @@ document.addEventListener('DOMContentLoaded', function() {
             let id_crianca = document.getElementById('crianca').value;
 
             if (!id_crianca) {
-                alert("Escolha uma criança primeiro");
+                abrirModalAlert("Aviso", "Escolha uma criança primeiro.");
                 return;
             }
 
             // PERGUNTAR SE É FALTA
-            if (confirm("Marcar FALTA para esta data?")) {
+            abrirModalConfirm(
+                "Marcar Falta",
+                "Deseja marcar FALTA para esta data?",
 
-                fetch("educador_presencas.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: `acao=falta&id_crianca=${id_crianca}&data=${info.dateStr}`
-                })
-                .then(r => r.text())
-                .then(res => {
-                    if (res.trim() === "OK") {
-                        calendar.refetchEvents();
-                    } else {
-                        alert("Erro ao marcar falta: " + res);
-                    }
-                });
+                // SIM → marcar falta
+                function() {
+                    fetch("educador_presencas.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: `acao=falta&id_crianca=${id_crianca}&data=${info.dateStr}`
+                    })
+                    .then(r => r.text())
+                    .then(res => {
+                        if (res.trim() === "OK") {
+                            calendar.refetchEvents();
+                        } else {
+                            abrirModalAlert("Erro", "Erro ao marcar falta: " + res);
+                        }
+                    });
+                },
 
-                return;
-            }
+                // NÃO → marcar presença normal
+                function() {
+                    abrirModalInput(function(horaE, horaS) {
 
-            // CASO CONTRÁRIO → MARCAR PRESENÇA NORMAL
-            let horaE = prompt("Hora de entrada (HH:MM):");
-            if (!horaE) return;
+                        fetch("marcarPresenca.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: `id_crianca=${id_crianca}&data=${info.dateStr}&horaE=${horaE}&horaS=${horaS}`
+                        })
+                        .then(r => r.text())
+                        .then(res => {
+                            if (res.trim() === "ok") {
+                                calendar.refetchEvents();
+                            } else {
+                                abrirModalAlert("Erro", "Erro ao marcar presença: " + res);
+                            }
+                        });
 
-            let horaS = prompt("Hora de saída (HH:MM) (opcional):");
-
-            fetch("http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/marcarPresenca.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `id_crianca=${id_crianca}&data=${info.dateStr}&horaE=${horaE}&horaS=${horaS}`
-            })
-            .then(r => r.text())
-            .then(res => {
-                if (res.trim() === "ok") {
-                    calendar.refetchEvents();
-                } else {
-                    alert("Erro ao marcar presença: " + res);
+                    });
                 }
-            });
+            );
         }
     });
 
@@ -380,9 +461,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
+/* ============================================================
+   FUNÇÕES DO MODAL EDITAR
+   ============================================================ */
 
 function fecharModal() {
-    document.getElementById("modalEditar").style.display = "none";
+    document.getElementById("modalEditar").classList.add("hidden");
 }
 
 function guardarEdicao() {
@@ -396,25 +480,50 @@ function guardarEdicao() {
         body: `acao=editar&idPres=${idPres}&horaE=${horaE}&horaS=${horaS}`
     })
     .then(r => r.text())
-    .then(() => {
+    .then(res => {
+
+        if (res.trim() === "ERRO_HORAS") {
+            abrirModalAlert("Erro", "A hora de saída não pode ser menor que a hora de entrada.");
+            return;
+        }
+
+        if (res.trim() === "ERRO_PERMISSAO") {
+            abrirModalAlert("Erro", "Não tem permissão para editar esta presença.");
+            return;
+        }
+
         fecharModal();
         calendar.refetchEvents();
     });
 }
 
 function removerPresenca() {
-    const idPres = document.getElementById("edit_idPres").value;
 
-    fetch("educador_presencas.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `acao=remover&idPres=${idPres}`
-    })
-    .then(r => r.text())
-    .then(() => {
-        fecharModal();
-        calendar.refetchEvents();
-    });
+    abrirModalConfirm(
+        "Remover Presença",
+        "Tem a certeza que deseja remover esta presença?",
+        function() {
+
+            const idPres = document.getElementById("edit_idPres").value;
+
+            fetch("educador_presencas.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: `acao=remover&idPres=${idPres}`
+            })
+            .then(r => r.text())
+            .then(res => {
+
+                if (res.trim() === "ERRO_PERMISSAO") {
+                    abrirModalAlert("Erro", "Não tem permissão para remover esta presença.");
+                    return;
+                }
+
+                fecharModal();
+                calendar.refetchEvents();
+            });
+        }
+    );
 }
 
 </script>

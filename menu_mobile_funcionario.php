@@ -6,140 +6,100 @@ $pagina = basename($_SERVER['PHP_SELF']);
 <div class="lg:hidden bg-white shadow-md p-4 flex justify-between items-center">
 
     <!-- LOGO + TEXTO -->
-    <a href="superadmin.php" class="flex items-center space-x-3">
+    <a href="funcionario.php" class="flex items-center space-x-3">
         <img src="imagens/logo.png" class="w-14 h-10 object-cover rounded-lg" alt="Logo">
         <span class="text-xl font-bold text-blue-400">Pequenos Passos</span>
     </a>
 
     <!-- BOTÃO HAMBÚRGUER -->
-    <button onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" 
+    <button onclick="document.getElementById('mobileMenuFuncionario').classList.toggle('hidden')" 
             class="text-3xl text-gray-700">
         ☰
     </button>
 </div>
 
 <!-- MENU MOBILE DROPDOWN -->
-<div id="mobileMenu" class="hidden lg:hidden bg-white shadow-md p-4 space-y-2">
+<div id="mobileMenuFuncionario" class="hidden lg:hidden bg-white shadow-md p-4 space-y-2">
 
     <!-- ===================== -->
     <!--       LINKS MENU      -->
     <!-- ===================== -->
 
-    <a href="superadmin.php"
+    <a href="funcionario.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin.php'
+        <?= $pagina === 'funcionario.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Página Inicial
     </a>
 
-    <a href="adicionarutlsuper.php"
+    <a href="inscricoespendentes.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarutlsuper.php'
+        <?= $pagina === 'inscricoespendentes.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Utilizador
+        Inscrições Pendentes
     </a>
 
-    <a href="listarutlsuper.php"
+    <a href="criancaspendentes.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarutlsuper.php'
+        <?= $pagina === 'criancaspendentes.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Lista Utilizadores
+        Crianças Pendentes
     </a>
 
-    <a href="adicionaratvsuper.php"
+    <a href="listarcrifun.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionaratvsuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Atividade
-    </a>
-
-    <a href="listaratvsuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listaratvsuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Listar Atividades
-    </a>
-
-    <a href="adicionarreusuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarreusuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Reunião
-    </a>
-
-    <a href="listarreusuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarreusuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Listar Reuniões
-    </a>
-
-    <a href="adicionarsalasuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarsalasuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Sala
-    </a>
-
-    <a href="listarsalasuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarsalasuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Listar Salas
-    </a>
-
-    <a href="adicionarcrisuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarcrisuper.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Criança
-    </a>
-
-    <a href="listarcrisuper.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarcrisuper.php'
+        <?= $pagina === 'listarcrifun.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Crianças
     </a>
 
-    <a href="listarocosuper.php"
+    <a href="listareefun.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarocosuper.php'
+        <?= $pagina === 'listareefun.php'
+            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
+            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
+        Listar Encarregados de Educação
+    </a>
+
+    <a href="listaredufun.php"
+        class="block px-3 py-2 font-bold rounded-md transition
+        <?= $pagina === 'listaredufun.php'
+            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
+            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
+        Listar Educadores
+    </a>
+
+    <a href="listarreufun.php"
+        class="block px-3 py-2 font-bold rounded-md transition
+        <?= $pagina === 'listarreufun.php'
+            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
+            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
+        Listar Reuniões
+    </a>
+
+    <a href="listarocofun.php"
+        class="block px-3 py-2 font-bold rounded-md transition
+        <?= $pagina === 'listarocofun.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Ocorrências
     </a>
 
-    <a href="adicionar_menu_semana.php"
+    <a href="funcionario_refeicoes.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionar_menu_semana.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Adicionar Refeições
-    </a>
-
-    <a href="listarrefeicao.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarrefeicao.php'
+        <?= $pagina === 'funcionario_refeicoes.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Refeições
     </a>
 
-    <a href="superadmin_presencas.php"
+    <a href="funcionario_presencas.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin_presencas.php'
+        <?= $pagina === 'funcionario_presencas.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Presenças
@@ -151,14 +111,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Consultar Logs
-    </a>
-
-    <a href="superadmin_inativos.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin_inativos.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Gerir Inativos
     </a>
 
     <!-- ===================== -->
@@ -178,7 +130,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
             <div>
                 <p class="font-semibold text-gray-800 truncate max-w-[180px]"><?= $_SESSION['user']; ?></p>
-                <p class="text-sm text-gray-500">Super Administrador</p>
+                <p class="text-sm text-gray-500">Funcionário</p>
             </div>
         </a>
 

@@ -6,116 +6,116 @@ $pagina = basename($_SERVER['PHP_SELF']);
 <div class="lg:hidden bg-white shadow-md p-4 flex justify-between items-center">
 
     <!-- LOGO + TEXTO -->
-    <a href="superadmin.php" class="flex items-center space-x-3">
+    <a href="admin.php" class="flex items-center space-x-3">
         <img src="imagens/logo.png" class="w-14 h-10 object-cover rounded-lg" alt="Logo">
         <span class="text-xl font-bold text-blue-400">Pequenos Passos</span>
     </a>
 
     <!-- BOTÃO HAMBÚRGUER -->
-    <button onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" 
+    <button onclick="document.getElementById('mobileMenuAdmin').classList.toggle('hidden')" 
             class="text-3xl text-gray-700">
         ☰
     </button>
 </div>
 
 <!-- MENU MOBILE DROPDOWN -->
-<div id="mobileMenu" class="hidden lg:hidden bg-white shadow-md p-4 space-y-2">
+<div id="mobileMenuAdmin" class="hidden lg:hidden bg-white shadow-md p-4 space-y-2">
 
     <!-- ===================== -->
     <!--       LINKS MENU      -->
     <!-- ===================== -->
 
-    <a href="superadmin.php"
+    <a href="admin.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin.php'
+        <?= $pagina === 'admin.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Página Inicial
     </a>
 
-    <a href="adicionarutlsuper.php"
+    <a href="adicionarutl.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarutlsuper.php'
+        <?= $pagina === 'adicionarutl.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Adicionar Utilizador
     </a>
 
-    <a href="listarutlsuper.php"
+    <a href="listarutl.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarutlsuper.php'
+        <?= $pagina === 'listarutl.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Lista Utilizadores
     </a>
 
-    <a href="adicionaratvsuper.php"
+    <a href="adicionaratv.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionaratvsuper.php'
+        <?= $pagina === 'adicionaratv.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Adicionar Atividade
     </a>
 
-    <a href="listaratvsuper.php"
+    <a href="listaratv.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listaratvsuper.php'
+        <?= $pagina === 'listaratv.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Atividades
     </a>
 
-    <a href="adicionarreusuper.php"
+    <a href="adicionarreu.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarreusuper.php'
+        <?= $pagina === 'adicionarreu.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Adicionar Reunião
     </a>
 
-    <a href="listarreusuper.php"
+    <a href="listarreu.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarreusuper.php'
+        <?= $pagina === 'listarreu.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Reuniões
     </a>
 
-    <a href="adicionarsalasuper.php"
+    <a href="adicionarsala.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarsalasuper.php'
+        <?= $pagina === 'adicionarsala.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Adicionar Sala
     </a>
 
-    <a href="listarsalasuper.php"
+    <a href="listarsala.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarsalasuper.php'
+        <?= $pagina === 'listarsala.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Salas
     </a>
 
-    <a href="adicionarcrisuper.php"
+    <a href="adicionarcri.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'adicionarcrisuper.php'
+        <?= $pagina === 'adicionarcri.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Adicionar Criança
     </a>
 
-    <a href="listarcrisuper.php"
+    <a href="listacri.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarcrisuper.php'
+        <?= $pagina === 'listacri.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Crianças
     </a>
 
-    <a href="listarocosuper.php"
+    <a href="listaroco.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'listarocosuper.php'
+        <?= $pagina === 'listaroco.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Listar Ocorrências
@@ -137,9 +137,9 @@ $pagina = basename($_SERVER['PHP_SELF']);
         Listar Refeições
     </a>
 
-    <a href="superadmin_presencas.php"
+    <a href="admin_presencas.php"
         class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin_presencas.php'
+        <?= $pagina === 'admin_presencas.php'
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Presenças
@@ -151,14 +151,6 @@ $pagina = basename($_SERVER['PHP_SELF']);
             ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
         Consultar Logs
-    </a>
-
-    <a href="superadmin_inativos.php"
-        class="block px-3 py-2 font-bold rounded-md transition
-        <?= $pagina === 'superadmin_inativos.php'
-            ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
-        Gerir Inativos
     </a>
 
     <!-- ===================== -->
@@ -178,7 +170,7 @@ $pagina = basename($_SERVER['PHP_SELF']);
 
             <div>
                 <p class="font-semibold text-gray-800 truncate max-w-[180px]"><?= $_SESSION['user']; ?></p>
-                <p class="text-sm text-gray-500">Super Administrador</p>
+                <p class="text-sm text-gray-500">Administrador</p>
             </div>
         </a>
 

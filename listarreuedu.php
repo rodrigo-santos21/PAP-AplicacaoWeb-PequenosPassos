@@ -174,29 +174,31 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_educador.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_educador.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_educador.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
 		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar reuniões às quais está associado</h1>
     
+            <a href="educador.php"
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+                ← Voltar
+            </a>
+            
             <div class="w-full bg-white shadow-lg rounded-lg p-8">
 
                 <div id="calendar"></div>
 
-                <div class="mt-6 text-center">
-                    <a href="educador.php"
-                        class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition inline-block">
-                        Página Inicial
-                    </a>
-                </div>
             </div>
 
             <!-- MODAL -->

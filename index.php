@@ -9,7 +9,7 @@
 
     <style>
         .left-panel {
-            background-image: url('imagens/bg_default.png');
+            background-image: url('imagens/bg_default3.png');
             background-size: cover;
             background-position: center;
         }
@@ -25,6 +25,23 @@ function avaliar(frm) {
     return true;
 }
 </script>
+
+<script>
+    function togglePassword(inputId, eyeId) {
+        const input = document.getElementById(inputId);
+        const eye = document.getElementById(eyeId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            eye.textContent = "👁️"; // olho aberto
+        } else {
+            input.type = "password";
+            eye.textContent = "👁️‍🗨️"; // olho fechado
+        }
+    }
+</script>
+
+
 
 <body class="bg-[#90b77d] min-h-screen">
 
@@ -56,11 +73,17 @@ function avaliar(frm) {
                         placeholder="Insira o seu email" required>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input name="password" type="password"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
+                <div class="relative">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+
+                    <input name="password" id="password" type="password"
+                        class="mt-1 block w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg shadow-sm"
                         placeholder="Insira a sua password" required>
+
+                    <button type="button" onclick="togglePassword('password', 'eyeLogin')"
+                        class="absolute right-3 top-9 text-gray-500">
+                        <span id="eyeLogin">👁️‍🗨️</span>
+                    </button>
                 </div>
 
                 <div class="flex flex-col lg:flex-row gap-3 justify-between items-center">

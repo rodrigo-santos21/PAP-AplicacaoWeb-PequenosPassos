@@ -90,9 +90,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 </script>
 
-<body class="bg-[#90b77d] items-center justify-center min-h-screen p-4">
+<body class="bg-[#90b77d] min-h-screen p-4 flex-col lg:flex lg:items-center lg:justify-center lg:h-full">
 
-    <div class="w-full max-w-lg bg-white rounded-lg shadow-md p-6 md:p-8">
+    <div class="w-full max-w-lg bg-white rounded-lg shadow-md p-6 lg:p-8">
         <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Criar Conta</h2>
 
         <form name="criarconta" method="post" action="criarconta.php" 

@@ -87,11 +87,19 @@ function estado($v) {
 
 <body class="bg-gray-100 min-h-screen">
 
-<div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-    <?php include("sidebar_funcionario.php"); ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_funcionario.php"); ?>
+        </div>
 
-    <main class="flex-1 p-10 ml-[20%]">
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_funcionario.php"); ?>
+
+        <!-- CONTEÚDO -->
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
         <h1 class="text-3xl font-bold text-gray-800 mb-6">
             Refeições — Funcionário

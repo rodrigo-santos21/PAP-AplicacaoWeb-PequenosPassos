@@ -38,22 +38,39 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
 
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
-    <div class="flex min-h-screen">
+    <!-- WRAPPER FLEX RESPONSIVO -->
+    <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR -->
-        <?php
-            include("sidebar_educador.php");
-        ?>
+        <!-- SIDEBAR (DESKTOP) -->
+        <div class="hidden lg:block">
+            <?php include("sidebar_educador.php"); ?>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <?php include("menu_mobile_educador.php"); ?>
 
         <!-- CONTEÚDO -->
-        <main class="flex-1 p-10 ml-[20%] h-screen overflow-y-auto">
+        <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard do Educador / Bem-vindo, <?= $_SESSION['user']; ?> </h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">
+                Dashboard do Educador / Bem-vindo, <?= $_SESSION['user']; ?>
+            </h1>
 
-            <!-- CARDS -->
-            <div class="grid grid-cols-3 gap-6">
+            <!-- CARDS RESPONSIVOS -->
+            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
+                    <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
+                    <a href="listarcriedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+                
+                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
+                    <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
+                    <a href="listarocoedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                </div>
+                
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
                     <h3 class="text-xl font-semibold text-gray-700 mb-2">Atividades</h3>
                     <p class="text-gray-600 mb-4">Criar e gerir atividades.</p>
@@ -67,15 +84,15 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'educador') {
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
-                    <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
-                    <a href="listarcriedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Refeições</h3>
+                    <p class="text-gray-600 mb-4">Refeições das crianças associadas a si.</p>
+                    <a href="educador_refeicoes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
                 <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
-                    <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
-                    <a href="listarocoedu.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Presenças</h3>
+                    <p class="text-gray-600 mb-4">Gerir presenças das crianças associadas a si.</p>
+                    <a href="educador_presencas.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
             </div>
