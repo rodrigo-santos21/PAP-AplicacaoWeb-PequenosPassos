@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -66,11 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data_inicio'])) {
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Menu Semanal</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -174,15 +187,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data_inicio'])) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -204,63 +218,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['data_inicio'])) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Menu Semanal</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Adicionar Menu Semanal</h1>
 
-        <div class="bg-white shadow-lg rounded-lg p-8">
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-            <?= $mensagem ?>
+                <?= $mensagem ?>
 
-            <form method="POST">
+                <form method="POST">
 
-                <!-- Escolher segunda-feira -->
-                <label class="block font-semibold mb-2">Escolher Segunda-feira:</label>
-                <input type="date" name="data_inicio" required
-                       class="border p-2 rounded mb-6 w-60">
+                    <!-- Escolher segunda-feira -->
+                    <label class="block font-semibold text-gray-800 dark:text-gray-200 mb-2">Escolher Segunda-feira:</label>
+                    <input type="date" name="data_inicio" required
+                           class="border border-gray-300 dark:border-gray-600 p-2 rounded mb-6 w-60 
+                                  bg-white dark:bg-gray-700 dark:text-gray-100">
 
-                <hr class="my-6">
+                    <hr class="my-6 border-gray-300 dark:border-gray-700">
 
-                <?php
-                // Pré-gerar dias da semana (placeholders)
-                $dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
+                    <?php
+                    $dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
 
-                for ($i = 0; $i < 5; $i++):
-                ?>
+                    for ($i = 0; $i < 5; $i++):
+                    ?>
 
-                <div class="mb-8 p-4 bg-green-50 rounded shadow">
+                    <div class="mb-8 p-4 bg-green-50 dark:bg-green-900/30 rounded shadow">
 
-                    <h2 class="text-xl font-bold text-gray-700 mb-4">
-                        <?= $dias[$i] ?>
-                    </h2>
+                        <h2 class="text-xl font-bold text-gray-700 dark:text-gray-100 mb-4">
+                            <?= $dias[$i] ?>
+                        </h2>
 
-                    <label class="block font-semibold">Lanche da manhã:</label>
-                    <textarea name="lanche_manha_<?= $i ?>" class="border p-2 rounded w-full mb-3"></textarea>
+                        <label class="block font-semibold text-gray-800 dark:text-gray-200">Lanche da manhã:</label>
+                        <textarea name="lanche_manha_<?= $i ?>" 
+                                  class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                         bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
-                    <label class="block font-semibold">Almoço:</label>
-                    <textarea name="almoco_<?= $i ?>" class="border p-2 rounded w-full mb-3"></textarea>
+                        <label class="block font-semibold text-gray-800 dark:text-gray-200">Almoço:</label>
+                        <textarea name="almoco_<?= $i ?>" 
+                                  class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                         bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
-                    <label class="block font-semibold">Lanche da tarde:</label>
-                    <textarea name="lanche_tarde_<?= $i ?>" class="border p-2 rounded w-full"></textarea>
+                        <label class="block font-semibold text-gray-800 dark:text-gray-200">Lanche da tarde:</label>
+                        <textarea name="lanche_tarde_<?= $i ?>" 
+                                  class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                         bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
-                </div>
+                    </div>
 
-                <?php endfor; ?>
-                
-                <div class="flex justify-between">
-                    <a href="listarrefeicao.php"
-                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
-                        Cancelar
-                    </a>
+                    <?php endfor; ?>
+                    
+                    <div class="flex justify-between">
+                        <a href="listarrefeicao.php"
+                            class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                   rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
+                            Cancelar
+                        </a>
 
-                    <button type="submit"
-                            class="w-[40%] px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Guardar Semana
-                    </button>
-                </div>
+                        <button type="submit"
+                                class="w-[40%] px-6 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                       rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
+                            Guardar Semana
+                        </button>
+                    </div>
 
-            </form>
-        </div>
-    </main>
-</div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
 
 <!-- SCRIPT para só permitir segundas-feiras -->
 <script>

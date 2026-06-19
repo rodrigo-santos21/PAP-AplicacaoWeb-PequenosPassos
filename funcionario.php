@@ -5,6 +5,17 @@ include("DBConnection.php");
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -19,12 +30,13 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
 }
 
 ?>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Página do Funcionário</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico"> <!-- ícone da tab do browser -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -37,7 +49,10 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
     <!-- WRAPPER FLEX RESPONSIVO -->
     <div class="flex min-h-screen flex-col lg:flex-row">
@@ -53,71 +68,91 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'funcionario') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
                 Dashboard do Funcionário / Bem-vindo, <?= $_SESSION['user']; ?>
             </h1>
 
             <!-- CARDS RESPONSIVOS -->
             <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Inscricoes Pendentes</h3>
-                    <p class="text-gray-600 mb-4">Gerir contas pendentes.</p>
-                    <a href="inscricoespendentes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Inscricoes Pendentes</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir contas pendentes.</p>
+                    <a href="inscricoespendentes.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças Pendentes</h3>
-                    <p class="text-gray-600 mb-4">Gerir crianças pendentes.</p>
-                    <a href="criancaspendentes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Crianças Pendentes</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir crianças pendentes.</p>
+                    <a href="criancaspendentes.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Crianças</h3>
-                    <p class="text-gray-600 mb-4">Gerir dados das crianças.</p>
-                    <a href="listarcrifun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Crianças</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir dados das crianças.</p>
+                    <a href="listarcrifun.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Encarregados de Educação</h3>
-                    <p class="text-gray-600 mb-4">Gerir dados dos encarregados.</p>
-                    <a href="listareefun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Encarregados de Educação</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir dados dos encarregados.</p>
+                    <a href="listareefun.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Educadores</h3>
-                    <p class="text-gray-600 mb-4">Gerir dados dos educadores.</p>
-                    <a href="listaredufun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Educadores</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir dados dos educadores.</p>
+                    <a href="listaredufun.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Reuniões</h3>
-                    <p class="text-gray-600 mb-4">Gerir reuniões e participantes.</p>
-                    <a href="listarreufun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Reuniões</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir reuniões e participantes.</p>
+                    <a href="listarreufun.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Ocorrências</h3>
-                    <p class="text-gray-600 mb-4">Registos e acompanhamento.</p>
-                    <a href="listarocofun.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Ocorrências</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Registos e acompanhamento.</p>
+                    <a href="listarocofun.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Refeições</h3>
-                    <p class="text-gray-600 mb-4">Gerir refeições da creche</p>
-                    <a href="funcionario_refeicoes.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Refeições</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir refeições da creche</p>
+                    <a href="funcionario_refeicoes.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Presenças</h3>
-                    <p class="text-gray-600 mb-4">Gerir presenças das crianças</p>
-                    <a href="funcionario_presencas.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Presenças</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Gerir presenças das crianças</p>
+                    <a href="funcionario_presencas.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
 
-                <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Logs</h3>
-                    <p class="text-gray-600 mb-4">Registos de utilização</p>
-                    <a href="logs.php" class="text-green-600 font-semibold hover:underline">Ver mais →</a>
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 hover:shadow-2xl dark:hover:shadow-gray-400 transition">
+                    <div class="flex items-center mb-2">
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100">Logs</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">Registos de utilização</p>
+                    <a href="logs.php" class="text-green-600 dark:text-green-400 font-semibold hover:underline">Ver mais →</a>
                 </div>
             </div>
         </main>

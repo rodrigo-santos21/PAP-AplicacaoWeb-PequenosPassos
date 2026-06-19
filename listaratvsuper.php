@@ -93,6 +93,17 @@ foreach ($_GET as $key => $value) {
 // BUSCA A FOTO DE PERFIL DO SUPERADMIN
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -146,12 +157,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Listar Atividades — Superadmin</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -255,15 +267,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-600 rounded-md p-4 flex items-center gap-3 
+               z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -277,136 +292,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Atividades da Creche</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Atividades da Creche</h1>
 
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
-            <a href="superadmin.php"
-            class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
-                ← Voltar
-            </a>
+                <a href="superadmin.php"
+                class="mb-6 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
+                    ← Voltar
+                </a>
 
-            <a href="adicionaratvsuper.php"
-            class="mb-6 px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
-                + Adicionar Atividade
-            </a>
+                <a href="adicionaratvsuper.php"
+                class="mb-6 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md font-semibold hover:bg-green-700 dark:hover:bg-green-600">
+                    + Adicionar Atividade
+                </a>
 
-        </div>
-
-        <form method="GET" id="filtrosForm"
-            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
-
-            <!-- 🔍 PESQUISA -->
-            <div class="relative">
-                <label class="font-semibold">Pesquisar:</label>
-                <input type="text" name="pesquisa" id="pesquisaInput"
-                    placeholder="Título ou descrição..."
-                    value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                    class="border p-2 rounded w-full">
             </div>
 
-            <!-- 🔤 ORDEM -->
-            <div>
-                <label class="font-semibold">Ordenar por:</label>
-                <select name="ordem" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">Mais recentes</option>
-                    <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigos</option>
-                    <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
-                    <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
-                </select>
-            </div>
+            <form method="GET" id="filtrosForm"
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 
+                       grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
 
-            <!-- 👤 EDUCATOR RESPONSÁVEL (SEM JOIN) -->
-            <div>
-                <label class="font-semibold">Educador:</label>
-                <select name="educador" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">-- Todos --</option>
+                <!-- 🔍 PESQUISA -->
+                <div class="relative">
+                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <input type="text" name="pesquisa" id="pesquisaInput"
+                        placeholder="Título ou descrição..."
+                        value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
+                        class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
+                </div>
 
-                    <?php
-                    // 1) Buscar todos os educadores ativos
-                    $resEdu = mysqli_query($link, "SELECT IDedu, IDutl FROM educador WHERE estado = 1 ORDER BY IDedu ASC");
+                <!-- 🔤 ORDEM -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <select name="ordem"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">Mais recentes</option>
+                        <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigos</option>
+                        <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
+                        <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
+                    </select>
+                </div>
 
-                    while ($ed = mysqli_fetch_assoc($resEdu)):
-                        $idEdu = $ed['IDedu'];
+                <!-- 👤 EDUCATOR RESPONSÁVEL -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Educador:</label>
+                    <select name="educador"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">-- Todos --</option>
 
-                        // 2) Buscar nome do utilizador (SEM JOIN)
-                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']} AND estado = 1");
-                        $nomeEdu = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Educador #$idEdu";
-                    ?>
-                        <option value="<?= $idEdu ?>"
-                            <?= ($_GET['educador'] ?? '') == $idEdu ? 'selected' : '' ?>>
-                            <?= $nomeEdu ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                        <?php
+                        $resEdu = mysqli_query($link, "SELECT IDedu, IDutl FROM educador WHERE estado = 1 ORDER BY IDedu ASC");
 
-            <!-- 🧑‍💼 CRIADOR (SEM JOIN) -->
-            <div>
-                <label class="font-semibold">Criado por:</label>
-                <select name="criador" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">-- Todos --</option>
+                        while ($ed = mysqli_fetch_assoc($resEdu)):
+                            $idEdu = $ed['IDedu'];
 
-                    <?php
-                    // 1) Buscar criadores distintos
-                    $resCri = mysqli_query($link, "
-                        SELECT DISTINCT criadopor 
-                        FROM atividade 
-                        WHERE estado = 1 AND criadopor IS NOT NULL
-                    ");
+                            $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$ed['IDutl']} AND estado = 1");
+                            $nomeEdu = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Educador #$idEdu";
+                        ?>
+                            <option value="<?= $idEdu ?>"
+                                <?= ($_GET['educador'] ?? '') == $idEdu ? 'selected' : '' ?>>
+                                <?= $nomeEdu ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-                    while ($cr = mysqli_fetch_assoc($resCri)):
-                        $idCriador = $cr['criadopor'];
+                <!-- 🧑‍💼 CRIADOR -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Criado por:</label>
+                    <select name="criador"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">-- Todos --</option>
 
-                        // 2) Buscar nome do utilizador (SEM JOIN)
-                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $idCriador AND estado = 1");
-                        $nomeCriador = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Utilizador #$idCriador";
-                    ?>
-                        <option value="<?= $idCriador ?>"
-                            <?= ($_GET['criador'] ?? '') == $idCriador ? 'selected' : '' ?>>
-                            <?= $nomeCriador ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                        <?php
+                        $resCri = mysqli_query($link, "
+                            SELECT DISTINCT criadopor 
+                            FROM atividade 
+                            WHERE estado = 1 AND criadopor IS NOT NULL
+                        ");
 
-            <!-- ✖️ RESET -->
-            <div class="flex mt-6 items-center justify-end">
-                <button type="button"
-                    onclick="window.location.href='listaratvsuper.php'"
-                    class="text-gray-500 hover:text-red-600 transition text-2xl"
-                    title="Limpar filtros">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                </button>
-            </div>
+                        while ($cr = mysqli_fetch_assoc($resCri)):
+                            $idCriador = $cr['criadopor'];
 
-        </form>
+                            $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $idCriador AND estado = 1");
+                            $nomeCriador = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Utilizador #$idCriador";
+                        ?>
+                            <option value="<?= $idCriador ?>"
+                                <?= ($_GET['criador'] ?? '') == $idCriador ? 'selected' : '' ?>>
+                                <?= $nomeCriador ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-        <!-- BARRA DE PESQUISA -->
-        <script>
-            const input = document.getElementById("pesquisaInput");
-            const form = document.getElementById("filtrosForm");
+                <!-- ✖️ RESET -->
+                <div class="flex mt-6 items-center justify-end">
+                    <button type="button"
+                        onclick="window.location.href='listaratvsuper.php'"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
+                        title="Limpar filtros">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+                </div>
 
-            // 1) Submeter quando carregar ENTER
-            input.addEventListener("keydown", function(e) {
-                if (e.key === "Enter") {
-                    e.preventDefault(); // evita refresh duplo
+            </form>
+
+            <!-- SCRIPT PESQUISA -->
+            <script>
+                const input = document.getElementById("pesquisaInput");
+                const form = document.getElementById("filtrosForm");
+
+                input.addEventListener("keydown", function(e) {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        form.submit();
+                    }
+                });
+
+                input.addEventListener("blur", function() {
                     form.submit();
-                }
-            });
+                });
+            </script>
 
-            // 2) Submeter quando sair do input (blur)
-            input.addEventListener("blur", function() {
-                form.submit();
-            });
-        </script>
-
-        <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
             <!-- GRID DE CARDS -->
             <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
@@ -465,24 +486,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                                 : $a['descricao'];
                     ?>
 
-                    <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <div class="bg-green-50 dark:bg-green-900/30 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-                        <h2 class="text-xl font-bold text-gray-800 mb-2"><?= $a['titulo'] ?></h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2"><?= $a['titulo'] ?></h2>
 
-                        <p class="text-gray-700"><strong>ID:</strong> <?= $IDatv ?></p>
-                        <p class="text-gray-700"><strong>Data/Hora:</strong> <?= $a['datahora'] ?></p>
-                        <p class="text-gray-700"><strong>Criado por:</strong> <?= $nomeCriador ?></p>
-                        <p class="text-gray-700"><strong>Responsável:</strong> <?= $nomeEdu ?></p>
-                        <p class="text-gray-700"><strong>Crianças:</strong> <?= $totalCri ?></p>
-                        <p class="text-gray-700"><strong>Realizadas:</strong> <?= $totalReal ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>ID:</strong> <?= $IDatv ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Data/Hora:</strong> <?= $a['datahora'] ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Criado por:</strong> <?= $nomeCriador ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Responsável:</strong> <?= $nomeEdu ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Crianças:</strong> <?= $totalCri ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Realizadas:</strong> <?= $totalReal ?></p>
 
-                        <p class="text-gray-600 mt-2"><strong>Descrição:</strong> <?= $desc ?></p>
+                        <p class="text-gray-600 dark:text-gray-400 mt-2"><strong>Descrição:</strong> <?= $desc ?></p>
 
                         <div class="flex gap-3 justify-end mt-4">
 
                             <!-- EDITAR -->
                             <button onclick="window.location.href='editaratvsuper.php?id=<?= $IDatv ?>'"
-                                class="text-gray-500 hover:text-yellow-500 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -492,7 +513,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                             <!-- ELIMINAR -->
                             <button onclick="eliminarAtividade(<?= $IDatv ?>)"
-                                class="text-gray-500 hover:text-red-600 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -515,11 +536,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                 <!-- PRIMEIRA PÁGINA -->
                 <a href="?pagina=1<?= $queryStringFiltros ?>" 
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
                 <!-- VOLTAR UMA -->
                 <a href="?pagina=<?= max(1, $paginaAtual - 1) . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
                 <?php
                     $inicio = max(1, $paginaAtual - 2);
@@ -535,7 +558,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                 <!-- NÚMEROS -->
                 <a href="?pagina=<?= $i . $queryStringFiltros ?>"
                 class="w-12 h-12 flex items-center justify-center rounded 
-                <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
+                <?= $i == $paginaAtual 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
                     <?= $i ?>
                 </a>
 
@@ -543,11 +568,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                 <!-- AVANÇAR UMA -->
                 <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
                 <!-- ÚLTIMA PÁGINA -->
                 <a href="?pagina=<?= $totalPaginas . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
             </div>
         </div>

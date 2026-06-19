@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -79,12 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Editar Atividade (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -97,9 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -113,29 +125,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Atividade </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Editar Atividade</h1>
     
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <form method="post" class="space-y-5">
 
+                    <!-- TÍTULO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Título</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Título</label>
                         <input type="text" name="titulo" value="<?= $atividade['titulo'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
+                    <!-- DATA E HORA -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Data e Hora</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Data e Hora</label>
                         <input type="datetime-local" name="datahora"
                             value="<?= date('Y-m-d\TH:i', strtotime($atividade['datahora'])) ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
+                    <!-- RESPONSÁVEL -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Responsável</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Responsável</label>
                         <select name="IDedu"
-                                class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                                class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                             <option value="">Selecione um educador</option>
 
                             <?php
@@ -156,20 +174,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </select>
                     </div>
 
+                    <!-- DESCRIÇÃO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Descrição</label>
                         <textarea name="descricao" rows="5"
-                        class="mt-1 w-full px-4 py-2 border rounded-lg" required><?= $atividade['descricao'] ?></textarea>
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required><?= $atividade['descricao'] ?></textarea>
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between mt-6">
                         <a href="listaratvsuper.php"
-                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                           class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                  rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </a>
 
                         <button type="submit"
-                                class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                       rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
                             Guardar Alterações
                         </button>
                     </div>
@@ -178,6 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </main>
     </div>
+</body>
 
 <!-- TOAST -->
 <?php if (isset($erro)): ?>

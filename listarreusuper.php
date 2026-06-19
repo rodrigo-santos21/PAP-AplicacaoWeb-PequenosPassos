@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -223,15 +234,16 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Listar Reuniões</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- FullCalendar local -->
-    <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
+    <script src="https://pequenospassos.infinityfree.io/assets/fullcalendar/index.global.min.js"></script>
 
     <style>
         #modalReuniao { 
@@ -241,6 +253,7 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
         .fc { 
             z-index: 1 !important; 
         }
+        
     </style>
 </head>
 
@@ -343,17 +356,30 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 .no-scrollbar {
     scrollbar-width: none;
 }
+
+/* FULLCALENDAR — FUNDO DOS DIAS DA SEMANA NO DARK MODE */
+.dark .fc .fc-col-header {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
+
+.dark .fc .fc-col-header-cell {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
+
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-600 rounded-md p-4 flex items-center gap-3 
+               z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -367,90 +393,108 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Reuniões </h1>
-    
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Listar Reuniões</h1>
+
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
                 <a href="superadmin.php"
-                class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
+                class="mb-6 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
                     ← Voltar
                 </a>
 
                 <a href="adicionarreusuper.php"
-                class="mb-6 px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
+                class="mb-6 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md font-semibold hover:bg-green-700 dark:hover:bg-green-600">
                     + Adicionar Reunião
                 </a>
 
             </div>
             
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <div id="calendar"></div>
 
             </div>
 
-            <!-- MODAL -->
+            <!-- MODAL EDITAR -->
             <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
 
-                    <h2 class="text-xl font-bold mb-4">Editar Reunião</h2>
+                <div class="bg-white dark:bg-gray-800 dark:text-gray-100 w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+
+                    <h2 class="text-xl font-bold mb-4 dark:text-gray-100">Editar Reunião</h2>
 
                     <form id="formReuniao" class="space-y-4">
                         <input type="hidden" id="reu_id">
 
                         <!-- CAMPOS BASE -->
                         <div>
-                            <label class="block text-sm font-medium">Título</label>
-                            <input type="text" id="reu_titulo" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-medium dark:text-gray-200">Título</label>
+                            <input type="text" id="reu_titulo"
+                                   class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                          bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Data e Hora</label>
-                            <input type="datetime-local" id="reu_datahora" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-medium dark:text-gray-200">Data e Hora</label>
+                            <input type="datetime-local" id="reu_datahora"
+                                   class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                          bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Localidade</label>
-                            <input type="text" id="reu_localidade" class="w-full border p-2 rounded" required>
+                            <label class="block text-sm font-medium dark:text-gray-200">Localidade</label>
+                            <input type="text" id="reu_localidade"
+                                   class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                          bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Objetivo</label>
-                            <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded" required></textarea>
+                            <label class="block text-sm font-medium dark:text-gray-200">Objetivo</label>
+                            <textarea id="reu_objetivo" rows="3"
+                                      class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                             bg-white dark:bg-gray-700 dark:text-gray-100" required></textarea>
                         </div>
 
-                        <hr>
+                        <hr class="border-gray-300 dark:border-gray-600">
 
                         <!-- PARTICIPANTES -->
-                        <h3 class="text-lg font-semibold mb-3">Participantes</h3>
+                        <h3 class="text-lg font-semibold mb-3 dark:text-gray-100">Participantes</h3>
 
                         <!-- BOTÕES -->
                         <div class="grid grid-cols-3 gap-3 mb-4">
-                            <button type="button" id="btn_func" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                            <button type="button" id="btn_func"
+                                class="p-3 bg-gray-200 dark:bg-gray-700 rounded text-center font-semibold 
+                                       hover:bg-gray-300 dark:hover:bg-gray-600">
                                 Funcionários
                             </button>
 
-                            <button type="button" id="btn_edu" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                            <button type="button" id="btn_edu"
+                                class="p-3 bg-gray-200 dark:bg-gray-700 rounded text-center font-semibold 
+                                       hover:bg-gray-300 dark:hover:bg-gray-600">
                                 Educadores
                             </button>
 
-                            <button type="button" id="btn_enc" class="p-3 bg-gray-200 rounded text-center font-semibold hover:bg-gray-300">
+                            <button type="button" id="btn_enc"
+                                class="p-3 bg-gray-200 dark:bg-gray-700 rounded text-center font-semibold 
+                                       hover:bg-gray-300 dark:hover:bg-gray-600">
                                 Encarregados
                             </button>
                         </div>
 
                         <!-- FUNCIONÁRIOS -->
-                        <div id="sec_func" class="hidden border p-4 rounded mb-4">
+                        <div id="sec_func" class="hidden border border-gray-300 dark:border-gray-600 p-4 rounded mb-4">
 
-                            <label class="block font-medium">Selecionar:</label>
-                            <select id="funcionario_tipo" class="border p-2 rounded w-full mb-3">
+                            <label class="block font-medium dark:text-gray-200">Selecionar:</label>
+                            <select id="funcionario_tipo"
+                                    class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                           bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher --</option>
                                 <option value="todos">Todos os funcionários</option>
                                 <option value="especificos">Selecionar específicos</option>
                             </select>
 
-                            <div id="funcionario_lista" 
-                                class="hidden border p-3 rounded"
+                            <div id="funcionario_lista"
+                                class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                       bg-white dark:bg-gray-700 dark:text-gray-100"
                                 data-total="<?= count($listaFuncionarios) ?>">
 
                                 <?php foreach ($listaFuncionarios as $f): ?>
@@ -464,10 +508,12 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
                         </div>
 
                         <!-- EDUCADORES -->
-                        <div id="sec_edu" class="hidden border p-4 rounded mb-4">
+                        <div id="sec_edu" class="hidden border border-gray-300 dark:border-gray-600 p-4 rounded mb-4">
 
-                            <label class="block font-medium">Sala:</label>
-                            <select id="educador_sala" class="border p-2 rounded w-full mb-3">
+                            <label class="block font-medium dark:text-gray-200">Sala:</label>
+                            <select id="educador_sala"
+                                    class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                           bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher sala --</option>
                                 <?php
                                 $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -477,15 +523,19 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
                                 ?>
                             </select>
 
-                            <div id="educador_lista" class="hidden border p-3 rounded"></div>
+                            <div id="educador_lista"
+                                 class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                        bg-white dark:bg-gray-700 dark:text-gray-100"></div>
 
                         </div>
 
                         <!-- ENCARREGADOS -->
-                        <div id="sec_enc" class="hidden border p-4 rounded mb-4">
+                        <div id="sec_enc" class="hidden border border-gray-300 dark:border-gray-600 p-4 rounded mb-4">
 
-                            <label class="block font-medium">Sala:</label>
-                            <select id="encarregado_sala" class="border p-2 rounded w-full mb-3">
+                            <label class="block font-medium dark:text-gray-200">Sala:</label>
+                            <select id="encarregado_sala"
+                                    class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                           bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher sala --</option>
                                 <?php
                                 $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -495,24 +545,26 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
                                 ?>
                             </select>
 
-                            <div id="encarregado_lista" class="hidden border p-3 rounded"></div>
+                            <div id="encarregado_lista"
+                                 class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                        bg-white dark:bg-gray-700 dark:text-gray-100"></div>
 
                         </div>
 
                         <!-- BOTÕES -->
                         <div class="flex justify-between mt-4">
                             <button type="button" id="btnEliminar"
-                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                                 Eliminar
                             </button>
 
                             <div class="flex gap-2">
                                 <button type="button" onclick="fecharModal()"
-                                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                        class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                                     Cancelar
                                 </button>
                                 <button type="submit"
-                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                        class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600">
                                     Guardar
                                 </button>
                             </div>
@@ -522,24 +574,26 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
                 </div>
             </div>
 
-            <!-- MODAL DE CONFIRMAÇÃO DE ELIMINAÇÃO -->
-            <div id="modalEliminar" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]">
-                <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
+            <!-- MODAL CONFIRMAR ELIMINAÇÃO -->
+            <div id="modalEliminar"
+                 class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999999]">
 
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Eliminar Reunião</h2>
+                <div class="bg-white dark:bg-gray-800 dark:text-gray-100 w-full max-w-md rounded-lg shadow-lg p-6">
 
-                    <p class="text-gray-700 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Eliminar Reunião</h2>
+
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">
                         Tem a certeza que deseja eliminar esta reunião? Esta ação não pode ser desfeita.
                     </p>
 
                     <div class="flex justify-end gap-3">
                         <button onclick="fecharModalEliminar()"
-                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </button>
 
                         <button id="confirmarEliminar"
-                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                             Eliminar
                         </button>
                     </div>

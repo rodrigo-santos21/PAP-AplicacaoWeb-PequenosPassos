@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -57,13 +68,14 @@ if ($id_sala_sel) {
 }
 
 ?>
-<html>
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Presenças - Administrador</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="assets/fullcalendar/index.global.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -76,12 +88,14 @@ if ($id_sala_sel) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR (DESKTOP) -->
+        <!-- SIDEBAR -->
         <div class="hidden lg:block">
             <?php include("sidebar_admin.php"); ?>
         </div>
@@ -92,19 +106,24 @@ if ($id_sala_sel) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Lista de presençasdas crianças da creche </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                Lista de presenças das crianças da creche
+            </h1>
 
             <a href="admin.php"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+               class="mb-4 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white 
+                      rounded-md font-semibold mt-5 hover:bg-blue-700 dark:hover:bg-blue-600">
                 ← Voltar
             </a>
             
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <!-- FILTRO POR SALA -->
                 <form method="get">
-                    <label class="font-semibold">Sala:</label>
-                    <select name="sala" onchange="this.form.submit()" class="border p-2 rounded w-full mb-4">
+                    <label class="font-semibold dark:text-gray-200">Sala:</label>
+                    <select name="sala" onchange="this.form.submit()"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full mb-4 bg-white dark:bg-gray-900 dark:text-gray-100">
                         <option value="">-- Selecionar Sala --</option>
                         <?php foreach ($salas as $s): ?>
                             <option value="<?= $s['IDsala'] ?>" <?= ($id_sala_sel == $s['IDsala']) ? 'selected' : '' ?>>
@@ -119,8 +138,10 @@ if ($id_sala_sel) {
                 <form method="get">
                     <input type="hidden" name="sala" value="<?= $id_sala_sel ?>">
 
-                    <label class="font-semibold">Criança:</label>
-                    <select name="crianca" onchange="this.form.submit()" class="border p-2 rounded w-full mb-6">
+                    <label class="font-semibold dark:text-gray-200">Criança:</label>
+                    <select name="crianca" onchange="this.form.submit()"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full mb-6 bg-white dark:bg-gray-900 dark:text-gray-100">
                         <option value="">-- Selecionar Criança --</option>
                         <?php foreach ($criancas as $c): ?>
                             <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
@@ -140,9 +161,9 @@ if ($id_sala_sel) {
 
             <!-- MODAL PRESENÇA -->
             <div id="modalPresenca" 
-                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                        background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
-                <div style="background:white; width:350px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
                     <h3 class="text-xl font-bold mb-3">Detalhes da Presença</h3>
 
                     <p><b>Data:</b> <span id="presData"></span></p>
@@ -150,7 +171,7 @@ if ($id_sala_sel) {
                     <p><b>Saída:</b> <span id="presSaida"></span></p>
 
                     <button onclick="document.getElementById('modalPresenca').style.display='none'"
-                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px; margin-top:15px;">
+                            class="bg-gray-600 text-white px-3 py-2 rounded-md">
                         Fechar
                     </button>
                 </div>
@@ -158,23 +179,26 @@ if ($id_sala_sel) {
 
             <!-- MODAL FALTA -->
             <div id="modalFalta" 
-                style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                        background:rgba(0,0,0,0.5); padding-top:100px; z-index:9999;">
-                <div style="background:white; width:400px; margin:auto; padding:20px; border-radius:8px; z-index:10000;">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
                     <h3 class="text-xl font-bold mb-3">Detalhes da Falta</h3>
 
                     <p><b>Data:</b> <span id="faltData"></span></p>
-                    <p><b>Justificação enviada:</b></p>
-                    <textarea id="faltTexto" class="border p-2 w-full mb-3" readonly></textarea>
+
+                    <p class="mt-3"><b>Justificação enviada:</b></p>
+                    <textarea id="faltTexto" class="border border-gray-300 dark:border-gray-600 
+                               p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100" readonly></textarea>
 
                     <p><b>Estado:</b> <span id="faltEstado"></span></p>
 
-                    <button type="button" onclick="document.getElementById('modalFalta').style.display='none'"
-                            style="background:#6b7280; color:white; padding:8px 12px; border-radius:5px;">
+                    <button onclick="document.getElementById('modalFalta').style.display='none'"
+                            class="bg-gray-600 text-white px-3 py-2 rounded-md">
                         Fechar
                     </button>
                 </div>
             </div>
+
         </main>
     </div>
 

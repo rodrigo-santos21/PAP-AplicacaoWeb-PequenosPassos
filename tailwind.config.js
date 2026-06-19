@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class', // <--- ESTA LINHA É OBRIGATÓRIA
   content: [
     "./*.php",
     "./**/*.php",

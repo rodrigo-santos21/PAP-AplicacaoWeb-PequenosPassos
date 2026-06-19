@@ -51,7 +51,7 @@ try {
     $mail->addAddress($u['email']);
 
     $mail->Subject = "A sua conta foi aprovada!";
-    $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=" . $u['token_confirmacao'];
+    $linkConfirmacao = "https://pequenospassos.infinityfree.io/confirmar.php?token=" . $u['token_confirmacao'];
 
     $mail->isHTML(true);
     $mail->Body = "

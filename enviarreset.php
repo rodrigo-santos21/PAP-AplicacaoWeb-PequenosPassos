@@ -55,7 +55,7 @@ try {
     $mail->Subject = "Recuperação de Password";
 
     // IMPORTANTE: quando estiveres num servidor real, substitui localhost pelo domínio
-    $linkReset = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/resetpassword.php?token=$token";
+    $linkReset = "https://pequenospassos.infinityfree.io/resetpassword.php?token=$token";
 
     $mail->isHTML(true);
     $mail->Body = "

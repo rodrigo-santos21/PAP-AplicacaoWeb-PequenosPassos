@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -106,12 +117,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Editar Ocorrência (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script>
     function toggleOutro() {
@@ -131,9 +143,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -147,21 +159,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Ocorrências </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Editar Ocorrência</h1>
     
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-                <p class="text-center text-gray-600 mb-4">
+                <p class="text-center text-gray-600 dark:text-gray-300 mb-4">
                     Criança: <b><?= $criNome ?></b><br>
                     Criado por: <b><?= $eduNome ?></b>
                 </p>
 
                 <form method="post" class="space-y-5">
 
+                    <!-- TIPO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Tipo</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Tipo</label>
                         <select name="tipo" id="tipoSelect" onchange="toggleOutro()"
-                                class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                                class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                             <option value="Doença" <?= $oc['tipo'] === 'Doença' ? 'selected' : '' ?>>Doença</option>
                             <option value="Queda" <?= $oc['tipo'] === 'Queda' ? 'selected' : '' ?>>Queda</option>
                             <option value="Comportamento" <?= $oc['tipo'] === 'Comportamento' ? 'selected' : '' ?>>Comportamento</option>
@@ -170,37 +184,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </select>
                     </div>
 
-                    <div id="outroCampo" style="display: <?= $oc['tipo'] === 'Outro' ? 'block' : 'none' ?>;">
-                        <label class="block text-sm font-medium text-gray-700">Especificar outro tipo</label>
+                    <!-- OUTRO TIPO -->
+                    <div id="outroCampo" class="<?= $oc['tipo'] === 'Outro' ? '' : 'hidden' ?>">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Especificar outro tipo</label>
                         <input type="text" name="tipo_outro"
                             value="<?= $oc['tipo_outro'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg">
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                     </div>
 
+                    <!-- GRAVIDADE -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Gravidade</label>
-                        <select name="gravidade" class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Gravidade</label>
+                        <select name="gravidade"
+                                class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                             <option value="Leve" <?= $oc['gravidade'] === 'Leve' ? 'selected' : '' ?>>Leve</option>
                             <option value="Moderada" <?= $oc['gravidade'] === 'Moderada' ? 'selected' : '' ?>>Moderada</option>
                             <option value="Grave" <?= $oc['gravidade'] === 'Grave' ? 'selected' : '' ?>>Grave</option>
                         </select>
                     </div>
 
+                    <!-- DESCRIÇÃO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Descrição</label>
                         <textarea name="descricao" rows="4"
-                                class="mt-1 w-full px-4 py-2 border rounded-lg"
+                                class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                                 required><?= $oc['descricao'] ?></textarea>
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between mt-6">
                         <a href="listarocosuper.php"
-                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                           class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                  rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </a>
 
                         <button type="submit"
-                                class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                       rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
                             Guardar Alterações
                         </button>
                     </div>
@@ -209,6 +233,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </main>
     </div>
+
+    <script>
+        function toggleOutro() {
+            const select = document.getElementById("tipoSelect");
+            const outro = document.getElementById("outroCampo");
+
+            if (select.value === "Outro") {
+                outro.classList.remove("hidden");
+            } else {
+                outro.classList.add("hidden");
+            }
+        }
+    </script>
+
+</body>
 
 <!-- TOAST -->
 <?php if (isset($erro)): ?>

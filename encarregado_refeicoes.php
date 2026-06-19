@@ -74,6 +74,17 @@ foreach ($_GET as $key => $value) {
 ================================ */
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -115,11 +126,13 @@ function estado($v) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Refeições — Encarregado</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <style>
         .estado-tudo { color: #16a34a; font-weight: bold; }
@@ -139,12 +152,15 @@ function estado($v) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
-    <!-- WRAPPER FLEX RESPONSIVO -->
+    <!-- WRAPPER -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR (DESKTOP) -->
+        <!-- SIDEBAR -->
         <div class="hidden lg:block">
             <?php include("sidebar_encarregado.php"); ?>
         </div>
@@ -155,32 +171,35 @@ function estado($v) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">
             Refeições da Semana (<?= date('d/m', strtotime($segunda)) ?> - <?= date('d/m', strtotime($sexta)) ?>)
         </h1>
 
         <a href="encarregado.php"
-        class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
+        class="mb-6 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
             ← Voltar
         </a>
 
         <form method="GET" id="filtrosForm"
-            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
+            class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
                 md:grid-cols-[2fr_1fr_auto] gap-4">
 
             <!-- 🔍 PESQUISA -->
             <div>
-                <label class="font-semibold">Pesquisar criança:</label>
+                <label class="font-semibold dark:text-gray-200">Pesquisar criança:</label>
                 <input type="text" name="pesquisa" id="pesquisaInput"
                     placeholder="Nome..."
                     value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                    class="border p-2 rounded w-full">
+                    class="border border-gray-300 dark:border-gray-600 
+                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
             </div>
 
             <!-- 🏫 SALA -->
             <div>
-                <label class="font-semibold">Sala:</label>
-                <select name="sala" class="border p-2 rounded w-full"
+                <label class="font-semibold dark:text-gray-200">Sala:</label>
+                <select name="sala"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                     <option value="">Todas</option>
 
@@ -201,10 +220,14 @@ function estado($v) {
             <div class="flex mt-6 items-center justify-end">
                 <button type="button"
                     onclick="window.location.href='encarregado_refeicoes.php'"
-                    class="text-gray-500 hover:text-red-600 transition text-2xl"
+                    class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
                     title="Limpar filtros">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                         stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                     </svg>
                 </button>
             </div>
@@ -243,26 +266,28 @@ function estado($v) {
         <div class="flex gap-4 mb-6">
 
             <a href="encarregado_refeicoes.php?data=<?= date('Y-m-d', strtotime($segunda . ' -7 days')) ?>"
-               class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+               class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                      rounded hover:bg-gray-400 dark:hover:bg-gray-600">
                 ← Semana anterior
             </a>
 
             <a href="encarregado_refeicoes.php?data=<?= date('Y-m-d') ?>"
-               class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+               class="px-4 py-2 bg-blue-500 dark:bg-blue-700 text-white rounded hover:bg-blue-600 dark:hover:bg-blue-600">
                 Semana atual
             </a>
 
             <a href="encarregado_refeicoes.php?data=<?= date('Y-m-d', strtotime($segunda . ' +7 days')) ?>"
-               class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+               class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                      rounded hover:bg-gray-400 dark:hover:bg-gray-600">
                 Semana seguinte →
             </a>
 
         </div>
 
-        <!-- LISTA DE FILHOS (COM PAGINAÇÃO) -->
+        <!-- LISTA DE FILHOS -->
         <?php if (empty($filhosPagina)): ?>
 
-            <p class="text-center text-gray-600 text-lg py-10">
+            <p class="text-center text-gray-600 dark:text-gray-300 text-lg py-10">
                 Nenhuma criança encontrada com os filtros aplicados.
             </p>
 
@@ -270,21 +295,21 @@ function estado($v) {
 
             <?php foreach ($filhosPagina as $f): ?>
 
-                <div class="bg-white shadow rounded-lg p-6 mb-10">
+                <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-10">
 
-                    <h2 class="text-2xl font-bold text-gray-700 mb-4">
+                    <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-4">
                         <?= $f['nome'] ?>
                     </h2>
 
                     <!-- TABELA SEMANAL -->
                     <table class="w-full border-collapse">
                         <thead>
-                            <tr class="bg-gray-200">
-                                <th class="p-3 border">Dia</th>
-                                <th class="p-3 border">Menu</th>
-                                <th class="p-3 border">Lanche manhã</th>
-                                <th class="p-3 border">Almoço</th>
-                                <th class="p-3 border">Lanche tarde</th>
+                            <tr class="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                <th class="p-3 border dark:border-gray-600">Dia</th>
+                                <th class="p-3 border dark:border-gray-600">Menu</th>
+                                <th class="p-3 border dark:border-gray-600">Lanche manhã</th>
+                                <th class="p-3 border dark:border-gray-600">Almoço</th>
+                                <th class="p-3 border dark:border-gray-600">Lanche tarde</th>
                             </tr>
                         </thead>
 
@@ -292,34 +317,30 @@ function estado($v) {
                         <?php
                         for ($i = 0; $i < 5; $i++):
                             $dia = date('Y-m-d', strtotime($segunda . " +$i days"));
-
-                            // Buscar refeições marcadas
                             $ref = mysqli_fetch_assoc(mysqli_query($link, "
                                 SELECT * FROM refeicao_crianca
                                 WHERE IDcri = {$f['IDcri']} AND data = '$dia'
                             "));
-
-                            // Menu do dia
                             $m = $menuDia[$dia] ?? null;
                         ?>
-                            <tr class="bg-gray-50">
-                                <td class="p-3 border font-semibold">
+                            <tr class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                                <td class="p-3 border dark:border-gray-600 font-semibold">
                                     <?= date('d/m', strtotime($dia)) ?>
                                 </td>
 
-                                <td class="p-3 border">
+                                <td class="p-3 border dark:border-gray-600">
                                     <?php if ($m): ?>
                                         <strong>Lanche manhã:</strong> <?= $m['lanche_manha'] ?><br>
                                         <strong>Almoço:</strong> <?= $m['almoco'] ?><br>
                                         <strong>Lanche tarde:</strong> <?= $m['lanche_tarde'] ?>
                                     <?php else: ?>
-                                        <span class="text-red-600 font-semibold">Sem menu</span>
+                                        <span class="text-red-600 dark:text-red-400 font-semibold">Sem menu</span>
                                     <?php endif; ?>
                                 </td>
 
-                                <td class="p-3 border"><?= estado($ref['lanche_manha'] ?? null) ?></td>
-                                <td class="p-3 border"><?= estado($ref['almoco'] ?? null) ?></td>
-                                <td class="p-3 border"><?= estado($ref['lanche_tarde'] ?? null) ?></td>
+                                <td class="p-3 border dark:border-gray-600"><?= estado($ref['lanche_manha'] ?? null) ?></td>
+                                <td class="p-3 border dark:border-gray-600"><?= estado($ref['almoco'] ?? null) ?></td>
+                                <td class="p-3 border dark:border-gray-600"><?= estado($ref['lanche_tarde'] ?? null) ?></td>
                             </tr>
                         <?php endfor; ?>
                         </tbody>
@@ -331,41 +352,47 @@ function estado($v) {
 
         <?php endif; ?>
         
-        <!-- paginação -->
+        <!-- PAGINAÇÃO -->
         <?php if ($totalPaginas > 1): ?>
         <div class="flex justify-center mt-10 text-center">
             <div class="flex items-center space-x-2">
 
                 <a href="?pagina=1<?= $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                class="w-12 h-12 flex items-center justify-center 
+                       bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                       rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
                 <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                class="w-12 h-12 flex items-center justify-center 
+                       bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                       rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
                 <?php
                     $inicio = max(1, $paginaAtual - 2);
                     $fim = min($totalPaginas, $inicio + 4);
-
-                    if ($fim - $inicio < 4) {
-                        $inicio = max(1, $fim - 4);
-                    }
-
+                    if ($fim - $inicio < 4) $inicio = max(1, $fim - 4);
                     for ($i = $inicio; $i <= $fim; $i++):
                 ?>
 
                 <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>"
                 class="w-12 h-12 flex items-center justify-center rounded 
-                <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
+                <?= $i == $paginaAtual 
+                    ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
                     <?= $i ?>
                 </a>
 
                 <?php endfor; ?>
 
                 <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                class="w-12 h-12 flex items-center justify-center 
+                       bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                       rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
                 <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                class="w-12 h-12 flex items-center justify-center 
+                       bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                       rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
             </div>
         </div>

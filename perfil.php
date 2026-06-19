@@ -46,11 +46,14 @@ if ($tipo === "superadministrador") {
 }
 
 // Buscar dados do utilizador
-$stmt = mysqli_prepare($link, "SELECT nome, email, telefone, datanascimento FROM utilizador WHERE IDutl = ?");
+$stmt = mysqli_prepare($link, "SELECT nome, email, telefone, datanascimento, tema FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmt, "i", $IDutl);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $utilizador = mysqli_fetch_assoc($result);
+
+$tema = $utilizador['tema'] ?? 'light';
+$_SESSION['tema'] = $tema;
 
 // PROCESSAR FORMULÁRIO
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -58,10 +61,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $nome = $_POST['nome'];
     $telefone = $_POST['telefone'];
 
+    // Atualizar tema
+    $temaNovo = $_POST['tema'] ?? 'light';
+
     // Atualizar nome e telefone
-    $stmt = mysqli_prepare($link, "UPDATE utilizador SET nome=?, telefone=? WHERE IDutl=?");
-    mysqli_stmt_bind_param($stmt, "ssi", $nome, $telefone, $IDutl);
+    $stmt = mysqli_prepare($link, "UPDATE utilizador SET nome=?, telefone=?, tema=? WHERE IDutl=?");
+    mysqli_stmt_bind_param($stmt, "sssi", $nome, $telefone, $temaNovo, $IDutl);
     mysqli_stmt_execute($stmt);
+
+    $_SESSION['tema'] = $temaNovo;
+    $tema = $temaNovo;
 
     // Se o utilizador preencheu password nova
     if (!empty($_POST['pass1']) || !empty($_POST['pass2'])) {
@@ -128,12 +137,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
+    
 <head>
     <meta charset="utf-8">
     <title>Perfil</title>
     <link rel="stylesheet" href="style.css?v=<?= time() ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Ajuste de imagem -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -143,18 +154,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <!-- Ver password -->
 <script>
-    function togglePassword(inputId, eyeId) {
-        const input = document.getElementById(inputId);
-        const eye = document.getElementById(eyeId);
+function togglePassword(inputId, eyeId) {
+    const input = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
 
-        if (input.type === "password") {
-            input.type = "text";
-            eye.textContent = "👁️";
-        } else {
-            input.type = "password";
-            eye.textContent = "👁️‍🗨️";
-        }
+    const svgHidden = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+             class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                   16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                   2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                   12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                   10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                   3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                   -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                   4.242L9.88 9.88" />
+        </svg>`;
+
+    const svgVisible = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+             class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 
+                   7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                   9.963 7.178.07.207.07.431 0 .639C20.577 
+                   16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007
+                   -9.963-7.178Z" />
+          <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>`;
+
+    if (input.type === "password") {
+        input.type = "text";
+        eye.innerHTML = svgVisible;
+    } else {
+        input.type = "password";
+        eye.innerHTML = svgHidden;
     }
+}
 </script>
 
 <!-- SCRIPT global de toast-->
@@ -258,8 +298,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 </style>
 
+<body class="bg-gray-100 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
-<body class="bg-gray-100 min-h-screen">
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
         class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
@@ -309,9 +352,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Perfil de <?= $_SESSION['user']; ?> </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Definições </h1>
 
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+                <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
                 <?php
                     // Buscar foto atual
                     $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
@@ -331,7 +374,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <!-- FORMULÁRIO ÚNICO -->
                 <form method="post" enctype="multipart/form-data" class="space-y-5">
                     <div class="space-y-3">
-                        <label class="block text-sm font-medium text-gray-700">Foto de Perfil</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Foto de Perfil</label>
 
                         <!-- Botão estilizado para escolher ficheiro -->
                         <button type="button"
@@ -353,7 +396,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     <!-- MODAL DE CROP -->
                     <div id="cropModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[999999]">
-                        <div class="bg-white p-4 rounded-lg shadow-lg">
+                        <div class="bg-white dark:bg-black p-4 rounded-lg shadow-lg">
                             <h3 class="text-lg font-bold mb-3">Ajustar Foto</h3>
 
                             <div class="max-w-md">
@@ -371,60 +414,111 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <input type="hidden" name="foto_cortada" id="fotoCortada">
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Nome</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nome</label>
                         <input type="text" name="nome" value="<?= $utilizador['nome'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Email (não editável)</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Email (não editável)</label>
                         <input type="email" value="<?= $utilizador['email'] ?>" disabled
-                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200">
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200 dark:bg-gray-600 dark:text-gray-100">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Telefone</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Telefone</label>
                         <input type="text" name="telefone" value="<?= $utilizador['telefone'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" 
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"" 
                             required
                             oninput="this.value = this.value.replace(/[^0-9]/g, '');"> <!-- Só deixa introduzir números, impedindo assim a introdução de letras-->
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Data de Nascimento</label>
                         <input type="date" value="<?= $utilizador['datanascimento'] ?>" disabled
-                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200">
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200 dark:bg-gray-600 dark:text-gray-100">
                     </div>
 
                     <hr class="my-6">
 
-                    <h3 class="text-lg font-bold text-gray-800">Alterar Password</h3>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Alterar Password</h3>
 
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700">Nova Password</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nova Password</label>
                         <input type="password" id="pass1" name="pass1"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg">
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
 
                         <button type="button" onclick="togglePassword('pass1', 'eyePass')"
-                            class="absolute right-3 top-9 text-gray-500">
-                            <span id="eyePass">👁️‍🗨️</span>
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-200">
+                            <span id="eyePass">
+                                <!-- Ícone inicial (password oculta) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
                         </button>
                     </div>
 
                     <div class="relative">
-                        <label class="block text-sm font-medium text-gray-700">Confirmar Password</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Confirmar Password</label>
                         <input type="password" id="pass2" name="pass2"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg">
+                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
 
                         <button type="button" onclick="togglePassword('pass2', 'eyeConfirm')"
-                            class="absolute right-3 top-9 text-gray-500">
-                            <span id="eyeConfirm">👁️‍🗨️</span>
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-200">
+                            <span id="eyeConfirm">
+                                <!-- Ícone inicial (password oculta) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
                         </button>
+                    </div>
+
+                    <hr class="my-6">
+
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Preferências</h3>
+
+                    <!-- SELECIONAR TEMA -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                            Tema da Interface
+                        </label>
+
+                        <select name="tema"
+                                class="mt-1 w-full px-4 py-2 border rounded-lg
+                                    bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                            <option value="light" <?= $tema === 'light' ? 'selected' : '' ?>>Modo Claro</option>
+                            <option value="dark"  <?= $tema === 'dark'  ? 'selected' : '' ?>>Modo Escuro</option>
+                        </select>
                     </div>
 
                     <!-- BOTÃO FINAL -->
                     <button type="submit"
-                            class="w-[40%] mx-auto block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            class="w-[40%] mx-auto block px-4 py-2 
+                                bg-green-600 dark:bg-green-700 
+                                text-white rounded-lg 
+                                hover:bg-green-700 dark:hover:bg-green-600">
                         Guardar Alterações
                     </button>
                 </form>

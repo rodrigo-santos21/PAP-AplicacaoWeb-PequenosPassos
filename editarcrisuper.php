@@ -5,6 +5,17 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -144,12 +155,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Editar Criança (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -172,9 +184,9 @@ document.querySelector("form").addEventListener("submit", function(e) {
 });
 </script>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -188,36 +200,46 @@ document.querySelector("form").addEventListener("submit", function(e) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Editar Criança </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Editar Criança</h1>
     
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <form method="post" class="space-y-5">
 
+                    <!-- NOME -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Nome</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nome</label>
                         <input type="text" name="nome" value="<?= $crianca['nome'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
+                    <!-- DATA DE NASCIMENTO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
-                        <input type="date" name="datanascimento" value="<?= $crianca['datanascimento'] ?>" max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg" required>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Data de Nascimento</label>
+                        <input type="date" name="datanascimento" 
+                            value="<?= $crianca['datanascimento'] ?>" 
+                            max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
+                    <!-- SEXO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Sexo</label>
-                        <select name="sexo" class="mt-1 w-full px-4 py-2 border rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sexo</label>
+                        <select name="sexo"
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
                             <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
                             <option value="N" <?= $crianca['sexo'] === "N" ? "selected" : "" ?>>Prefere não divulgar</option>
                         </select>
                     </div>
 
-                    <!-- EDUCADORES (CHECKBOXES) -->
+                    <!-- EDUCADORES -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Educadores</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Educadores</label>
+
                         <div class="mt-2 space-y-2">
 
                             <?php mysqli_data_seek($educadores, 0); ?>
@@ -228,7 +250,7 @@ document.querySelector("form").addEventListener("submit", function(e) {
                                 $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Educador removido";
                                 ?>
 
-                                <label class="flex items-center space-x-2">
+                                <label class="flex items-center space-x-2 dark:text-gray-100">
                                     <input type="checkbox" class="educadorCheck"
                                         data-idsala="<?= $ed['IDsala'] ?>"
                                         value="<?= $ed['IDedu'] ?>"
@@ -241,29 +263,35 @@ document.querySelector("form").addEventListener("submit", function(e) {
                         </div>
                     </div>
 
-                    <!-- SALA AUTOMÁTICA -->
+                    <!-- SALA (READONLY) -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Sala</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sala</label>
                         <input type="text" id="IDsala" name="IDsala"
                             value="<?= $crianca['IDsala'] ?>"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-200"
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
                             readonly required>
                     </div>
 
+                    <!-- OBSERVAÇÕES -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Observações</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Observações</label>
                         <textarea name="observacoes" rows="4"
-                            class="mt-1 w-full px-4 py-2 border rounded-lg"><?= $crianca['observacoes'] ?></textarea>
+                            class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"><?= $crianca['observacoes'] ?></textarea>
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between mt-6">
                         <a href="listarcrisuper.php"
-                        class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                           class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                  rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </a>
 
                         <button type="submit"
-                                class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                                class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                       rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
                             Guardar Alterações
                         </button>
                     </div>
@@ -272,6 +300,7 @@ document.querySelector("form").addEventListener("submit", function(e) {
             </div>
         </main>
     </div>
+</body>
 
 <!-- SCRIPT PARA VALIDAR EDUCADORES E DEFINIR SALA -->
 <script>

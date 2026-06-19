@@ -10,6 +10,17 @@ use PHPMailer\PHPMailer\PHPMailer;
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -101,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     $mail->Subject = "Confirmação de Conta";
 
-                    $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
+                    $linkConfirmacao = "https://pequenospassos.infinityfree.io/confirmar.php?token=$token";
 
                     $mail->isHTML(true);
                     $mail->Body = "
@@ -144,13 +155,105 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Utilizador</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
+<!-- SCRIPT global de toast-->
+<script>
+    function mostrarMensagem(tipo, texto) {
+        const box = document.getElementById("msgGlobal");
+        const icon = document.getElementById("msgIcon");
+        const msg = document.getElementById("msgTexto");
+
+        // Limpar classes antigas
+        box.classList.remove("border-blue-600", "border-green-600", "border-yellow-500", "border-red-600");
+        msg.classList.remove("text-blue-600", "text-green-600", "text-yellow-500", "text-red-600");
+
+        const icons = {
+            adicionar: `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 text-blue-600">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m4.5 12.75 6 6 9-13.5" />
+            </svg>`,
+
+            editar: `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 text-green-600">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 
+                        2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 
+                        1.13L6 18l.8-2.685a4.5 4.5 0 0 1 
+                        1.13-1.897l8.932-8.931Zm0 0L19.5 
+                        7.125M18 14v4.75A2.25 2.25 0 0 1 
+                        15.75 21H5.25A2.25 2.25 0 0 1 
+                        3 18.75V8.25A2.25 2.25 0 0 1 
+                        5.25 6H10" />
+            </svg>`,
+
+            reset: `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 text-yellow-500">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 
+                        3.374 1.948 3.374h14.71c1.73 0 
+                        2.813-1.874 1.948-3.374L13.949 
+                        3.378c-.866-1.5-3.032-1.5-3.898 
+                        0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>`,
+
+            eliminar: `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6 text-red-600">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21
+                        c.342.052.682.107 1.022.166m-1.022-.165L19.5 19.5
+                        a2.25 2.25 0 0 1-2.244 2.25H6.744A2.25 2.25 0 0 1
+                        4.5 19.5L5.772 5.79m14.456 0a48.108 48.108 0 0 0
+                        -3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0
+                        a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164
+                        -2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09
+                        1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+            </svg>`
+        };
+
+        // Aplicar ícone
+        icon.innerHTML = icons[tipo];
+        msg.textContent = texto;
+
+        // Aplicar cor do texto
+        if (tipo === "adicionar") msg.classList.add("text-blue-600");
+        if (tipo === "editar") msg.classList.add("text-green-600");
+        if (tipo === "reset") msg.classList.add("text-yellow-500");
+        if (tipo === "eliminar") msg.classList.add("text-red-600");
+
+        // Aplicar cor da borda
+        if (tipo === "adicionar") box.classList.add("border-blue-600");
+        if (tipo === "editar") box.classList.add("border-green-600");
+        if (tipo === "reset") box.classList.add("border-yellow-500");
+        if (tipo === "eliminar") box.classList.add("border-red-600");
+
+        // Mostrar
+        box.classList.remove("hidden", "opacity-0");
+        box.classList.add("opacity-100");
+
+        // Ocultar após 3 segundos
+        setTimeout(() => {
+            box.classList.add("opacity-0");
+            setTimeout(() => box.classList.add("hidden"), 300);
+        }, 3000);
+    }
+</script>
 
 <!-- Esconde o scrollbar -->
 <style>
@@ -167,12 +270,41 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         const input = document.getElementById(inputId);
         const eye = document.getElementById(eyeId);
 
+        const svgHidden = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                    16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                    2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                    12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                    10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                    3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                    -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                    4.242L9.88 9.88" />
+            </svg>`;
+
+        const svgVisible = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 
+                    7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                    9.963 7.178.07.207.07.431 0 .639C20.577 
+                    16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007
+                    -9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>`;
+
         if (input.type === "password") {
             input.type = "text";
-            eye.textContent = "👁️";
+            eye.innerHTML = svgVisible;
         } else {
             input.type = "password";
-            eye.textContent = "👁️‍🗨️";
+            eye.innerHTML = svgHidden;
         }
     }
 
@@ -189,12 +321,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     };
 </script>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- MENSAGEM GLOBAL -->
+    <div id="msgGlobal" 
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-500 dark:border-blue-400 
+               rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        <span id="msgIcon"></span>
+        <span id="msgTexto" class="font-medium"></span>
+    </div>
+
+    <!-- WRAPPER -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
-        <!-- SIDEBAR (DESKTOP) -->
+        <!-- SIDEBAR -->
         <div class="hidden lg:block">
             <?php include("sidebar_admin.php"); ?>
         </div>
@@ -205,121 +349,182 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Utilizador </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                Adicionar Utilizador
+            </h1>
             
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-            <?php if (isset($erro)): ?>
-                <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
-                    <?= $erro ?>
-                </div>
-            <?php endif; ?>
+                <form method="post" class="space-y-5">
 
-            <form method="post" class="space-y-5">
-
-                <div>
-                    <label for="nome">Nome</label>
-                    <input name="nome" id="nome" type="text"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required>
-                </div>
-
-                <div>
-                    <label for="email">Email</label>
-                    <input name="email" id="email" type="email"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required>
-                </div>
-
-                <div class="relative">
-                    <label for="pass">Password</label>
-                    <input name="pass" id="pass" type="password"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required>
-                    
-                    <button type="button" onclick="togglePassword('pass', 'eyePass')"
-                        class="absolute right-3 top-9 text-gray-500">
-                        <span id="eyePass">👁️‍🗨️</span>
-                    </button>
-                </div>
-
-                <div class="relative">
-                    <label for="confirmarpass">Confirmar Password</label>
-                    <input name="confirmarpass" id="confirmarpass" type="password"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required>
-
-                    <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
-                        class="absolute right-3 top-9 text-gray-500">
-                        <span id="eyeConfirm">👁️‍🗨️</span>
-                    </button>
-                </div>
-
-                <div>
-                    <label for="tipo">Tipo de Utilizador</label>
-                    <select name="tipo" id="tipo"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required>
-                        <option value="encarregado">Encarregado</option>
-                        <option value="educador">Educador</option>
-                        <option value="funcionario">Funcionário</option>
-                    </select>
-                </div>
-
-                <!-- CAMPOS EXTRA PARA EDUCADORES -->
-                <div id="camposEducador" style="display:none;">
-
+                    <!-- NOME -->
                     <div>
-                        <label for="especialidade">Especialidade</label>
-                        <input name="especialidade" id="especialidade" type="text"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <label for="nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+                        <input name="nome" id="nome" type="text"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
                     </div>
 
+                    <!-- EMAIL -->
                     <div>
-                        <label for="sala">Sala</label>
-                        <select name="sala" id="sala"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
-                            <option value="">Selecione uma sala</option>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <input name="email" id="email" type="email"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
+                    </div>
 
-                            <?php while ($s = mysqli_fetch_assoc($salas)): ?>
-                                <option value="<?= $s['IDsala'] ?>">
-                                    <?= $s['nome'] ?>
-                                </option>
-                            <?php endwhile; ?>
+                    <!-- PASSWORD -->
+                    <div class="relative">
+                        <label for="pass" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                        <input name="pass" id="pass" type="password"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
+                        
+                        <button type="button" onclick="togglePassword('pass', 'eyePass')"
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-300">
+                            <span id="eyePass">
+                                <!-- Ícone -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
 
+                    <!-- CONFIRMAR PASSWORD -->
+                    <div class="relative">
+                        <label for="confirmarpass" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar Password</label>
+                        <input name="confirmarpass" id="confirmarpass" type="password"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
+
+                        <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-300">
+                            <span id="eyeConfirm">
+                                <!-- Ícone -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- TIPO -->
+                    <div>
+                        <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Utilizador</label>
+                        <select name="tipo" id="tipo"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
+                            <option value="encarregado">Encarregado</option>
+                            <option value="educador">Educador</option>
+                            <option value="funcionario">Funcionário</option>
                         </select>
                     </div>
 
-                </div>
+                    <!-- CAMPOS EXTRA PARA EDUCADORES -->
+                    <div id="camposEducador" style="display:none;">
 
-                <div>
-                    <label for="datanascimento">Data de nascimento</label>
-                    <input name="datanascimento" id="datanascimento" type="date"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                </div>
+                        <div>
+                            <label for="especialidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Especialidade</label>
+                            <input name="especialidade" id="especialidade" type="text"
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                        </div>
 
-                <div>
-                    <label for="telefone">Telefone</label>
-                    <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
-                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
-                        required
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                </div>
+                        <div>
+                            <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sala</label>
+                            <select name="sala" id="sala"
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                                <option value="">Selecione uma sala</option>
 
-                <div class="flex justify-between">
-                    <a href="admin.php"
-                        class="w-[40%] text-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                        Cancelar
-                    </a>
+                                <?php while ($s = mysqli_fetch_assoc($salas)): ?>
+                                    <option value="<?= $s['IDsala'] ?>">
+                                        <?= $s['nome'] ?>
+                                    </option>
+                                <?php endwhile; ?>
 
-                    <button type="submit"
-                        class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Adicionar
-                    </button>
-                </div>
+                            </select>
+                        </div>
 
-            </form>
+                    </div>
+
+                    <!-- DATA NASCIMENTO -->
+                    <div>
+                        <label for="datanascimento" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Data de nascimento
+                        </label>
+                        <input name="datanascimento" id="datanascimento" type="date"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required>
+                    </div>
+
+                    <!-- TELEFONE -->
+                    <div>
+                        <label for="telefone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Telefone
+                        </label>
+                        <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                            required
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    </div>
+
+                    <!-- BOTÕES -->
+                    <div class="flex justify-between">
+                        <a href="admin.php"
+                            class="w-[40%] text-center px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white 
+                                   rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500 transition">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                            class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                   rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition">
+                            Adicionar
+                        </button>
+                    </div>
+
+                </form>
+            </div>
         </main>
     </div>
+
+<!-- TOAST -->
+<?php if (isset($erro)): ?>
+<script>
+window.addEventListener("load", () => {
+    mostrarMensagem("reset", "<?= $erro ?>");
+});
+</script>
+<?php endif; ?>
+
 </body>
 </html>

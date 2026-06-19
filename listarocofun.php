@@ -97,6 +97,17 @@ foreach ($_GET as $key => $value) {
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -115,12 +126,13 @@ $IDutl = intval($_SESSION['id']);
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Ocorrências — Funcionário</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -133,7 +145,10 @@ $IDutl = intval($_SESSION['id']);
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
     <!-- WRAPPER FLEX RESPONSIVO -->
     <div class="flex min-h-screen flex-col lg:flex-row">
@@ -149,141 +164,161 @@ $IDutl = intval($_SESSION['id']);
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Listar Ocorrências </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                Listar Ocorrências
+            </h1>
     
             <a href="funcionario.php"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white 
+                   rounded-md font-semibold mt-5 hover:bg-blue-700 dark:hover:bg-blue-600">
                 ← Voltar
             </a>
 
             <form method="GET" id="filtrosForm"
-            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
-                md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4">
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
+                       md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] gap-4">
 
-            <!-- 🔍 PESQUISA -->
-            <div>
-                <label class="font-semibold">Pesquisar:</label>
-                <input type="text" name="pesquisa" id="pesquisaInput"
-                    placeholder="Descrição..."
-                    value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                    class="border p-2 rounded w-full">
-            </div>
+                <!-- 🔍 PESQUISA -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <input type="text" name="pesquisa" id="pesquisaInput"
+                        placeholder="Descrição..."
+                        value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                </div>
 
-            <!-- 📝 TIPO -->
-            <div>
-                <label class="font-semibold">Tipo:</label>
-                <select name="tipo" class="border p-2 rounded w-full"
+                <!-- 📝 TIPO -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Tipo:</label>
+                    <select name="tipo"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
-                    <option value="">Todos</option>
-                    <option value="Doença" <?= ($tipo=='Doença'?'selected':'') ?>>Doença</option>
-                    <option value="Queda" <?= ($tipo=='Queda'?'selected':'') ?>>Queda</option>                    
-                    <option value="Comportamento" <?= ($tipo=='Comportamento'?'selected':'') ?>>Comportamento</option>
-                    <option value="Agressão" <?= ($tipo=='Agressão'?'selected':'') ?>>Agressão</option>
-                    <option value="Outro" <?= ($tipo=='Outro'?'selected':'') ?>>Outro</option>
-                </select>
-            </div>
+                        <option value="">Todos</option>
+                        <option value="Doença" <?= ($tipo=='Doença'?'selected':'') ?>>Doença</option>
+                        <option value="Queda" <?= ($tipo=='Queda'?'selected':'') ?>>Queda</option>                    
+                        <option value="Comportamento" <?= ($tipo=='Comportamento'?'selected':'') ?>>Comportamento</option>
+                        <option value="Agressão" <?= ($tipo=='Agressão'?'selected':'') ?>>Agressão</option>
+                        <option value="Outro" <?= ($tipo=='Outro'?'selected':'') ?>>Outro</option>
+                    </select>
+                </div>
 
-            <!-- ⚠ GRAVIDADE -->
-            <div>
-                <label class="font-semibold">Gravidade:</label>
-                <select name="gravidade" class="border p-2 rounded w-full"
+                <!-- ⚠ GRAVIDADE -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Gravidade:</label>
+                    <select name="gravidade"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
-                    <option value="">Todas</option>
-                    <option value="Leve" <?= ($gravidade=='Leve'?'selected':'') ?>>Leve</option>
-                    <option value="Moderada" <?= ($gravidade=='Moderada'?'selected':'') ?>>Moderada</option>
-                    <option value="Grave" <?= ($gravidade=='Grave'?'selected':'') ?>>Grave</option>
-                </select>
-            </div>
+                        <option value="">Todas</option>
+                        <option value="Leve" <?= ($gravidade=='Leve'?'selected':'') ?>>Leve</option>
+                        <option value="Moderada" <?= ($gravidade=='Moderada'?'selected':'') ?>>Moderada</option>
+                        <option value="Grave" <?= ($gravidade=='Grave'?'selected':'') ?>>Grave</option>
+                    </select>
+                </div>
 
-            <!-- 👶 CRIANÇA -->
-            <div>
-                <label class="font-semibold">Criança:</label>
-                <select name="crianca" class="border p-2 rounded w-full"
+                <!-- 👶 CRIANÇA -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Criança:</label>
+                    <select name="crianca"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
-                    <option value="">Todas</option>
-                    <?php
-                    $resCri = mysqli_query($link, "SELECT IDcri, nome FROM crianca WHERE estado=1 ORDER BY nome ASC");
-                    while ($c = mysqli_fetch_assoc($resCri)):
-                    ?>
-                        <option value="<?= $c['IDcri'] ?>" <?= ($crianca==$c['IDcri']?'selected':'') ?>>
-                            <?= $c['nome'] ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                        <option value="">Todas</option>
+                        <?php
+                        $resCri = mysqli_query($link, "SELECT IDcri, nome FROM crianca WHERE estado=1 ORDER BY nome ASC");
+                        while ($c = mysqli_fetch_assoc($resCri)):
+                        ?>
+                            <option value="<?= $c['IDcri'] ?>" <?= ($crianca==$c['IDcri']?'selected':'') ?>>
+                                <?= $c['nome'] ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-            <!-- 👨‍🏫 EDUCATOR -->
-            <div>
-                <label class="font-semibold">Criado por:</label>
-                <select name="educador" class="border p-2 rounded w-full"
+                <!-- 👨‍🏫 EDUCATOR -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Criado por:</label>
+                    <select name="educador"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
-                    <option value="">Todos</option>
-                    <?php
-                    $resEdu = mysqli_query($link, "
-                        SELECT e.IDedu, u.nome 
-                        FROM educador e 
-                        JOIN utilizador u ON u.IDutl = e.IDutl
-                        WHERE e.estado=1 AND u.estado=1
-                        ORDER BY u.nome ASC
-                    ");
-                    while ($e = mysqli_fetch_assoc($resEdu)):
-                    ?>
-                        <option value="<?= $e['IDedu'] ?>" <?= ($educador==$e['IDedu']?'selected':'') ?>>
-                            <?= $e['nome'] ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                        <option value="">Todos</option>
+                        <?php
+                        $resEdu = mysqli_query($link, "
+                            SELECT e.IDedu, u.nome 
+                            FROM educador e 
+                            JOIN utilizador u ON u.IDutl = e.IDutl
+                            WHERE e.estado=1 AND u.estado=1
+                            ORDER BY u.nome ASC
+                        ");
+                        while ($e = mysqli_fetch_assoc($resEdu)):
+                        ?>
+                            <option value="<?= $e['IDedu'] ?>" <?= ($educador==$e['IDedu']?'selected':'') ?>>
+                                <?= $e['nome'] ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-            <!-- 🔤 ORDEM -->
-            <div>
-                <label class="font-semibold">Ordenar:</label>
-                <select name="ordem" class="border p-2 rounded w-full"
+                <!-- 🔤 ORDEM -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Ordenar:</label>
+                    <select name="ordem"
+                        class="border border-gray-300 dark:border-gray-600 
+                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
-                    <option value="">Mais recentes</option>
-                    <option value="old" <?= ($ordem=='old'?'selected':'') ?>>Mais antigas</option>
-                    <option value="az" <?= ($ordem=='az'?'selected':'') ?>>Tipo A→Z</option>
-                    <option value="za" <?= ($ordem=='za'?'selected':'') ?>>Tipo Z→A</option>
-                </select>
-            </div>
+                        <option value="">Mais recentes</option>
+                        <option value="old" <?= ($ordem=='old'?'selected':'') ?>>Mais antigas</option>
+                        <option value="az" <?= ($ordem=='az'?'selected':'') ?>>Tipo A→Z</option>
+                        <option value="za" <?= ($ordem=='za'?'selected':'') ?>>Tipo Z→A</option>
+                    </select>
+                </div>
 
-            <!-- RESET -->
-            <div class="flex mt-6 items-center justify-end">
-                <button type="button"
-                    onclick="window.location.href='listarocofun.php'"
-                    class="text-gray-500 hover:text-red-600 transition text-2xl"
-                    title="Limpar filtros">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                </button>
-            </div>
+                <!-- RESET -->
+                <div class="flex mt-6 items-center justify-end">
+                    <button type="button"
+                        onclick="window.location.href='listarocofun.php'"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                        title="Limpar filtros">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+                </div>
 
-        </form>
+            </form>
 
-        <script>
-        const input = document.getElementById("pesquisaInput");
-        input.addEventListener("keydown", e => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                filtrosForm.submit();
-            }
-        });
-        input.addEventListener("blur", () => filtrosForm.submit());
-        </script>
+            <script>
+            const input = document.getElementById("pesquisaInput");
+            input.addEventListener("keydown", e => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    filtrosForm.submit();
+                }
+            });
+            input.addEventListener("blur", () => filtrosForm.submit());
+            </script>
 
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <!-- GRID DE CARDS -->
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+
                     <?php if ($totalRegistos == 0): ?>
 
-                        <p class="col-span-3 text-center text-gray-600 text-lg py-10 flex flex-col items-center">
+                        <p class="col-span-3 text-center text-gray-600 dark:text-gray-300 text-lg py-10 flex flex-col items-center">
                             <span class="text-5xl mb-3">🔍</span>
                             Nenhuma ocorrência encontrada com os filtros aplicados.
                         </p>
 
                     <?php else: ?>
+
                         <?php
 
                         while ($o = mysqli_fetch_assoc($result)) {
@@ -326,11 +361,13 @@ $IDutl = intval($_SESSION['id']);
                                     : $o['descricao'];
                         ?>
 
-                            <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-                                <h2 class="text-xl font-bold text-gray-800 mb-2">Ocorrência #<?= $o['IDoc'] ?></h2>
+                                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                                    Ocorrência #<?= $o['IDoc'] ?>
+                                </h2>
 
-                                <div class="text-gray-700 space-y-1 mb-4">
+                                <div class="text-gray-700 dark:text-gray-200 space-y-1 mb-4">
                                     <p><strong>Data:</strong> <?= $o['datahora'] ?></p>
                                     <p><strong>Criança:</strong> <?= $criNome ?></p>
                                     <p><strong>Tipo:</strong> <?= $tipoFinal ?></p>
@@ -346,49 +383,60 @@ $IDutl = intval($_SESSION['id']);
                 </div>
 
             </div>
+
             <!-- PAGINAÇÃO -->
             <?php if ($totalPaginas > 1): ?>
-                <div class="flex justify-center mt-10 text-center">
-                    <div class="flex items-center space-x-2">
+            <div class="flex justify-center mt-10 text-center">
+                <div class="flex items-center space-x-2">
 
-                        <!-- PRIMEIRA -->
-                        <a href="?pagina=1<?= $queryStringFiltros ?>"
-                        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                    <!-- PRIMEIRA -->
+                    <a href="?pagina=1<?= $queryStringFiltros ?>"
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
-                        <!-- ANTERIOR -->
-                        <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>"
-                        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                    <!-- ANTERIOR -->
+                    <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>"
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
-                        <?php
-                            $inicio = max(1, $paginaAtual - 2);
-                            $fim = min($totalPaginas, $inicio + 4);
+                    <?php
+                        $inicio = max(1, $paginaAtual - 2);
+                        $fim = min($totalPaginas, $inicio + 4);
 
-                            if ($fim - $inicio < 4) {
-                                $inicio = max(1, $fim - 4);
-                            }
+                        if ($fim - $inicio < 4) {
+                            $inicio = max(1, $fim - 4);
+                        }
 
-                            for ($i = $inicio; $i <= $fim; $i++):
-                        ?>
+                        for ($i = $inicio; $i <= $fim; $i++):
+                    ?>
 
-                        <!-- NÚMEROS -->
-                        <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>"
-                        class="w-12 h-12 flex items-center justify-center rounded 
-                        <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
-                            <?= $i ?>
-                        </a>
+                    <!-- NÚMEROS -->
+                    <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>"
+                    class="w-12 h-12 flex items-center justify-center rounded
+                    <?= $i == $paginaAtual 
+                        ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
+                        <?= $i ?>
+                    </a>
 
-                        <?php endfor; ?>
+                    <?php endfor; ?>
 
-                        <!-- SEGUINTE -->
-                        <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>"
-                        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                    <!-- SEGUINTE -->
+                    <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>"
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
-                        <!-- ÚLTIMA -->
-                        <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>"
-                        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                    <!-- ÚLTIMA -->
+                    <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>"
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
-                    </div>
                 </div>
+            </div>
             <?php endif; ?>
         </main>
     </div>

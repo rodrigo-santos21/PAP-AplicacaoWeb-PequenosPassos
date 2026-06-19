@@ -159,15 +159,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Reuniões — Funcionário</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- FullCalendar -->
-    <script src="http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/assets/fullcalendar/index.global.min.js"></script>
+    <script src="https://pequenospassos.infinityfree.io/assets/fullcalendar/index.global.min.js"></script>
 
     <style>
         #modalReuniao { 
@@ -190,7 +191,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
 
     <!-- WRAPPER FLEX RESPONSIVO -->
     <div class="flex min-h-screen flex-col lg:flex-row">
@@ -206,70 +210,86 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Reuniões do Funcionário </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                Reuniões do Funcionário
+            </h1>
     
             <a href="funcionario.php"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white 
+                   rounded-md font-semibold mt-5 hover:bg-blue-700 dark:hover:bg-blue-600">
                 ← Voltar
             </a>
             
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
-
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
                 <div id="calendar"></div>
-
             </div>
 
             <!-- MODAL -->
-            <div id="modalReuniao" class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div id="modalReuniao" 
+                 class="hidden inset-0 bg-black bg-opacity-50 flex items-center justify-center">
 
-                    <h2 class="text-xl font-bold mb-4">Detalhes da Reunião</h2>
+                <div class="bg-white dark:bg-gray-800 dark:text-gray-100 
+                            w-full max-w-3xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
+
+                    <h2 class="text-xl font-bold mb-4 dark:text-gray-100">Detalhes da Reunião</h2>
 
                     <form class="space-y-4">
                         <input type="hidden" id="reu_id">
 
                         <!-- CAMPOS BASE (APENAS LEITURA) -->
                         <div>
-                            <label class="block text-sm font-medium">Título</label>
-                            <input type="text" id="reu_titulo" class="w-full border p-2 rounded bg-gray-100" readonly>
+                            <label class="block text-sm font-medium dark:text-gray-200">Título</label>
+                            <input type="text" id="reu_titulo"
+                                   class="w-full border border-gray-300 dark:border-gray-600 
+                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Data e Hora</label>
-                            <input type="text" id="reu_datahora" class="w-full border p-2 rounded bg-gray-100" readonly>
+                            <label class="block text-sm font-medium dark:text-gray-200">Data e Hora</label>
+                            <input type="text" id="reu_datahora"
+                                   class="w-full border border-gray-300 dark:border-gray-600 
+                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Localidade</label>
-                            <input type="text" id="reu_localidade" class="w-full border p-2 rounded bg-gray-100" readonly>
+                            <label class="block text-sm font-medium dark:text-gray-200">Localidade</label>
+                            <input type="text" id="reu_localidade"
+                                   class="w-full border border-gray-300 dark:border-gray-600 
+                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Objetivo</label>
-                            <textarea id="reu_objetivo" rows="3" class="w-full border p-2 rounded bg-gray-100" readonly></textarea>
+                            <label class="block text-sm font-medium dark:text-gray-200">Objetivo</label>
+                            <textarea id="reu_objetivo" rows="3"
+                                      class="w-full border border-gray-300 dark:border-gray-600 
+                                             p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly></textarea>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4 border-gray-300 dark:border-gray-600">
 
                         <div class="mb-3">
-                            <label class="font-semibold">Funcionários:</label>
-                            <ul id="lista_funcionarios" class="list-disc ml-6 text-gray-700"></ul>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="font-semibold">Educadores:</label>
-                            <ul id="lista_educadores" class="list-disc ml-6 text-gray-700"></ul>
+                            <label class="font-semibold dark:text-gray-100">Funcionários:</label>
+                            <ul id="lista_funcionarios" 
+                                class="list-disc ml-6 text-gray-700 dark:text-gray-200"></ul>
                         </div>
 
                         <div class="mb-3">
-                            <label class="font-semibold">Encarregados:</label>
-                            <ul id="lista_encarregados" class="list-disc ml-6 text-gray-700"></ul>
+                            <label class="font-semibold dark:text-gray-100">Educadores:</label>
+                            <ul id="lista_educadores" 
+                                class="list-disc ml-6 text-gray-700 dark:text-gray-200"></ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="font-semibold dark:text-gray-100">Encarregados:</label>
+                            <ul id="lista_encarregados" 
+                                class="list-disc ml-6 text-gray-700 dark:text-gray-200"></ul>
                         </div>
 
                         <!-- BOTÃO FECHAR -->
                         <div class="flex justify-end mt-4">
                             <button type="button" onclick="fecharModal()"
-                                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                    class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded 
+                                           hover:bg-gray-600 dark:hover:bg-gray-500">
                                 Fechar
                             </button>
                         </div>

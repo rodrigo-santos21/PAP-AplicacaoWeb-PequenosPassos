@@ -96,6 +96,17 @@ foreach ($_GET as $key => $value) {
    FOTO DO SUPERADMIN
 ============================================================ */
 $IDutl = $_SESSION['id'];
+
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -138,12 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Listar Crianças — Superadmin</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -247,15 +259,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-600 rounded-md p-4 flex items-center gap-3 
+               z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -269,127 +284,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Crianças da Creche</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Crianças da Creche</h1>
 
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
-            <a href="superadmin.php"
-            class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
-                ← Voltar
-            </a>
+                <a href="superadmin.php"
+                class="mb-6 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
+                    ← Voltar
+                </a>
 
-            <a href="adicionarcrisuper.php"
-            class="mb-6 px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
-                + Adicionar Criança
-            </a>
+                <a href="adicionarcrisuper.php"
+                class="mb-6 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md font-semibold hover:bg-green-700 dark:hover:bg-green-600">
+                    + Adicionar Criança
+                </a>
 
-        </div>
-
-        <form method="GET" id="filtrosForm"
-            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
-
-            <!-- 🔍 PESQUISA -->
-            <div class="relative">
-                <label class="font-semibold">Pesquisar:</label>
-                <input type="text" name="pesquisa" id="pesquisaInput"
-                    placeholder="Nome da criança..."
-                    value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                    class="border p-2 rounded w-full">
             </div>
 
-            <!-- 🔤 ORDEM -->
-            <div>
-                <label class="font-semibold">Ordenar por:</label>
-                <select name="ordem" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">Mais recentes</option>
-                    <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigas</option>
-                    <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
-                    <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
-                </select>
-            </div>
+            <form method="GET" id="filtrosForm"
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 
+                       grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
 
-            <!-- 🧱 SALA (SEM JOIN) -->
-            <div>
-                <label class="font-semibold">Sala:</label>
-                <select name="sala" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">-- Todas --</option>
+                <!-- 🔍 PESQUISA -->
+                <div class="relative">
+                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <input type="text" name="pesquisa" id="pesquisaInput"
+                        placeholder="Nome da criança..."
+                        value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
+                        class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
+                </div>
 
-                    <?php
-                    $resSala = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado = 1 ORDER BY nome ASC");
-                    while ($s = mysqli_fetch_assoc($resSala)):
-                    ?>
-                        <option value="<?= $s['IDsala'] ?>"
-                            <?= ($_GET['sala'] ?? '') == $s['IDsala'] ? 'selected' : '' ?>>
-                            <?= $s['nome'] ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                <!-- 🔤 ORDEM -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <select name="ordem"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">Mais recentes</option>
+                        <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigas</option>
+                        <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
+                        <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
+                    </select>
+                </div>
 
-            <!-- 👤 ENCARREGADO (SEM JOIN) -->
-            <div>
-                <label class="font-semibold">Encarregado:</label>
-                <select name="encarregado" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">-- Todos --</option>
+                <!-- 🧱 SALA -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Sala:</label>
+                    <select name="sala"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">-- Todas --</option>
 
-                    <?php
-                    $resEnc = mysqli_query($link, "
-                        SELECT DISTINCT IDutl 
-                        FROM crianca 
-                        WHERE estado = 1 AND IDutl IS NOT NULL
-                    ");
+                        <?php
+                        $resSala = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado = 1 ORDER BY nome ASC");
+                        while ($s = mysqli_fetch_assoc($resSala)):
+                        ?>
+                            <option value="<?= $s['IDsala'] ?>"
+                                <?= ($_GET['sala'] ?? '') == $s['IDsala'] ? 'selected' : '' ?>>
+                                <?= $s['nome'] ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-                    while ($e = mysqli_fetch_assoc($resEnc)):
-                        $idEnc = $e['IDutl'];
+                <!-- 👤 ENCARREGADO -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Encarregado:</label>
+                    <select name="encarregado"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">-- Todos --</option>
 
-                        $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $idEnc AND estado = 1");
-                        $nomeEnc = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Utilizador #$idEnc";
-                    ?>
-                        <option value="<?= $idEnc ?>"
-                            <?= ($_GET['encarregado'] ?? '') == $idEnc ? 'selected' : '' ?>>
-                            <?= $nomeEnc ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
+                        <?php
+                        $resEnc = mysqli_query($link, "
+                            SELECT DISTINCT IDutl 
+                            FROM crianca 
+                            WHERE estado = 1 AND IDutl IS NOT NULL
+                        ");
 
-            <!-- ✖️ RESET -->
-            <div class="flex mt-6 items-center justify-end">
-                <button type="button"
-                    onclick="window.location.href='listarcrisuper.php'"
-                    class="text-gray-500 hover:text-red-600 transition text-2xl"
-                    title="Limpar filtros">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                </button>
-            </div>
+                        while ($e = mysqli_fetch_assoc($resEnc)):
+                            $idEnc = $e['IDutl'];
 
-        </form>
+                            $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $idEnc AND estado = 1");
+                            $nomeEnc = mysqli_num_rows($resNome) ? mysqli_fetch_assoc($resNome)['nome'] : "Utilizador #$idEnc";
+                        ?>
+                            <option value="<?= $idEnc ?>"
+                                <?= ($_GET['encarregado'] ?? '') == $idEnc ? 'selected' : '' ?>>
+                                <?= $nomeEnc ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
 
-        <script>
-        const input = document.getElementById("pesquisaInput");
-        const form = document.getElementById("filtrosForm");
+                <!-- ✖️ RESET -->
+                <div class="flex mt-6 items-center justify-end">
+                    <button type="button"
+                        onclick="window.location.href='listarcrisuper.php'"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
+                        title="Limpar filtros">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+                </div>
 
-        input.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
+            </form>
+
+            <script>
+            const input = document.getElementById("pesquisaInput");
+            const form = document.getElementById("filtrosForm");
+
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            input.addEventListener("blur", function() {
                 form.submit();
-            }
-        });
+            });
+            </script>
 
-        input.addEventListener("blur", function() {
-            form.submit();
-        });
-        </script>
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-        <div class="w-full bg-white shadow-lg rounded-lg p-8">
-
-            <!-- GRID DE CARDS -->
-            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- GRID DE CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
                 <?php if ($totalResultados == 0): ?>
                     <p class="col-span-3 text-center text-gray-600 text-lg py-10">
@@ -426,23 +453,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                         $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
                     ?>
 
-                    <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <div class="bg-green-50 dark:bg-green-900/30 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-                        <h2 class="text-xl font-bold text-gray-800 mb-2"><?= $cri['nome'] ?></h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2"><?= $cri['nome'] ?></h2>
 
-                        <p class="text-gray-700"><strong>ID:</strong> <?= $cri['IDcri'] ?></p>
-                        <p class="text-gray-700"><strong>Nascimento:</strong> <?= $cri['datanascimento'] ?></p>
-                        <p class="text-gray-700"><strong>Sexo:</strong> <?= $sexo ?></p>
-                        <p class="text-gray-700"><strong>Sala:</strong> <?= $salaNome ?></p>
-                        <p class="text-gray-700"><strong>Encarregado:</strong> <?= $encNome ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>ID:</strong> <?= $cri['IDcri'] ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Nascimento:</strong> <?= $cri['datanascimento'] ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Sexo:</strong> <?= $sexo ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Sala:</strong> <?= $salaNome ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Encarregado:</strong> <?= $encNome ?></p>
 
-                        <p class="text-gray-600 mt-2"><strong>Observações:</strong> <?= $obs ?></p>
+                        <p class="text-gray-600 dark:text-gray-400 mt-2"><strong>Observações:</strong> <?= $obs ?></p>
 
                         <div class="flex gap-3 justify-end mt-4">
 
                             <!-- EDITAR -->
                             <button onclick="window.location.href='editarcrisuper.php?id=<?= $cri['IDcri'] ?>'"
-                                class="text-gray-500 hover:text-yellow-500 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -452,7 +479,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                             <!-- ELIMINAR -->
                             <button onclick="eliminarCrianca(<?= $cri['IDcri'] ?>)"
-                                class="text-gray-500 hover:text-red-600 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -475,14 +502,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                 <!-- PRIMEIRA -->
                 <a href="?pagina=1<?= $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
                 <!-- ANTERIOR -->
                 <a href="?pagina=<?= max(1, $paginaAtual - 1) . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
                 <?php
-                    // Cálculo das páginas visíveis
                     $inicio = max(1, $paginaAtual - 2);
                     $fim = min($totalPaginas, $inicio + 4);
 
@@ -496,7 +524,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                 <!-- NÚMEROS -->
                 <a href="?pagina=<?= $i . $queryStringFiltros ?>"
                 class="w-12 h-12 flex items-center justify-center rounded 
-                <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
+                <?= $i == $paginaAtual 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
                     <?= $i ?>
                 </a>
 
@@ -504,11 +534,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                 <!-- SEGUINTE -->
                 <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
                 <!-- ÚLTIMA -->
                 <a href="?pagina=<?= $totalPaginas . $queryStringFiltros ?>"
-                class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
             </div>
         </div>
@@ -520,21 +552,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 <div id="modalEliminar" 
      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Eliminação</h2>
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Confirmar Eliminação</h2>
 
-        <p class="text-gray-700 mb-6">
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
             Tens a certeza que desejas eliminar esta criança?
         </p>
 
         <div class="flex justify-end gap-3">
             <button onclick="fecharModal()"
-                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                 Cancelar
             </button>
 
             <button id="btnConfirmarEliminar"
-                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                 Eliminar
             </button>
         </div>

@@ -5,6 +5,17 @@ include("DBConnection.php");
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -113,12 +124,13 @@ $educadoresLista = mysqli_query($link,
 );
 
 ?>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Criança (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- Esconde o scrollbar -->
@@ -131,15 +143,16 @@ $educadoresLista = mysqli_query($link,
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -153,39 +166,45 @@ $educadoresLista = mysqli_query($link,
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Criança </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Adicionar Criança</h1>
 
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <?php if (isset($erro)): ?>
-                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                    <div class="bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 p-3 rounded mb-4">
                         <?= $erro ?>
                     </div>
                 <?php endif; ?>
 
                 <form method="post" class="space-y-5">
 
+                    <!-- NOME -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Nome</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nome</label>
                         <input name="nome" type="text"
                             value="<?= htmlspecialchars($nome) ?>"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
+                    <!-- DATA DE NASCIMENTO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Data de Nascimento</label>
                         <input name="datanascimento" type="date"
                             value="<?= $datanascimento ?>"
                             max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
+                    <!-- SEXO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Sexo</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sexo</label>
                         <select name="sexo"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar...</option>
                             <option value="M" <?= $sexo === "M" ? "selected" : "" ?>>Masculino</option>
@@ -194,28 +213,29 @@ $educadoresLista = mysqli_query($link,
                         </select>
                     </div>
 
+                    <!-- OBSERVAÇÕES -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Observações</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Observações</label>
                         <textarea name="observacoes" rows="3"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"><?= htmlspecialchars($observacoes) ?></textarea>
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars($observacoes) ?></textarea>
                     </div>
 
-                    <!-- EDUCADORES (CHECKBOXES) -->
+                    <!-- EDUCADORES -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Educadores</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Educadores</label>
                         <div id="educadoresLista" class="mt-2 space-y-2">
 
                             <?php mysqli_data_seek($educadoresLista, 0); ?>
                             <?php while ($ed = mysqli_fetch_assoc($educadoresLista)): ?>
 
                                 <?php
-                                    // Buscar nome do educador sem JOIN
                                     $IDutlEdu = $ed['IDutl'];
                                     $resNome = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = $IDutlEdu");
                                     $nomeEdu = mysqli_fetch_assoc($resNome)['nome'] ?? "Sem nome";
                                 ?>
 
-                                <label class="flex items-center space-x-2">
+                                <label class="flex items-center space-x-2 text-gray-800 dark:text-gray-100">
                                     <input type="checkbox" class="educadorCheck"
                                         data-idsala="<?= $ed['IDsala'] ?>"
                                         value="<?= $ed['IDedu'] ?>"
@@ -231,17 +251,20 @@ $educadoresLista = mysqli_query($link,
 
                     <!-- SALA AUTOMÁTICA -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Sala</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sala</label>
                         <input type="text" id="IDsala" name="IDsala"
                             value="<?= $IDsala ?>"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-200"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-gray-200 dark:bg-gray-700 dark:text-gray-100"
                             readonly required>
                     </div>
 
+                    <!-- ENCARREGADO -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Encarregado de Educação</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Encarregado de Educação</label>
                         <select name="IDutl"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar encarregado...</option>
                             <?php while ($e = mysqli_fetch_assoc($encarregados)): ?>
@@ -252,14 +275,17 @@ $educadoresLista = mysqli_query($link,
                         </select>
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between">
                         <a href="listarcrisuper.php"
-                            class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                   rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </a>
 
                         <button type="submit"
-                            class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                   rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
                             Adicionar
                         </button>
                     </div>
@@ -268,6 +294,7 @@ $educadoresLista = mysqli_query($link,
             </div>
         </main>
     </div>
+</body>
 
 <!-- SCRIPT PARA VALIDAR EDUCADORES E DEFINIR SALA -->
 <script>

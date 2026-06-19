@@ -10,6 +10,16 @@ use PHPMailer\PHPMailer\PHPMailer;
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -90,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     $mail->Subject = "Conta Criada pelo Superadministrador";
 
-                    $linkConfirmacao = "http://localhost/PAP/PAP-AplicacaoWeb-PequenosPassos/confirmar.php?token=$token";
+                    $linkConfirmacao = "https://pequenospassos.infinityfree.io/confirmar.php?token=$token";
 
                     $mail->isHTML(true);
                     $mail->Body = "
@@ -132,12 +142,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Utilizador (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -246,12 +257,41 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         const input = document.getElementById(inputId);
         const eye = document.getElementById(eyeId);
 
+        const svgHidden = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                    16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                    2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                    12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                    10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                    3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                    -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                    4.242L9.88 9.88" />
+            </svg>`;
+
+        const svgVisible = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 
+                    7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 
+                    9.963 7.178.07.207.07.431 0 .639C20.577 
+                    16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007
+                    -9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>`;
+
         if (input.type === "password") {
             input.type = "text";
-            eye.textContent = "👁️";
+            eye.innerHTML = svgVisible;
         } else {
             input.type = "password";
-            eye.textContent = "👁️‍🗨️";
+            eye.innerHTML = svgHidden;
         }
     }
 
@@ -268,15 +308,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     };
 </script>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -290,12 +331,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Utilizador </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Adicionar Utilizador</h1>
     
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <?php if (isset($erro)): ?>
-                    <div class="bg-red-200 text-red-800 p-3 rounded mb-4">
+                    <div class="bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 p-3 rounded mb-4">
                         <?= $erro ?>
                     </div>
                 <?php endif; ?>
@@ -303,47 +344,85 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <form method="post" class="space-y-5">
 
                     <div>
-                        <label for="nome">Nome</label>
+                        <label for="nome" class="text-gray-700 dark:text-gray-200">Nome</label>
                         <input name="nome" id="nome" type="text"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
                     <div>
-                        <label for="email">Email</label>
+                        <label for="email" class="text-gray-700 dark:text-gray-200">Email</label>
                         <input name="email" id="email" type="email"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="relative">
-                        <label for="pass">Password</label>
+                        <label for="pass" class="text-gray-700 dark:text-gray-200">Password</label>
                         <input name="pass" id="pass" type="password"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                         
                         <button type="button" onclick="togglePassword('pass', 'eyePass')"
-                            class="absolute right-3 top-9 text-gray-500">
-                            <span id="eyePass">👁️‍🗨️</span>
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-300">
+                            <span id="eyePass">
+                                <!-- Ícone inicial -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
                         </button>
                     </div>
 
+                    <!-- CONFIRMAR PASSWORD -->
                     <div class="relative">
-                        <label for="confirmarpass">Confirmar Password</label>
+                        <label for="confirmarpass" class="text-gray-700 dark:text-gray-200">Confirmar Password</label>
                         <input name="confirmarpass" id="confirmarpass" type="password"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
 
                         <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
-                            class="absolute right-3 top-9 text-gray-500">
-                            <span id="eyeConfirm">👁️‍🗨️</span>
+                            class="absolute right-3 top-9 text-gray-500 dark:text-gray-300">
+                            <span id="eyeConfirm">
+                                <!-- Ícone inicial -->
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 
+                                        16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 
+                                        2.863-.395M6.228 6.228A10.451 10.451 0 0 1 
+                                        12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 
+                                        10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 
+                                        3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228
+                                        -3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 
+                                        4.242L9.88 9.88" />
+                                </svg>
+                            </span>
                         </button>
                     </div>
 
+                    <!-- TIPO -->
                     <div>
-                        <label for="tipo">Tipo de Utilizador</label>
+                        <label for="tipo" class="text-gray-700 dark:text-gray-200">Tipo de Utilizador</label>
                         <select name="tipo" id="tipo"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="encarregado">Encarregado</option>
                             <option value="educador">Educador</option>
@@ -353,18 +432,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </select>
                     </div>
 
+                    <!-- CAMPOS EDUCADORES -->
                     <div id="camposEducador" style="display:none;">
 
                         <div>
-                            <label for="especialidade">Especialidade</label>
+                            <label for="especialidade" class="text-gray-700 dark:text-gray-200">Especialidade</label>
                             <input name="especialidade" id="especialidade" type="text"
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                         </div>
 
                         <div>
-                            <label for="sala">Sala</label>
+                            <label for="sala" class="text-gray-700 dark:text-gray-200">Sala</label>
                             <select name="sala" id="sala"
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">Selecione uma sala</option>
 
                                 <?php while ($s = mysqli_fetch_assoc($salas)): ?>
@@ -378,28 +460,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     </div>
 
+                    <!-- DATA -->
                     <div>
-                        <label for="datanascimento">Data de nascimento</label>
+                        <label for="datanascimento" class="text-gray-700 dark:text-gray-200">Data de nascimento</label>
                         <input name="datanascimento" id="datanascimento" type="date"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            required>
                     </div>
 
+                    <!-- TELEFONE -->
                     <div>
-                        <label for="telefone">Telefone</label>
+                        <label for="telefone" class="text-gray-700 dark:text-gray-200">Telefone</label>
                         <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
-                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required
                             oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between">
                         <a href="listarutlsuper.php"
-                            class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center rounded-lg hover:bg-gray-600">
+                            class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center rounded-lg hover:bg-gray-600 dark:hover:bg-gray-500">
                             Cancelar
                         </a>
 
                         <button type="submit"
-                            class="w-[40%] px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600">
                             Adicionar
                         </button>
                     </div>

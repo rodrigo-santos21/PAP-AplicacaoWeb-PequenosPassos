@@ -5,6 +5,16 @@ include "DBConnection.php";
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -30,10 +40,10 @@ $eventos = [];
 
 while ($m = mysqli_fetch_assoc($menus)) {
 
-    $titulo = 
-        "Lanche manhã: " . ($m['lanche_manha'] ?: "—") . "\n" .
-        "Almoço: " . ($m['almoco'] ?: "—") . "\n" .
-        "Lanche tarde: " . ($m['lanche_tarde'] ?: "—");
+    $titulo =
+    "Lanche manhã: " . ($m['lanche_manha'] ?: "—") . "\\n" .
+    "Almoço: " . ($m['almoco'] ?: "—") . "\\n" .
+    "Lanche tarde: " . ($m['lanche_tarde'] ?: "—");
 
     $eventos[] = [
         "id" => $m['IDmenu'],
@@ -45,10 +55,12 @@ while ($m = mysqli_fetch_assoc($menus)) {
 
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menus Semanais</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
@@ -163,15 +175,19 @@ while ($m = mysqli_fetch_assoc($menus)) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 text-gray-900 min-h-screen 
+    <?= ($tema ?? 'light') === 'dark'
+        ? 'dark:bg-gray-900 dark:text-gray-100'
+        : '' ?>">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -189,8 +205,6 @@ while ($m = mysqli_fetch_assoc($menus)) {
 
         <!-- MENU MOBILE -->
         <?php
-            $tipo = $_SESSION['tipo'];
-
             if ($tipo === "administrador") {
                 include("menu_mobile_admin.php");
             } elseif ($tipo === "superadmin") {
@@ -201,30 +215,30 @@ while ($m = mysqli_fetch_assoc($menus)) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-            <h1 class="text-3xl font-bold text-gray-800 mb-8">Menus Semanais</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Menus Semanais</h1>
             
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
                 
                 <?php if ($tipo === "administrador") { ?>
                     <a href="admin.php" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
+                    class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
                         ← Voltar
                     </a>
                 <?php } elseif ($tipo === "superadmin") {?>
                     <a href="superadmin.php" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
+                    class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
                         ← Voltar
                     </a>
                 <?php } ?>
 
                 <a href="adicionar_menu_semana.php"
-                class="px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
+                class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md font-semibold hover:bg-green-700 dark:hover:bg-green-600">
                     + Adicionar Menu Semanal
                 </a>
 
             </div>
 
-            <div id="calendar" class="bg-white p-4 rounded shadow"></div>
+            <div id="calendar" class="bg-white dark:bg-gray-800 p-4 rounded shadow"></div>
 
         </main>
     </div>
@@ -233,43 +247,49 @@ while ($m = mysqli_fetch_assoc($menus)) {
 <div id="modalEditar" 
      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
 
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Menu</h2>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Editar Menu</h2>
 
         <form method="POST" action="editar_menu.php">
 
             <input type="hidden" name="IDmenu" id="edit_IDmenu">
-
-            <!-- NOVO: guardar a data original para voltar à semana correta -->
             <input type="hidden" name="data_original" id="edit_data_original">
 
-            <label class="block font-semibold">Data:</label>
-            <input type="text" id="edit_data" disabled class="border p-2 rounded w-full mb-4">
+            <label class="block font-semibold text-gray-800 dark:text-gray-200">Data:</label>
+            <input type="text" id="edit_data" disabled 
+                   class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-4 
+                          bg-gray-100 dark:bg-gray-700 dark:text-gray-100">
 
-            <label class="block font-semibold">Lanche da manhã:</label>
-            <textarea name="lanche_manha" id="edit_lanche_manha" class="border p-2 rounded w-full mb-3"></textarea>
+            <label class="block font-semibold text-gray-800 dark:text-gray-200">Lanche da manhã:</label>
+            <textarea name="lanche_manha" id="edit_lanche_manha"
+                      class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                             bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
-            <label class="block font-semibold">Almoço:</label>
-            <textarea name="almoco" id="edit_almoco" class="border p-2 rounded w-full mb-3"></textarea>
+            <label class="block font-semibold text-gray-800 dark:text-gray-200">Almoço:</label>
+            <textarea name="almoco" id="edit_almoco"
+                      class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                             bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
-            <label class="block font-semibold">Lanche da tarde:</label>
-            <textarea name="lanche_tarde" id="edit_lanche_tarde" class="border p-2 rounded w-full mb-3"></textarea>
+            <label class="block font-semibold text-gray-800 dark:text-gray-200">Lanche da tarde:</label>
+            <textarea name="lanche_tarde" id="edit_lanche_tarde"
+                      class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                             bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
 
             <div class="flex justify-end gap-3 mt-4">
                 <button type="button" onclick="fecharModal()"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                     Cancelar
                 </button>
 
                 <button type="button"
                         onclick="abrirModalEliminar()"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                     Eliminar
                 </button>
 
                 <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600">
                     Guardar
                 </button>
             </div>
@@ -282,11 +302,11 @@ while ($m = mysqli_fetch_assoc($menus)) {
 <div id="modalEliminar" 
      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
 
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Eliminar Menu</h2>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Eliminar Menu</h2>
 
-        <p class="text-gray-700 mb-6">
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
             Tens a certeza que desejas eliminar este menu semanal?
         </p>
 
@@ -295,12 +315,12 @@ while ($m = mysqli_fetch_assoc($menus)) {
 
             <div class="flex justify-end gap-3">
                 <button type="button" onclick="fecharModalEliminar()"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                        class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                     Cancelar
                 </button>
 
                 <button type="submit"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                     Eliminar
                 </button>
             </div>

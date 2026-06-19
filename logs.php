@@ -96,6 +96,17 @@ foreach ($_GET as $key => $value) {
    FOTO DO UTILIZADOR
 ============================================================ */
 $IDutl = $_SESSION['id'];
+
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -136,12 +147,13 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="UTF-8">
     <title>Registo de Logs</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -245,15 +257,18 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-600 rounded-md p-4 flex items-center gap-3 
+               z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -287,33 +302,38 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		<h1 class="text-3xl font-bold text-gray-800 mb-8">Registo de Logs (Auditoria) </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">
+                Registo de Logs (Auditoria)
+            </h1>
 
             <a href="<?=
                 $_SESSION['tipo'] === 'superadmin' ? 'superadmin.php' :
                 ($_SESSION['tipo'] === 'administrador' ? 'admin.php' : 'funcionario.php')
             ?>"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">               
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold mt-5 hover:bg-blue-700 dark:hover:bg-blue-600">
                 ← Voltar
             </a>
 
             <form method="GET" id="filtrosForm"
-                class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 
-                    md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 
+                       grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
 
                 <!-- 🔍 PESQUISA -->
                 <div class="relative">
-                    <label class="font-semibold">Pesquisar:</label>
+                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
                     <input type="text" name="pesquisa" id="pesquisaInput"
                         placeholder="Descrição do log..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                        class="border p-2 rounded w-full">
+                        class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- 🔤 ORDEM -->
                 <div>
-                    <label class="font-semibold">Ordenar por:</label>
-                    <select name="ordem" class="border p-2 rounded w-full"
+                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <select name="ordem"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
                             onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">Mais recentes</option>
                         <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigos</option>
@@ -324,8 +344,10 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 
                 <!-- 👤 UTILIZADOR -->
                 <div>
-                    <label class="font-semibold">Utilizador:</label>
-                    <select name="utilizador" class="border p-2 rounded w-full"
+                    <label class="font-semibold dark:text-gray-200">Utilizador:</label>
+                    <select name="utilizador"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
                             onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todos --</option>
 
@@ -343,8 +365,10 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 
                 <!-- 🧑‍💼 TIPO DE UTILIZADOR -->
                 <div>
-                    <label class="font-semibold">Tipo:</label>
-                    <select name="tipo" class="border p-2 rounded w-full"
+                    <label class="font-semibold dark:text-gray-200">Tipo:</label>
+                    <select name="tipo"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
                             onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todos --</option>
                         <option value="superadmin" <?= ($_GET['tipo'] ?? '')=='superadmin'?'selected':'' ?>>Superadmin</option>
@@ -359,11 +383,14 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
                 <div class="flex mt-6 items-center justify-end">
                     <button type="button"
                         onclick="window.location.href='logs.php'"
-                        class="text-gray-500 hover:text-red-600 transition text-2xl"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                         title="Limpar filtros">
-                        <!-- SVG OBRIGATÓRIO -->
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                     </button>
                 </div>
@@ -386,30 +413,30 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
             });
             </script>
 
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <!-- BOTÃO RESETAR LOGS (ABRE MODAL) -->
                 <?php if ($_SESSION['tipo'] === 'superadmin'): ?>
                     <div class="text-center mb-6">
                         <button type="button"
                                 onclick="abrirModalReset()"
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                                class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600">
                             Resetar Logs
                         </button>
                     </div>
                 <?php endif; ?>
 
                 <?php if ($totalResultados == 0): ?>
-                    <p class="text-center text-gray-600 text-lg py-10">
+                    <p class="text-center text-gray-600 dark:text-gray-300 text-lg py-10">
                         <span class="text-4xl mb-2">🔍</span>
                         Nenhum resultado encontrado para a pesquisa.
                     </p>
                 <?php else: ?>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full border-collapse bg-white shadow rounded-lg">
+                        <table class="w-full border-collapse bg-white dark:bg-gray-800 shadow rounded-lg">
                             <thead>
-                                <tr class="bg-blue-600 text-white">
+                                <tr class="bg-blue-600 dark:bg-blue-700 text-white">
                                     <th class="p-3 text-left">Descrição</th>
                                     <th class="p-3 text-left">Utilizador</th>
                                     <th class="p-3 text-left">Email</th>
@@ -428,7 +455,7 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
                                     $user = mysqli_fetch_assoc($resUser);
                                     ?>
 
-                                    <tr class="border-b hover:bg-gray-100">
+                                    <tr class="border-b hover:bg-gray-100 dark:hover:bg-gray-700">
                                         <td class="p-3"><?= $log['descricao'] ?></td>
 
                                         <td class="p-3">
@@ -461,11 +488,15 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 
                     <!-- PRIMEIRA PÁGINA -->
                     <a href="?pagina=1<?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
                     <!-- VOLTAR UMA -->
                     <a href="?pagina=<?= max(1, $paginaAtual - 1) . $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
                     <?php
                         $inicio = max(1, $paginaAtual - 2);
@@ -481,7 +512,9 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
                     <!-- NÚMEROS -->
                     <a href="?pagina=<?= $i . $queryStringFiltros ?>"
                     class="w-12 h-12 flex items-center justify-center rounded 
-                    <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
+                    <?= $i == $paginaAtual 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
                         <?= $i ?>
                     </a>
 
@@ -489,11 +522,15 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
 
                     <!-- AVANÇAR UMA -->
                     <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) . $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
                     <!-- ÚLTIMA PÁGINA -->
                     <a href="?pagina=<?= $totalPaginas . $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                    class="w-12 h-12 flex items-center justify-center 
+                        bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 
+                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
                 </div>
             </div>
@@ -503,28 +540,35 @@ if (isset($_POST['reset_logs']) && $_SESSION['tipo'] === 'superadmin') {
     </div>
 
 <!-- MODAL DE CONFIRMAÇÃO DE RESET -->
-<div id="modalReset" class="flex fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[999999]">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-md">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Reset</h2>
+<div id="modalReset" 
+     class="flex fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[999999]">
 
-        <p class="text-gray-700 mb-6">
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg w-[90%] max-w-md">
+
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Confirmar Reset</h2>
+
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
             Tem a certeza que deseja apagar <strong>TODOS</strong> os logs?  
             Esta ação é <span class="text-red-600 font-semibold">irreversível</span>.
         </p>
 
         <div class="flex justify-end gap-3">
+
             <button onclick="fecharModalReset()"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded 
+                           hover:bg-gray-600 dark:hover:bg-gray-500">
                 Cancelar
             </button>
 
             <form method="POST">
                 <input type="hidden" name="reset_logs" value="1">
                 <button type="submit"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded 
+                               hover:bg-red-700 dark:hover:bg-red-600">
                     Confirmar Reset
                 </button>
             </form>
+
         </div>
     </div>
 </div>

@@ -82,6 +82,17 @@ foreach ($_GET as $key => $value) {
    FOTO DO SUPERADMIN
 ============================================================ */
 $IDutl = $_SESSION['id'];
+
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -136,12 +147,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Listar Salas — Superadmin</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -245,15 +257,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 dark:text-gray-100 
+               shadow-lg border-l-4 border-blue-600 rounded-md p-4 flex items-center gap-3 
+               z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -267,93 +282,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Salas da Creche</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Salas da Creche</h1>
 
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
 
-            <a href="superadmin.php"
-            class="mb-6 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700">
-                ← Voltar
-            </a>
+                <a href="superadmin.php"
+                class="mb-6 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold hover:bg-blue-700 dark:hover:bg-blue-600">
+                    ← Voltar
+                </a>
 
-            <a href="adicionarsalasuper.php"
-            class="mb-6 px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700">
-                + Adicionar Sala
-            </a>
+                <a href="adicionarsalasuper.php"
+                class="mb-6 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md font-semibold hover:bg-green-700 dark:hover:bg-green-600">
+                    + Adicionar Sala
+                </a>
 
-        </div>
-
-        <form method="GET" id="filtrosForm"
-            class="bg-white p-4 rounded-lg shadow-lg mb-6 grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
-
-            <!-- 🔍 PESQUISA -->
-            <div class="md:col-span-2 relative">
-                <label class="font-semibold">Pesquisar:</label>
-                <input type="text" name="pesquisa" id="pesquisaInput"
-                    placeholder="Nome da sala..."
-                    value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
-                    class="border p-2 rounded w-full">
             </div>
 
-            <!-- 🔤 ORDEM -->
-            <div>
-                <label class="font-semibold">Ordenar por:</label>
-                <select name="ordem" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">Mais recentes</option>
-                    <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigas</option>
-                    <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
-                    <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
-                </select>
-            </div>
+            <form method="GET" id="filtrosForm"
+                class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg mb-6 
+                       grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4">
 
-            <!-- 🧱 CAPACIDADE (filtro adicional específico das salas) -->
-            <div>
-                <label class="font-semibold">Capacidade:</label>
-                <select name="capacidade" class="border p-2 rounded w-full"
-                        onchange="document.getElementById('filtrosForm').submit()">
-                    <option value="">-- Todas --</option>
-                    <option value="10" <?= ($_GET['capacidade'] ?? '')=='10'?'selected':'' ?>>10+</option>
-                    <option value="15" <?= ($_GET['capacidade'] ?? '')=='15'?'selected':'' ?>>15+</option>
-                    <option value="20" <?= ($_GET['capacidade'] ?? '')=='20'?'selected':'' ?>>20+</option>
-                    <option value="25" <?= ($_GET['capacidade'] ?? '')=='25'?'selected':'' ?>>25+</option>
-                </select>
-            </div>
+                <!-- 🔍 PESQUISA -->
+                <div class="md:col-span-2 relative">
+                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <input type="text" name="pesquisa" id="pesquisaInput"
+                        placeholder="Nome da sala..."
+                        value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
+                        class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
+                </div>
 
-            <!-- ✖️ RESET -->
-            <div class="flex mt-6 items-center justify-end">
-                <button type="button"
-                    onclick="window.location.href='listarsalasuper.php'"
-                    class="text-gray-500 hover:text-red-600 transition text-2xl"
-                    title="Limpar filtros">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                </button>
-            </div>
+                <!-- 🔤 ORDEM -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <select name="ordem"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">Mais recentes</option>
+                        <option value="old" <?= ($_GET['ordem'] ?? '')=='old'?'selected':'' ?>>Mais antigas</option>
+                        <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
+                        <option value="za"  <?= ($_GET['ordem'] ?? '')=='za'?'selected':'' ?>>Z → A</option>
+                    </select>
+                </div>
 
-        </form>
+                <!-- 🧱 CAPACIDADE -->
+                <div>
+                    <label class="font-semibold dark:text-gray-200">Capacidade:</label>
+                    <select name="capacidade"
+                            class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full 
+                                   bg-white dark:bg-gray-700 dark:text-gray-100"
+                            onchange="document.getElementById('filtrosForm').submit()">
+                        <option value="">-- Todas --</option>
+                        <option value="10" <?= ($_GET['capacidade'] ?? '')=='10'?'selected':'' ?>>10+</option>
+                        <option value="15" <?= ($_GET['capacidade'] ?? '')=='15'?'selected':'' ?>>15+</option>
+                        <option value="20" <?= ($_GET['capacidade'] ?? '')=='20'?'selected':'' ?>>20+</option>
+                        <option value="25" <?= ($_GET['capacidade'] ?? '')=='25'?'selected':'' ?>>25+</option>
+                    </select>
+                </div>
 
-        <script>
-        const input = document.getElementById("pesquisaInput");
-        const form = document.getElementById("filtrosForm");
+                <!-- ✖️ RESET -->
+                <div class="flex mt-6 items-center justify-end">
+                    <button type="button"
+                        onclick="window.location.href='listarsalasuper.php'"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
+                        title="Limpar filtros">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                             stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 
+                                     3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 
+                                     13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+                </div>
 
-        input.addEventListener("keydown", function(e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
+            </form>
+
+            <script>
+            const input = document.getElementById("pesquisaInput");
+            const form = document.getElementById("filtrosForm");
+
+            input.addEventListener("keydown", function(e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            input.addEventListener("blur", function() {
                 form.submit();
-            }
-        });
+            });
+            </script>
 
-        input.addEventListener("blur", function() {
-            form.submit();
-        });
-        </script>
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-        <div class="w-full bg-white shadow-lg rounded-lg p-8">
-
-            <!-- GRID DE CARDS -->
-            <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- GRID DE CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
                 <?php if ($totalResultados == 0): ?>
                     <p class="col-span-3 text-center text-gray-600 text-lg py-10">
@@ -377,20 +402,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     ))['total'];
                 ?>
 
-                    <div class="bg-green-50 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <div class="bg-green-50 dark:bg-green-900/30 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-                        <h2 class="text-xl font-bold text-gray-800 mb-2"><?= $s['nome'] ?></h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2"><?= $s['nome'] ?></h2>
 
-                        <p class="text-gray-700"><strong>ID:</strong> <?= $IDsala ?></p>
-                        <p class="text-gray-700"><strong>Capacidade:</strong> <?= $s['capacidade'] ?></p>
-                        <p class="text-gray-700"><strong>Crianças:</strong> <?= $cri ?></p>
-                        <p class="text-gray-700"><strong>Educadores:</strong> <?= $edu ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>ID:</strong> <?= $IDsala ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Capacidade:</strong> <?= $s['capacidade'] ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Crianças:</strong> <?= $cri ?></p>
+                        <p class="text-gray-700 dark:text-gray-300"><strong>Educadores:</strong> <?= $edu ?></p>
 
                         <div class="flex gap-3 justify-end mt-4">
 
                             <!-- EDITAR -->
                             <button onclick="window.location.href='editarsalasuper.php?id=<?= $IDsala ?>'"
-                                class="text-gray-500 hover:text-yellow-500 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -400,7 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 
                             <!-- ELIMINAR -->
                             <button onclick="eliminarSala(<?= $IDsala ?>)"
-                                class="text-gray-500 hover:text-red-600 transition">
+                                class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -417,49 +442,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
         </div>
         <!-- PAGINAÇÃO -->
         <?php if ($totalPaginas > 1): ?>
-<div class="flex justify-center mt-10 text-center">
-    <div class="flex items-center space-x-2">
+        <div class="flex justify-center mt-10 text-center">
+            <div class="flex items-center space-x-2">
 
-        <!-- PRIMEIRA -->
-        <a href="?pagina=1<?= $queryStringFiltros ?>"
-        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">««</a>
+                <!-- PRIMEIRA -->
+                <a href="?pagina=1<?= $queryStringFiltros ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
-        <!-- ANTERIOR -->
-        <a href="?pagina=<?= max(1, $paginaAtual - 1) . $queryStringFiltros ?>"
-        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">«</a>
+                <!-- ANTERIOR -->
+                <a href="?pagina=<?= max(1, $paginaAtual - 1) . $queryStringFiltros ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
-        <?php
-            // Cálculo das páginas visíveis
-            $inicio = max(1, $paginaAtual - 2);
-            $fim = min($totalPaginas, $inicio + 4);
+                <?php
+                    $inicio = max(1, $paginaAtual - 2);
+                    $fim = min($totalPaginas, $inicio + 4);
 
-            if ($fim - $inicio < 4) {
-                $inicio = max(1, $fim - 4);
-            }
+                    if ($fim - $inicio < 4) {
+                        $inicio = max(1, $fim - 4);
+                    }
 
-            for ($i = $inicio; $i <= $fim; $i++):
-        ?>
+                    for ($i = $inicio; $i <= $fim; $i++):
+                ?>
 
-        <!-- NÚMEROS -->
-        <a href="?pagina=<?= $i . $queryStringFiltros ?>"
-        class="w-12 h-12 flex items-center justify-center rounded 
-        <?= $i == $paginaAtual ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300' ?>">
-            <?= $i ?>
-        </a>
+                <!-- NÚMEROS -->
+                <a href="?pagina=<?= $i . $queryStringFiltros ?>"
+                class="w-12 h-12 flex items-center justify-center rounded 
+                <?= $i == $paginaAtual 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
+                    <?= $i ?>
+                </a>
 
-        <?php endfor; ?>
+                <?php endfor; ?>
 
-        <!-- SEGUINTE -->
-        <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) . $queryStringFiltros ?>"
-        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»</a>
+                <!-- SEGUINTE -->
+                <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) . $queryStringFiltros ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
-        <!-- ÚLTIMA -->
-        <a href="?pagina=<?= $totalPaginas . $queryStringFiltros ?>"
-        class="w-12 h-12 flex items-center justify-center bg-gray-200 rounded hover:bg-gray-300">»»</a>
+                <!-- ÚLTIMA -->
+                <a href="?pagina=<?= $totalPaginas . $queryStringFiltros ?>"
+                class="w-12 h-12 flex items-center justify-center bg-gray-200 dark:bg-gray-700 
+                    text-gray-800 dark:text-gray-100 rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
-    </div>
-</div>
-<?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
 
     </main>
 </div>
@@ -468,21 +498,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
 <div id="modalEliminar" 
      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar Eliminação</h2>
+    <div class="bg-white dark:bg-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Confirmar Eliminação</h2>
 
-        <p class="text-gray-700 mb-6">
+        <p class="text-gray-700 dark:text-gray-300 mb-6">
             Tens a certeza que desejas eliminar esta sala?
         </p>
 
         <div class="flex justify-end gap-3">
             <button onclick="fecharModal()"
-                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                 Cancelar
             </button>
 
             <button id="btnConfirmarEliminar"
-                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600">
                 Eliminar
             </button>
         </div>

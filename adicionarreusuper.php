@@ -5,6 +5,17 @@ include("DBConnection.php");
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -126,12 +137,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Adicionar Reunião (Superadmin)</title>
     <link rel="stylesheet" href="style.css?v=<?php echo filemtime('style.css'); ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <!-- SCRIPT global de toast-->
@@ -235,15 +247,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
 }
 </style>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
+
     <!-- MENSAGEM GLOBAL -->
     <div id="msgGlobal" 
-        class="hidden fixed top-5 right-5 bg-white shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
+        class="hidden fixed top-5 right-5 bg-white dark:bg-gray-800 shadow-lg border-l-4 rounded-md p-4 flex items-center gap-3 z-[999999] transition-all duration-300">
         <span id="msgIcon"></span>
         <span id="msgTexto" class="font-medium"></span>
     </div>
 
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -257,61 +270,76 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Adicionar Reunião </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Adicionar Reunião</h1>
     
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
-                <div id="erroBox" class="hidden bg-red-200 text-red-800 p-3 rounded mb-4"></div>
+                <div id="erroBox" class="hidden bg-red-200 dark:bg-red-900 text-red-800 dark:text-red-200 p-3 rounded mb-4"></div>
 
                 <form id="formReuniao" class="space-y-6">
 
                     <!-- CAMPOS BASE -->
                     <div>
-                        <label class="block text-sm font-medium">Título</label>
-                        <input name="titulo" id="titulo" type="text" class="w-full border p-2 rounded" required>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Título</label>
+                        <input name="titulo" id="titulo" type="text"
+                               class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                      bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Data e Hora</label>
-                        <input name="datahora" id="datahora" type="datetime-local" class="w-full border p-2 rounded" required>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Data e Hora</label>
+                        <input name="datahora" id="datahora" type="datetime-local"
+                               class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                      bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Localidade</label>
-                        <input name="localidade" id="localidade" type="text" class="w-full border p-2 rounded" required>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Localidade</label>
+                        <input name="localidade" id="localidade" type="text"
+                               class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                      bg-white dark:bg-gray-700 dark:text-gray-100" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium">Objetivo</label>
-                        <textarea name="objetivo" id="objetivo" rows="4" class="w-full border p-2 rounded" required></textarea>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Objetivo</label>
+                        <textarea name="objetivo" id="objetivo" rows="4"
+                                  class="w-full border border-gray-300 dark:border-gray-600 p-2 rounded 
+                                         bg-white dark:bg-gray-700 dark:text-gray-100" required></textarea>
                     </div>
 
-                    <hr>
+                    <hr class="border-gray-300 dark:border-gray-700">
 
                     <!-- PARTICIPANTES -->
-                    <h3 class="text-lg font-semibold">Participantes</h3>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Participantes</h3>
 
                     <!-- FUNCIONÁRIOS -->
-                    <button type="button" onclick="toggle('sec_func')" class="w-full bg-gray-200 p-2 rounded">
+                    <button type="button" onclick="toggle('sec_func')"
+                        class="w-full bg-gray-200 dark:bg-gray-700 dark:text-gray-100 p-2 rounded">
                         Funcionários
                     </button>
-                    <div id="sec_func" class="hidden p-3 border rounded">
 
-                        <label>Selecionar:</label>
-                        <select id="tipo_funcionario" class="border p-2 rounded w-full mb-3">
+                    <div id="sec_func" class="hidden p-3 border border-gray-300 dark:border-gray-600 rounded 
+                                             bg-gray-50 dark:bg-gray-700">
+
+                        <label class="text-gray-700 dark:text-gray-200">Selecionar:</label>
+                        <select id="tipo_funcionario"
+                                class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher --</option>
                             <option value="todos">Todos os funcionários</option>
                             <option value="especificos">Selecionar específicos</option>
                         </select>
 
-                        <div id="lista_funcionarios" class="hidden border p-3 rounded">
+                        <div id="lista_funcionarios"
+                             class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                    bg-white dark:bg-gray-700 dark:text-gray-100">
                             <?php
                             $res = mysqli_query($link, "SELECT IDutl, nome FROM utilizador WHERE tipo='funcionario' AND estado=1");
                             while ($u = mysqli_fetch_assoc($res)) {
                                 echo "<label class='block ml-2'>
                                         <input type='checkbox' class='chk-func' value='{$u['IDutl']}'>
                                         {$u['nome']}
-                                    </label>";
+                                      </label>";
                             }
                             ?>
                         </div>
@@ -319,13 +347,18 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                     </div>
 
                     <!-- EDUCADORES -->
-                    <button type="button" onclick="toggle('sec_edu')" class="w-full bg-gray-200 p-2 rounded">
+                    <button type="button" onclick="toggle('sec_edu')"
+                        class="w-full bg-gray-200 dark:bg-gray-700 dark:text-gray-100 p-2 rounded">
                         Educadores
                     </button>
-                    <div id="sec_edu" class="hidden p-3 border rounded">
 
-                        <label>Sala:</label>
-                        <select id="sala_educador" class="border p-2 rounded w-full mb-3">
+                    <div id="sec_edu" class="hidden p-3 border border-gray-300 dark:border-gray-600 rounded 
+                                             bg-gray-50 dark:bg-gray-700">
+
+                        <label class="text-gray-700 dark:text-gray-200">Sala:</label>
+                        <select id="sala_educador"
+                                class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher sala --</option>
                             <?php
                             $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -335,18 +368,25 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                             ?>
                         </select>
 
-                        <div id="lista_educadores" class="hidden border p-3 rounded"></div>
+                        <div id="lista_educadores"
+                             class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                    bg-white dark:bg-gray-700 dark:text-gray-100"></div>
 
                     </div>
 
                     <!-- ENCARREGADOS -->
-                    <button type="button" onclick="toggle('sec_enc')" class="w-full bg-gray-200 p-2 rounded">
+                    <button type="button" onclick="toggle('sec_enc')"
+                        class="w-full bg-gray-200 dark:bg-gray-700 dark:text-gray-100 p-2 rounded">
                         Encarregados
                     </button>
-                    <div id="sec_enc" class="hidden p-3 border rounded">
 
-                        <label>Sala:</label>
-                        <select id="sala_encarregado" class="border p-2 rounded w-full mb-3">
+                    <div id="sec_enc" class="hidden p-3 border border-gray-300 dark:border-gray-600 rounded 
+                                             bg-gray-50 dark:bg-gray-700">
+
+                        <label class="text-gray-700 dark:text-gray-200">Sala:</label>
+                        <select id="sala_encarregado"
+                                class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher sala --</option>
                             <?php
                             $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -356,19 +396,32 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                             ?>
                         </select>
 
-                        <div id="lista_encarregados" class="hidden border p-3 rounded"></div>
+                        <div id="lista_encarregados"
+                             class="hidden border border-gray-300 dark:border-gray-600 p-3 rounded 
+                                    bg-white dark:bg-gray-700 dark:text-gray-100"></div>
 
                     </div>
 
+                    <!-- BOTÕES -->
                     <div class="flex justify-between mt-6">
-                        <a href="listarreusuper.php" class="w-[40%] px-4 py-2 bg-gray-500 text-white text-center hover:bg-gray-600 rounded">Cancelar</a>
-                        <button type="submit" class="w-[40%] px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded">Criar Reunião</button>
+                        <a href="listarreusuper.php"
+                           class="w-[40%] px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white text-center 
+                                  hover:bg-gray-600 dark:hover:bg-gray-500 rounded">
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                                class="w-[40%] px-4 py-2 bg-green-600 dark:bg-green-700 text-white 
+                                       hover:bg-green-700 dark:hover:bg-green-600 rounded">
+                            Criar Reunião
+                        </button>
                     </div>
 
                 </form>
             </div>
         </main>
     </div>
+</body>
 
 <script>
 

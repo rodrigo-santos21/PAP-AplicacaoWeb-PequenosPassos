@@ -5,6 +5,16 @@ include("DBConnection.php");
 //BUSCA A FOTO DE PERFIL DO UTILIZADOR
 $IDutl = $_SESSION['id'];
 
+// Buscar tema do utilizador
+$stmtTema = mysqli_prepare($link, "SELECT tema FROM utilizador WHERE IDutl = ?");
+mysqli_stmt_bind_param($stmtTema, "i", $IDutl);
+mysqli_stmt_execute($stmtTema);
+$resTema = mysqli_stmt_get_result($stmtTema);
+$tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
+
+// Atualizar sessão
+$_SESSION['tema'] = $tema;
+
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -19,12 +29,13 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="UTF-8">
     <title>Gestão de Inativos — Superadmin</title>
     <link rel="stylesheet" href="style.css?v=<?= time() ?>">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script>
     // Carregar dados da tab via AJAX
@@ -32,16 +43,35 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 
         // Atualizar estilo das tabs
         document.querySelectorAll(".tab-btn").forEach(btn => {
-            btn.classList.remove("bg-blue-600", "text-white");
-            btn.classList.add("bg-gray-200", "text-gray-700");
+            btn.classList.remove(
+                "bg-blue-600", "text-white",
+                "bg-gray-200", "text-gray-700",
+                "dark:bg-gray-700", "dark:text-gray-100"
+            );
+
+            // Estado normal (não ativo)
+            btn.classList.add(
+                "bg-gray-200", "text-gray-700",
+                "dark:bg-gray-700", "dark:text-gray-100"
+            );
         });
 
-        document.getElementById("tab-" + tipo).classList.remove("bg-gray-200", "text-gray-700");
-        document.getElementById("tab-" + tipo).classList.add("bg-blue-600", "text-white");
+        // Ativar a tab clicada
+        const ativa = document.getElementById("tab-" + tipo);
+        if (ativa) {
+            ativa.classList.remove(
+                "bg-gray-200", "text-gray-700",
+                "dark:bg-gray-700", "dark:text-gray-100"
+            );
+
+            ativa.classList.add(
+                "bg-blue-600", "text-white"
+            );
+        }
 
         // Mostrar loading
         document.getElementById("conteudo").innerHTML = `
-            <div class='text-center py-10 text-gray-600'>
+            <div class='text-center py-10 text-gray-600 dark:text-gray-300'>
                 A carregar...
             </div>
         `;
@@ -99,24 +129,17 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 
         });
     }
-
     </script>
 
+    <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+    </style>
 </head>
 
-<!-- Esconde o scrollbar -->
-<style>
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    scrollbar-width: none;
-}
-</style>
+<body class="bg-gray-100 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
-<body class="bg-gray-100 min-h-screen">
-
-    <!-- WRAPPER FLEX QUE RESOLVE O PROBLEMA DA ALTURA -->
+    <!-- WRAPPER FLEX -->
     <div class="flex min-h-screen flex-col lg:flex-row">
 
         <!-- SIDEBAR -->
@@ -130,14 +153,14 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
         <!-- CONTEÚDO -->
         <main class="flex-1 p-6 lg:p-10 lg:ml-[20%] overflow-y-auto">
 
-		    <h1 class="text-3xl font-bold text-gray-800 mb-8">Gestão de Inativos </h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8">Gestão de Inativos</h1>
 
             <a href="superadmin.php"
-            class="mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md font-semibold mt-5 hover:bg-blue-700">
+            class="mb-4 inline-block px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md font-semibold mt-5 hover:bg-blue-700 dark:hover:bg-blue-600">
                 ← Voltar
             </a>
             
-            <div class="w-full bg-white shadow-lg rounded-lg p-8">
+            <div class="w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
 
                 <!-- TABS -->
                 <div class="flex flex-wrap gap-2 mb-6">
@@ -147,27 +170,27 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
                         Crianças
                     </button>
 
-                    <button id="tab-utilizadores" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
+                    <button id="tab-utilizadores" class="tab-btn bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-gray-700 px-4 py-2 rounded"
                             onclick="carregarTab('utilizadores')">
                         Utilizadores
                     </button>
 
-                    <button id="tab-atividades" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
+                    <button id="tab-atividades" class="tab-btn bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-gray-700 px-4 py-2 rounded"
                             onclick="carregarTab('atividades')">
                         Atividades
                     </button>
 
-                    <button id="tab-salas" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
+                    <button id="tab-salas" class="tab-btn bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-gray-700 px-4 py-2 rounded"
                             onclick="carregarTab('salas')">
                         Salas
                     </button>
 
-                    <button id="tab-ocorrencias" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
+                    <button id="tab-ocorrencias" class="tab-btn bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-gray-700 px-4 py-2 rounded"
                             onclick="carregarTab('ocorrencias')">
                         Ocorrências
                     </button>
 
-                    <button id="tab-reunioes" class="tab-btn bg-gray-200 text-gray-700 px-4 py-2 rounded"
+                    <button id="tab-reunioes" class="tab-btn bg-gray-200 dark:bg-gray-700 dark:text-gray-100 text-gray-700 px-4 py-2 rounded"
                             onclick="carregarTab('reunioes')">
                         Reuniões
                     </button>
@@ -175,7 +198,7 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
                 </div>
 
                 <!-- ÁREA DE CONTEÚDO -->
-                <div id="conteudo" class="mt-4">
+                <div id="conteudo" class="mt-4 dark:text-gray-800">
                     <!-- Conteúdo carregado via AJAX -->
                 </div>
             </div>
@@ -183,24 +206,23 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
     </div>
 
     <script>
-        // Carregar a primeira tab automaticamente
         carregarTab('criancas');
     </script>
 
     <!-- MODAL CONFIRMAÇÃO -->
     <div id="modalConfirmar" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Confirmar ação</h2>
-            <p id="modalConfirmarTexto" class="text-gray-700 mb-6"></p>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">Confirmar ação</h2>
+            <p id="modalConfirmarTexto" class="text-gray-700 dark:text-gray-300 mb-6"></p>
 
             <div class="flex justify-end gap-3">
                 <button onclick="fecharModalConfirmar()"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    class="px-4 py-2 bg-gray-500 dark:bg-gray-600 text-white rounded hover:bg-gray-600 dark:hover:bg-gray-500">
                     Cancelar
                 </button>
 
                 <button id="btnConfirmarAcao"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600">
                     Confirmar
                 </button>
             </div>
@@ -209,11 +231,11 @@ if (!isset($_SESSION['tipo']) || $_SESSION['tipo'] !== 'superadmin') {
 
     <!-- MODAL MENSAGEM -->
     <div id="modalMensagem" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
-            <p id="modalMensagemTexto" class="text-gray-800 text-lg mb-6"></p>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md text-center">
+            <p id="modalMensagemTexto" class="text-gray-800 dark:text-gray-100 text-lg mb-6"></p>
 
             <button onclick="fecharModalMensagem()"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                class="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600">
                 OK
             </button>
         </div>

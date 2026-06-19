@@ -1,188 +1,87 @@
-<!-- SIDEBAR -->
-<aside class="w-1/5 bg-white shadow-lg p-6 fixed left-0 top-0 h-screen overflow-y-auto no-scrollbar">
+<?php $pagina = basename($_SERVER['PHP_SELF']); ?>
 
-    <!-- WRAPPER QUE CONTROLA TOPO E FUNDO -->
+<aside class="w-1/5 bg-white dark:bg-gray-800 shadow-lg p-6 fixed left-0 top-0 h-screen overflow-y-auto no-scrollbar">
+
     <div class="flex flex-col h-full justify-between">
 
-        <!-- ===================== -->
-        <!--        TOPO           -->
-        <!-- ===================== -->
+        <!-- TOPO -->
         <div>
 
-            <!-- LOGO + TEXTO -->
+            <!-- LOGO -->
             <div class="flex items-center space-x-3 mb-8">
                 <a href="funcionario.php" class="flex items-center space-x-3">
                     <img src="imagens/logo.png" class="w-18 h-12 object-cover rounded-lg" alt="Logo">
-                    <span class="text-2xl font-bold text-blue-400">Pequenos Passos</span>
+                    <span class="text-2xl font-bold text-blue-400 dark:text-blue-300">Pequenos Passos</span>
                 </a>
             </div>
 
-            <div class="border-t-2 border-blue-400 pt-8">
-
-            <?php $pagina = basename($_SERVER['PHP_SELF']); ?>
+            <div class="border-t-2 border-blue-400 dark:border-blue-500 pt-8">
 
             <!-- MENU -->
             <nav class="space-y-3">
 
-                <a href="funcionario.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'funcionario.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                </svg>
-                Página Inicial
-                </a>
+                <?php
+                function linkFun($file, $text, $pagina, $icon)
+                {
+                    $ativo = $pagina === $file;
 
-                <a href="inscricoespendentes.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'inscricoespendentes.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-                Inscrições Pendentes
-                </a>
+                    $classeAtivo = "text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 
+                                    border-l-4 border-blue-600 dark:border-blue-400";
 
-                <a href="criancaspendentes.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'criancaspendentes.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-                Crianças Pendentes
-                </a>
+                    $classeNormal = "text-gray-700 dark:text-gray-300 
+                                     hover:text-blue-600 dark:hover:text-blue-400 
+                                     hover:bg-gray-100 dark:hover:bg-gray-800";
 
-                <a href="listarcrifun.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'listarcrifun.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                   : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-                Listar Crianças
-                </a>
+                    return '
+                    <a href="'.$file.'" 
+                       class="flex items-center px-2 py-2 font-bold rounded-md transition '.($ativo ? $classeAtivo : $classeNormal).'">
+                        '.$icon.'
+                        '.$text.'
+                    </a>';
+                }
 
-                <a href="listareefun.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'listareefun.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-                Listar Encarregados de educação
-                </a>
-
-                <a href="listaredufun.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'listaredufun.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                   : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-                </svg>
-                Listar Educadores
-                </a>
-
-                <a href="listarreufun.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'listarreufun.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                   : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                </svg>
-                Listar Reuniões
-                </a>
-
-                <a href="listarocofun.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'listarocofun.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                   : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-                </svg>
-                Listar Ocorrências
-                </a>
-
-                <a href="funcionario_refeicoes.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'funcionario_refeicoes.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                   : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                </svg>
-                Listar Refeições
-                </a>
-
-                <a href="funcionario_presencas.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'funcionario_presencas.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
-                </svg>
-                Presenças
-                </a>
-
-                <a href="logs.php"
-                class="flex items-center px-2 py-2 font-bold 
-                <?= $pagina === 'logs.php' ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                                           : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?> 
-                rounded-md transition">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 mr-2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
-                </svg>
-                Consultar Logs
-                </a>
+                echo linkFun("funcionario.php", "Página Inicial", $pagina, '<i class="fa-solid fa-house mr-2"></i>');
+                echo linkFun("inscricoespendentes.php", "Inscrições Pendentes", $pagina, '<i class="fa-solid fa-user-clock mr-2"></i>');
+                echo linkFun("criancaspendentes.php", "Crianças Pendentes", $pagina, '<i class="fa-solid fa-child mr-2"></i>');
+                echo linkFun("listarcrifun.php", "Listar Crianças", $pagina, '<i class="fa-solid fa-children mr-2"></i>');
+                echo linkFun("listareefun.php", "Listar Encarregados de Educação", $pagina, '<i class="fa-solid fa-user-group mr-2"></i>');
+                echo linkFun("listaredufun.php", "Listar Educadores", $pagina, '<i class="fa-solid fa-chalkboard-user mr-2"></i>');
+                echo linkFun("listarreufun.php", "Listar Reuniões", $pagina, '<i class="fa-solid fa-calendar-days mr-2"></i>');
+                echo linkFun("listarocofun.php", "Listar Ocorrências", $pagina, '<i class="fa-solid fa-triangle-exclamation mr-2"></i>');
+                echo linkFun("funcionario_refeicoes.php", "Listar Refeições", $pagina, '<i class="fa-solid fa-bowl-food mr-2"></i>');
+                echo linkFun("funcionario_presencas.php", "Presenças", $pagina, '<i class="fa-solid fa-user-check mr-2"></i>');
+                echo linkFun("logs.php", "Consultar Logs", $pagina, '<i class="fa-solid fa-file-lines mr-2"></i>');
+                ?>
 
             </nav>
 
             </div>
         </div>
 
-        <!-- ===================== -->
-        <!--        FUNDO          -->
-        <!-- ===================== -->
-        <div class="mt-8 border-t-2 border-blue-400 pt-6">
+        <!-- FUNDO -->
+        <div class="mt-8 border-t-2 border-blue-400 dark:border-blue-500 pt-6">
 
             <!-- PERFIL -->
             <a href="perfil.php"
             class="flex items-center space-x-3 mb-4 px-2 py-2 rounded-md transition
             <?= $pagina === 'perfil.php'
-                    ? 'text-blue-600 bg-gray-100 border-l-4 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-100' ?>">
+                ? 'text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-900 border-l-4 border-blue-600 dark:border-blue-400'
+                : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800' ?>">
 
-                <img src="<?= $fotoPerfil ?>" class="w-12 h-12 rounded-full object-cover border" alt="Foto de Perfil">
+                <img src="<?= $fotoPerfil ?>" class="w-12 h-12 rounded-full object-cover border dark:border-gray-600" alt="Foto de Perfil">
 
                 <div>
-                    <p class="font-semibold text-gray-800 truncate max-w-[180px]"><?= $_SESSION['user']; ?></p>
-                    <p class="text-sm text-gray-500">Funcionário</p>
+                    <p class="font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[180px]"><?= $_SESSION['user']; ?></p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Funcionário</p>
                 </div>
             </a>
 
             <!-- LOGOUT -->
             <a href="logout.php"
             class="flex items-center justify-center gap-2 w-full text-center px-4 py-2 
-                    bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold mb-6">
+                   bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-600 font-semibold mb-6">
 
-                <svg xmlns="http://www.w3.org/2000/svg"
-                    width="20" height="20" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" class="lucide lucide-log-out">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
+                <i class="fa-solid fa-right-from-bracket"></i>
                 Terminar Sessão
             </a>
 
