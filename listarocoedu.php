@@ -393,7 +393,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                         placeholder="Descrição..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- CRIANÇA -->
@@ -401,7 +401,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                     <label class="font-semibold dark:text-gray-200">Criança:</label>
                     <select name="crianca"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todas</option>
 
@@ -427,7 +427,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                     <label class="font-semibold dark:text-gray-200">Tipo:</label>
                     <select name="tipo"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todos</option>
                         <option value="Doença" <?= ($tipo=='Doença'?'selected':'') ?>>Doença</option>
@@ -443,7 +443,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                     <label class="font-semibold dark:text-gray-200">Gravidade:</label>
                     <select name="gravidade"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todas</option>
                         <option value="Leve" <?= ($gravidade=='Leve'?'selected':'') ?>>Leve</option>
@@ -457,7 +457,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                     <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Mais recentes</option>
                         <option value="az"  <?= ($ordem=='az'?'selected':'') ?>>Tipo A → Z</option>
@@ -470,7 +470,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                 <div class="flex mt-6 items-center justify-end">
                     <button type="button"
                         onclick="window.location.href='listarocoedu.php'"
-                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                         title="Limpar filtros">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -569,7 +569,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
                                     : $o['descricao'];
                         ?>
 
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                                     Ocorrência #<?= $o['IDoc'] ?>
@@ -588,7 +588,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
 
                                     <!-- Editar -->
                                     <button onclick="window.location.href='editarocoedu.php?id=<?= $o['IDoc'] ?>'"
-                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 transition">
+                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500  dark:hover:text-yellow-400 transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -598,7 +598,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete') {
 
                                     <!-- Eliminar -->
                                     <button onclick="eliminarOcorrencia(<?= $o['IDoc'] ?>)"
-                                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition">
+                                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -218,7 +218,7 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
                 <select id="crianca"
                     class="border border-gray-300 dark:border-gray-600 
                            p-2 rounded w-full mb-6 
-                           bg-white dark:bg-gray-900 dark:text-gray-100">
+                           bg-white dark:bg-gray-700 dark:text-gray-100">
                     <option value="">-- Selecionar --</option>
                     <?php foreach ($criancas as $c): ?>
                         <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
@@ -233,9 +233,8 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
 
             <!-- MODAL JUSTIFICAÇÃO -->
             <div id="modalJust"
-                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-
-                <div class="bg-white dark:bg-gray-800 w-[400px] p-6 rounded-lg shadow-lg">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
 
                     <h3 class="text-xl font-bold mb-3 dark:text-gray-100">Justificar falta</h3>
 
@@ -247,7 +246,7 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
                         <label class="dark:text-gray-300">Justificação:</label>
                         <textarea name="justificacao" rows="4"
                             class="border border-gray-300 dark:border-gray-600 
-                                   p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100"
                             required></textarea>
 
                         <button type="submit"
@@ -266,9 +265,8 @@ $id_crianca_sel = $_GET['id_crianca'] ?? "";
 
             <!-- MODAL PRESENÇA NORMAL -->
             <div id="modalPresenca"
-                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-
-                <div class="bg-white dark:bg-gray-800 w-[350px] p-6 rounded-lg shadow-lg">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
 
                     <h3 class="text-xl font-bold mb-3 dark:text-gray-100">Detalhes da Presença</h3>
 

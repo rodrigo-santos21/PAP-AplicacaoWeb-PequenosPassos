@@ -304,7 +304,7 @@ while ($e = mysqli_fetch_assoc($educadoresLista)) {
                         <input name="nome" type="text"
                             value="<?= htmlspecialchars($nome) ?>"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -315,7 +315,7 @@ while ($e = mysqli_fetch_assoc($educadoresLista)) {
                             value="<?= $datanascimento ?>"
                             max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -324,7 +324,7 @@ while ($e = mysqli_fetch_assoc($educadoresLista)) {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sexo</label>
                         <select name="sexo"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar...</option>
                             <option value="M" <?= $sexo === "M" ? "selected" : "" ?>>Masculino</option>
@@ -338,7 +338,7 @@ while ($e = mysqli_fetch_assoc($educadoresLista)) {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Observações</label>
                         <textarea name="observacoes" rows="3"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"><?= htmlspecialchars($observacoes) ?></textarea>
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"><?= htmlspecialchars($observacoes) ?></textarea>
                     </div>
 
                     <!-- EDUCADORES -->
@@ -373,7 +373,7 @@ while ($e = mysqli_fetch_assoc($educadoresLista)) {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Encarregado de Educação</label>
                         <select name="IDutl"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar encarregado...</option>
                             <?php while ($e = mysqli_fetch_assoc($encarregados)): ?>

@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <select name="tipo" id="tipoSelect" onchange="toggleOutro()"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="Doença" <?= $oc['tipo'] === 'Doença' ? 'selected' : '' ?>>Doença</option>
                             <option value="Queda" <?= $oc['tipo'] === 'Queda' ? 'selected' : '' ?>>Queda</option>
@@ -300,7 +300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="text" name="tipo_outro"
                             value="<?= $oc['tipo_outro'] ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                     </div>
 
                     <!-- GRAVIDADE -->
@@ -310,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <select name="gravidade"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="Leve" <?= $oc['gravidade'] === 'Leve' ? 'selected' : '' ?>>Leve</option>
                             <option value="Moderada" <?= $oc['gravidade'] === 'Moderada' ? 'selected' : '' ?>>Moderada</option>
@@ -325,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <textarea name="descricao" rows="4"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required><?= $oc['descricao'] ?></textarea>
                     </div>
 

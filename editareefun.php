@@ -257,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <input type="text" name="nome" value="<?= $utilizador['nome'] ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -268,7 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <input type="email" name="email" value="<?= $utilizador['email'] ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -294,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             value="<?= $utilizador['datanascimento'] ?>"
                             max="<?= date('Y-m-d') ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -307,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             placeholder="9 dígitos"
                             value="<?= $utilizador['telefone'] ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required
                             oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>

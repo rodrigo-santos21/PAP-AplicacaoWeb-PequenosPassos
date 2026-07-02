@@ -275,7 +275,7 @@ $_SESSION['tema'] = $tema;
                     placeholder="Nome ou email..."
                     value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
             </div>
 
             <!-- ORDEM -->
@@ -283,7 +283,7 @@ $_SESSION['tema'] = $tema;
                 <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
                 <select name="ordem"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                           p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                     onchange="document.getElementById('filtrosForm').submit()">
                     <option value="">Mais recentes</option>
                     <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
@@ -297,7 +297,7 @@ $_SESSION['tema'] = $tema;
                 <label class="font-semibold dark:text-gray-200">Tipo:</label>
                 <select name="tipo"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                           p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                     onchange="document.getElementById('filtrosForm').submit()">
                     <option value="">-- Todos --</option>
                     <option value="administrador" <?= ($_GET['tipo'] ?? '')=='administrador'?'selected':'' ?>>Administrador</option>
@@ -312,7 +312,7 @@ $_SESSION['tema'] = $tema;
                 <label class="font-semibold dark:text-gray-200">Estado:</label>
                 <select name="analise"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                           p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                     onchange="document.getElementById('filtrosForm').submit()">
                     <option value="">-- Todos --</option>
                     <option value="livre"   <?= ($_GET['analise'] ?? '')=='livre'?'selected':'' ?>>Disponível</option>
@@ -369,7 +369,7 @@ $_SESSION['tema'] = $tema;
 
                 <?php while ($u = mysqli_fetch_assoc($result)): ?>
 
-                    <div class="bg-blue-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <div class="bg-blue-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                         <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                             <?= $u['nome'] ?>

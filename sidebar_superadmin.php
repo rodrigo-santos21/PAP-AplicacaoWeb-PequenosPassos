@@ -255,7 +255,7 @@
             <!-- LOGOUT -->
             <a href="logout.php"
             class="flex items-center justify-center gap-2 w-full text-center px-4 py-2 
-                    bg-red-600 dark:bg-red-700 text-white hover:bg-red-700 dark:hover:bg-red-600 font-semibold mb-6">
+                   bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 font-semibold mb-6">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
                     width="20" height="20" viewBox="0 0 24 24" fill="none"

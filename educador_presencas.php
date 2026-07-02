@@ -305,7 +305,7 @@ while ($row = mysqli_fetch_assoc($res)) {
             <select id="crianca"
                 class="border border-gray-300 dark:border-gray-600 
                        p-2 rounded w-full mb-6 
-                       bg-white dark:bg-gray-900 dark:text-gray-100">
+                       bg-white dark:bg-gray-700 dark:text-gray-100">
                 <option value="">-- Selecionar --</option>
                 <?php foreach ($criancas as $c): ?>
                     <option value="<?= $c['IDcri'] ?>"><?= $c['nome'] ?></option>
@@ -331,12 +331,12 @@ while ($row = mysqli_fetch_assoc($res)) {
                 <label class="dark:text-gray-300">Hora Entrada:</label>
                 <input type="time" id="edit_horaE"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
 
                 <label class="dark:text-gray-300">Hora Saída:</label>
                 <input type="time" id="edit_horaS"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
 
                 <div class="flex gap-2 mt-4">
                     <button onclick="guardarEdicao()"
@@ -428,12 +428,12 @@ while ($row = mysqli_fetch_assoc($res)) {
                 <label class="dark:text-gray-300">Hora Entrada:</label>
                 <input type="time" id="input_horaE"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
 
                 <label class="dark:text-gray-300">Hora Saída (opcional):</label>
                 <input type="time" id="input_horaS"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
 
                 <div class="flex gap-2 mt-4">
                     <button id="modalInputConfirmar"

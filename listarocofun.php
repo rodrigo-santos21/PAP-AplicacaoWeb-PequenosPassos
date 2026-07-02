@@ -185,7 +185,7 @@ $IDutl = intval($_SESSION['id']);
                         placeholder="Descrição..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- 📝 TIPO -->
@@ -193,7 +193,7 @@ $IDutl = intval($_SESSION['id']);
                     <label class="font-semibold dark:text-gray-200">Tipo:</label>
                     <select name="tipo"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todos</option>
                         <option value="Doença" <?= ($tipo=='Doença'?'selected':'') ?>>Doença</option>
@@ -209,7 +209,7 @@ $IDutl = intval($_SESSION['id']);
                     <label class="font-semibold dark:text-gray-200">Gravidade:</label>
                     <select name="gravidade"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todas</option>
                         <option value="Leve" <?= ($gravidade=='Leve'?'selected':'') ?>>Leve</option>
@@ -223,7 +223,7 @@ $IDutl = intval($_SESSION['id']);
                     <label class="font-semibold dark:text-gray-200">Criança:</label>
                     <select name="crianca"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todas</option>
                         <?php
@@ -242,7 +242,7 @@ $IDutl = intval($_SESSION['id']);
                     <label class="font-semibold dark:text-gray-200">Criado por:</label>
                     <select name="educador"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todos</option>
                         <?php
@@ -267,7 +267,7 @@ $IDutl = intval($_SESSION['id']);
                     <label class="font-semibold dark:text-gray-200">Ordenar:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Mais recentes</option>
                         <option value="old" <?= ($ordem=='old'?'selected':'') ?>>Mais antigas</option>
@@ -361,7 +361,7 @@ $IDutl = intval($_SESSION['id']);
                                     : $o['descricao'];
                         ?>
 
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                                     Ocorrência #<?= $o['IDoc'] ?>

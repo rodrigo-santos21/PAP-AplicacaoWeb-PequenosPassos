@@ -283,7 +283,7 @@ $nome = $_SESSION['user'];
                         placeholder="Nome ou email..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- ORDEM -->
@@ -291,7 +291,7 @@ $nome = $_SESSION['user'];
                     <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">Mais recentes</option>
                         <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
@@ -305,7 +305,7 @@ $nome = $_SESSION['user'];
                     <label class="font-semibold dark:text-gray-200">Sala:</label>
                     <select name="sala"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todas --</option>
 
@@ -324,7 +324,7 @@ $nome = $_SESSION['user'];
                 <div class="flex mt-6 items-center justify-end">
                     <button type="button"
                         onclick="window.location.href='listaredufun.php'"
-                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                         title="Limpar filtros">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -399,7 +399,7 @@ $nome = $_SESSION['user'];
 
                         ?>
                             <!-- GRIDS CARDS -->
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                                     <?= $nome ?>
@@ -416,7 +416,7 @@ $nome = $_SESSION['user'];
 
                                     <!-- Ícone Editar -->
                                     <button onclick="window.location.href='editaredufun.php?id=<?= $IDutl ?>'"
-                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 transition">
+                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

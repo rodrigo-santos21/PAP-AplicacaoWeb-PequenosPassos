@@ -253,7 +253,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <input name="nome" type="text"
                             placeholder="Nome da criança"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -265,7 +265,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <input name="datanascimento" type="date"
                             max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -276,7 +276,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </label>
                         <select name="sexo"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar...</option>
                             <option value="M">Masculino</option>
@@ -293,7 +293,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <textarea name="observacoes" rows="3"
                             placeholder="Notas importantes (opcional)"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"></textarea>
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"></textarea>
                     </div>
 
                     <!-- ENCARREGADO -->

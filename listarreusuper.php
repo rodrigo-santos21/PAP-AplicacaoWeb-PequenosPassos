@@ -41,10 +41,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'events') {
 
     while ($r = mysqli_fetch_assoc($res)) {
         $events[] = [
-            'id'    => $r['IDreu'],
-            'title' => $r['titulo'],
-            'start' => $r['datahora']
-        ];
+                'id'    => $r['IDreu'],
+                'title' => $r['titulo'],
+                'start' => explode(" ", $r['datahora'])[0], // só a data
+                'allDay' => true
+            ];
     }
 
     echo json_encode($events);

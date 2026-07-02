@@ -286,7 +286,7 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                         </label>
                         <select name="IDcri"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar criança...</option>
                             <?php foreach ($criancas as $c): ?>
@@ -302,7 +302,7 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                         </label>
                         <select name="tipo" id="tipoSelect"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar...</option>
                             <option value="Doença">Doença</option>
@@ -320,7 +320,7 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                         </label>
                         <input type="text" name="tipo_outro"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             placeholder="Descreva o tipo de ocorrência...">
                     </div>
 
@@ -338,7 +338,7 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                         </label>
                         <select name="gravidade"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="">Selecionar...</option>
                             <option value="Leve">Leve</option>
@@ -354,7 +354,7 @@ while ($row = mysqli_fetch_assoc($criancasIDs)) {
                         </label>
                         <textarea name="descricao" rows="3"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             placeholder="Descreva o que aconteceu..." required></textarea>
                     </div>
 

@@ -294,7 +294,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="block text-sm font-medium dark:text-gray-300">Título</label>
                         <input name="titulo" id="titulo" type="text"
                                class="w-full border border-gray-300 dark:border-gray-600 
-                                      p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+                                      p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                                required>
                     </div>
 
@@ -303,7 +303,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="block text-sm font-medium dark:text-gray-300">Data e Hora</label>
                         <input name="datahora" id="datahora" type="datetime-local"
                                class="w-full border border-gray-300 dark:border-gray-600 
-                                      p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+                                      p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                                required>
                     </div>
 
@@ -312,7 +312,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="block text-sm font-medium dark:text-gray-300">Localidade</label>
                         <input name="localidade" id="localidade" type="text"
                                class="w-full border border-gray-300 dark:border-gray-600 
-                                      p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+                                      p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                                required>
                     </div>
 
@@ -321,7 +321,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="block text-sm font-medium dark:text-gray-300">Objetivo</label>
                         <textarea name="objetivo" id="objetivo" rows="4"
                                   class="w-full border border-gray-300 dark:border-gray-600 
-                                         p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100"
+                                         p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100"
                                   required></textarea>
                     </div>
 
@@ -342,7 +342,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="dark:text-gray-300">Selecionar:</label>
                         <select id="tipo_funcionario"
                                 class="border border-gray-300 dark:border-gray-600 
-                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher --</option>
                             <option value="todos">Todos os funcionários</option>
                             <option value="especificos">Selecionar específicos</option>
@@ -376,7 +376,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="dark:text-gray-300">Sala:</label>
                         <select id="sala_educador"
                                 class="border border-gray-300 dark:border-gray-600 
-                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher sala --</option>
                             <?php
                             $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -404,7 +404,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'getEncarregados') {
                         <label class="dark:text-gray-300">Sala:</label>
                         <select id="sala_encarregado"
                                 class="border border-gray-300 dark:border-gray-600 
-                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       p-2 rounded w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="">-- Escolher sala --</option>
                             <?php
                             $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");

@@ -125,7 +125,7 @@ if ($id_sala_sel) {
                     <select name="sala" onchange="this.form.submit()"
                         class="border border-gray-300 dark:border-gray-600 
                                p-2 rounded w-full mb-4 
-                               bg-white dark:bg-gray-900 dark:text-gray-100">
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
                         <option value="">-- Selecionar Sala --</option>
                         <?php foreach ($salas as $s): ?>
                             <option value="<?= $s['IDsala'] ?>" <?= ($id_sala_sel == $s['IDsala']) ? 'selected' : '' ?>>
@@ -144,7 +144,7 @@ if ($id_sala_sel) {
                     <select name="crianca" onchange="this.form.submit()"
                         class="border border-gray-300 dark:border-gray-600 
                                p-2 rounded w-full mb-6 
-                               bg-white dark:bg-gray-900 dark:text-gray-100">
+                               bg-white dark:bg-gray-700 dark:text-gray-100">
                         <option value="">-- Selecionar Criança --</option>
                         <?php foreach ($criancas as $c): ?>
                             <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
@@ -164,9 +164,8 @@ if ($id_sala_sel) {
 
             <!-- MODAL PRESENÇA -->
             <div id="modalPresenca"
-                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-
-                <div class="bg-white dark:bg-gray-800 w-[350px] p-6 rounded-lg shadow-lg">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
 
                     <h3 class="text-xl font-bold mb-3 dark:text-gray-100">Detalhes da Presença</h3>
 
@@ -185,9 +184,8 @@ if ($id_sala_sel) {
 
             <!-- MODAL FALTA -->
             <div id="modalFalta"
-                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-
-                <div class="bg-white dark:bg-gray-800 w-[400px] p-6 rounded-lg shadow-lg">
+                class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 pt-[100px] z-[9999] flex justify-center items-center">
+                <div class="bg-white dark:bg-gray-800 w-[400px] mx-auto p-5 rounded-lg z-[10000]">
 
                     <h3 class="text-xl font-bold mb-3 dark:text-gray-100">Justificação da Falta</h3>
 
@@ -196,7 +194,7 @@ if ($id_sala_sel) {
 
                     <textarea id="faltTexto"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100"
                         readonly></textarea>
 
                     <form method="post" action="processarJustificacaoFuncionario.php">

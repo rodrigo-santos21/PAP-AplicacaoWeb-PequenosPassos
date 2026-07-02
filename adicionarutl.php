@@ -362,7 +362,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="nome" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
                         <input name="nome" id="nome" type="text"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -371,7 +371,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                         <input name="email" id="email" type="email"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -380,7 +380,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="pass" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
                         <input name="pass" id="pass" type="password"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                         
                         <button type="button" onclick="togglePassword('pass', 'eyePass')"
@@ -409,7 +409,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="confirmarpass" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirmar Password</label>
                         <input name="confirmarpass" id="confirmarpass" type="password"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
 
                         <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
@@ -438,7 +438,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="tipo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Utilizador</label>
                         <select name="tipo" id="tipo"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                             <option value="encarregado">Encarregado</option>
                             <option value="educador">Educador</option>
@@ -453,14 +453,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <label for="especialidade" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Especialidade</label>
                             <input name="especialidade" id="especialidade" type="text"
                                 class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                       rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                         </div>
 
                         <div>
                             <label for="sala" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sala</label>
                             <select name="sala" id="sala"
                                 class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                       rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">Selecione uma sala</option>
 
                                 <?php while ($s = mysqli_fetch_assoc($salas)): ?>
@@ -481,7 +481,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </label>
                         <input name="datanascimento" id="datanascimento" type="date"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -492,7 +492,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </label>
                         <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}" placeholder="9 dígitos"
                             class="mt-1 block w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required
                             oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>

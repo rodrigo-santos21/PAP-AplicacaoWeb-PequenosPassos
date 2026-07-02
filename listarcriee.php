@@ -115,7 +115,7 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>As Minhas Crianças</title>
@@ -280,20 +280,20 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
                 <!-- PESQUISA -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Pesquisar:</label>
                     <input type="text" name="pesquisa" id="pesquisaInput"
                         placeholder="Nome da criança..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- SALA -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Sala:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Sala:</label>
                     <select name="sala"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todas</option>
 
@@ -312,10 +312,10 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
                 <!-- EDUCATOR -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Educador:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Educador:</label>
                     <select name="educador"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Todos</option>
 
@@ -340,10 +340,10 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
                 <!-- ORDENAR -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                         <option value="">Mais recentes</option>
                         <option value="az"  <?= ($ordem=='az'?'selected':'') ?>>A → Z</option>
@@ -356,7 +356,7 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
                 <div class="flex mt-6 items-center justify-end">
                     <button type="button"
                         onclick="window.location.href='listarcriee.php'"
-                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                         title="Limpar filtros">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -455,7 +455,7 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
                             $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
                         ?>
 
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                                     <?= $cri['nome'] ?>
@@ -474,7 +474,7 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
                                     <!-- Ícone Editar -->
                                     <button onclick="window.location.href='editarcriee.php?id=<?= $cri['IDcri'] ?>'"
-                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 transition">
+                                        class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -486,68 +486,68 @@ $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
 
                             </div>
 
-                        <?php } ?>
-                    <?php endif ?>
+                            <?php } ?>
+                        <?php endif ?>
+                    </div>
                 </div>
-            </div>
 
             <!-- PAGINAÇÃO -->
             <?php if ($totalPaginas > 1): ?>
-            <div class="flex justify-center mt-10 text-center">
-                <div class="flex items-center space-x-2">
+                <div class="flex justify-center mt-10 text-center">
+                    <div class="flex items-center space-x-2">
 
-                    <!-- PRIMEIRA -->
-                    <a href="?pagina=1<?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center 
-                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
-                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
+                        <!-- PRIMEIRA -->
+                        <a href="?pagina=1<?= $queryStringFiltros ?>"
+                        class="w-12 h-12 flex items-center justify-center 
+                            bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                            rounded hover:bg-gray-300 dark:hover:bg-gray-600">««</a>
 
-                    <!-- ANTERIOR -->
-                    <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center 
-                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
-                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
+                        <!-- ANTERIOR -->
+                        <a href="?pagina=<?= max(1, $paginaAtual - 1) ?><?= $queryStringFiltros ?>"
+                        class="w-12 h-12 flex items-center justify-center 
+                            bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                            rounded hover:bg-gray-300 dark:hover:bg-gray-600">«</a>
 
-                    <?php
-                        $inicio = max(1, $paginaAtual - 2);
-                        $fim = min($totalPaginas, $inicio + 4);
+                        <?php
+                            $inicio = max(1, $paginaAtual - 2);
+                            $fim = min($totalPaginas, $inicio + 4);
 
-                        if ($fim - $inicio < 4) {
-                            $inicio = max(1, $fim - 4);
-                        }
+                            if ($fim - $inicio < 4) {
+                                $inicio = max(1, $fim - 4);
+                            }
 
-                        for ($i = $inicio; $i <= $fim; $i++):
-                    ?>
+                            for ($i = $inicio; $i <= $fim; $i++):
+                        ?>
 
-                    <!-- NÚMEROS -->
-                    <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center rounded
-                    <?= $i == $paginaAtual 
-                        ? 'bg-blue-600 dark:bg-blue-700 text-white' 
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
-                        <?= $i ?>
-                    </a>
+                        <!-- NÚMEROS -->
+                        <a href="?pagina=<?= $i ?><?= $queryStringFiltros ?>"
+                        class="w-12 h-12 flex items-center justify-center rounded
+                        <?= $i == $paginaAtual 
+                            ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600' ?>">
+                            <?= $i ?>
+                        </a>
 
-                    <?php endfor; ?>
+                        <?php endfor; ?>
 
-                    <!-- SEGUINTE -->
-                    <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center 
-                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
-                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
+                        <!-- SEGUINTE -->
+                        <a href="?pagina=<?= min($totalPaginas, $paginaAtual + 1) ?><?= $queryStringFiltros ?>"
+                        class="w-12 h-12 flex items-center justify-center 
+                            bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                            rounded hover:bg-gray-300 dark:hover:bg-gray-600">»</a>
 
-                    <!-- ÚLTIMA -->
-                    <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>"
-                    class="w-12 h-12 flex items-center justify-center 
-                        bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
-                        rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
+                        <!-- ÚLTIMA -->
+                        <a href="?pagina=<?= $totalPaginas ?><?= $queryStringFiltros ?>"
+                        class="w-12 h-12 flex items-center justify-center 
+                            bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 
+                            rounded hover:bg-gray-300 dark:hover:bg-gray-600">»»</a>
 
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
-
         </main>
     </div>
+
 <!-- TOAST: criança adicionada -->
 <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] === 'adicionada'): ?>
 <script>

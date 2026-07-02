@@ -378,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                         placeholder="Nome ou email..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- 🔤 ORDEM -->
@@ -386,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">Mais recentes</option>
                         <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
@@ -400,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Tipo de utilizador:</label>
                     <select name="tipo"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todos --</option>
                         <option value="administrador" <?= ($_GET['tipo'] ?? '')=='administrador'?'selected':'' ?>>Administrador</option>
@@ -415,7 +415,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Confirmado:</label>
                     <select name="confirmado"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todos --</option>
                         <option value="1" <?= ($_GET['confirmado'] ?? '')=='1'?'selected':'' ?>>Confirmado</option>
@@ -428,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Aprovado:</label>
                     <select name="aprovado"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todos --</option>
                         <option value="1" <?= ($_GET['aprovado'] ?? '')=='1'?'selected':'' ?>>Aprovado</option>
@@ -491,70 +491,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                         </p>
                     <?php else: ?>
 
-                            <?php while ($row = mysqli_fetch_assoc($result)) { 
+                    <?php while ($row = mysqli_fetch_assoc($result)) { 
 
-                                if ($row['tipo'] === 'admin') continue;
+                        if ($row['tipo'] === 'admin') continue;
 
-                                $foto = $row['foto'] ?? null;
-                                $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
-                            ?>
+                        $foto = $row['foto'] ?? null;
+                        $fotoPerfil = $foto ? $foto : "imagens/perfildefault2.png";
+                    ?>
 
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                    <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-    <div class="flex items-center space-x-4 mb-4">
-        <img src="<?= $fotoPerfil ?>" 
-             class="w-12 h-12 rounded-full object-cover border border-gray-300 dark:border-gray-500">
-        <div>
-            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100"><?= $row['nome'] ?></p>
-            <p class="text-sm text-gray-500 dark:text-gray-300"><?= $row['email'] ?></p>
-        </div>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <img src="<?= $fotoPerfil ?>" 
+                                class="w-12 h-12 rounded-full object-cover border border-gray-300 dark:border-gray-500">
+                            <div>
+                                <p class="text-lg font-semibold text-gray-800 dark:text-gray-100"><?= $row['nome'] ?></p>
+                                <p class="text-sm text-gray-500 dark:text-gray-300"><?= $row['email'] ?></p>
+                            </div>
+                        </div>
+
+                        <div class="text-gray-700 dark:text-gray-200 space-y-1 mb-4">
+                            <p><strong>Tipo:</strong> <?= ucfirst($row['tipo']) ?></p>
+                            <p><strong>Telefone:</strong> <?= $row['telefone'] ?></p>
+                            <p><strong>Nascimento:</strong> <?= $row['datanascimento'] ?></p>
+                        </div>
+
+                    <div class="flex gap-2">
+
+                        <?php if ($row['tipo'] === 'administrador'): ?>
+
+                            <span class="text-gray-500 dark:text-gray-300 italic">Sem permissões</span>
+
+                        <?php else: ?>
+
+                            <div class="flex gap-3">
+
+                                <!-- Ícone Editar -->
+                                <button onclick="window.location.href='editarutl.php?id=<?= $row['IDutl'] ?>'"
+                                    class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                                    </svg>
+                                </button>
+
+                                <!-- Ícone Eliminar -->
+                                <button onclick="eliminarUtilizador(<?= $row['IDutl'] ?>)"
+                                    class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0a1 1 0 011-1h4a1 1 0 011 1m-6 0h6" />
+                                    </svg>
+                                </button>
+
+                            </div>
+
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php } ?>
+        <?php endif ?>
     </div>
-
-    <div class="text-gray-700 dark:text-gray-200 space-y-1 mb-4">
-        <p><strong>Tipo:</strong> <?= ucfirst($row['tipo']) ?></p>
-        <p><strong>Telefone:</strong> <?= $row['telefone'] ?></p>
-        <p><strong>Nascimento:</strong> <?= $row['datanascimento'] ?></p>
-    </div>
-
-    <div class="flex gap-2">
-
-        <?php if ($row['tipo'] === 'administrador'): ?>
-
-            <span class="text-gray-500 dark:text-gray-300 italic">Sem permissões</span>
-
-        <?php else: ?>
-
-            <div class="flex gap-3">
-
-                <!-- Ícone Editar -->
-                <button onclick="window.location.href='editarutl.php?id=<?= $row['IDutl'] ?>'"
-                    class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-                    </svg>
-                </button>
-
-                <!-- Ícone Eliminar -->
-                <button onclick="eliminarUtilizador(<?= $row['IDutl'] ?>)"
-                    class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0a1 1 0 011-1h4a1 1 0 011 1m-6 0h6" />
-                    </svg>
-                </button>
-
-            </div>
-
-        <?php endif; ?>
-    </div>
-</div>
-
-<?php } ?>
-<?php endif ?>
-</div>
 </div>
 
 <!-- PAGINAÇÃO -->

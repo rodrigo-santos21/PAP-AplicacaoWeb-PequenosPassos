@@ -123,7 +123,7 @@ if ($id_sala_sel) {
                     <label class="font-semibold dark:text-gray-200">Sala:</label>
                     <select name="sala" onchange="this.form.submit()"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full mb-4 bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full mb-4 bg-white dark:bg-gray-700 dark:text-gray-100">
                         <option value="">-- Selecionar Sala --</option>
                         <?php foreach ($salas as $s): ?>
                             <option value="<?= $s['IDsala'] ?>" <?= ($id_sala_sel == $s['IDsala']) ? 'selected' : '' ?>>
@@ -141,7 +141,7 @@ if ($id_sala_sel) {
                     <label class="font-semibold dark:text-gray-200">Criança:</label>
                     <select name="crianca" onchange="this.form.submit()"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full mb-6 bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full mb-6 bg-white dark:bg-gray-700 dark:text-gray-100">
                         <option value="">-- Selecionar Criança --</option>
                         <?php foreach ($criancas as $c): ?>
                             <option value="<?= $c['IDcri'] ?>" <?= ($id_crianca_sel == $c['IDcri']) ? 'selected' : '' ?>>
@@ -188,7 +188,7 @@ if ($id_sala_sel) {
 
                     <p class="mt-3"><b>Justificação enviada:</b></p>
                     <textarea id="faltTexto" class="border border-gray-300 dark:border-gray-600 
-                               p-2 w-full mb-3 bg-white dark:bg-gray-900 dark:text-gray-100" readonly></textarea>
+                               p-2 w-full mb-3 bg-white dark:bg-gray-700 dark:text-gray-100" readonly></textarea>
 
                     <p><b>Estado:</b> <span id="faltEstado"></span></p>
 

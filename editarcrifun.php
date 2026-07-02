@@ -306,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <input type="text" name="nome" value="<?= $crianca['nome'] ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -319,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             value="<?= $crianca['datanascimento'] ?>"
                             max="<?= date('Y-m-d', strtotime('-6 years')) ?>"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"
                             required>
                     </div>
 
@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <select name="sexo"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100">
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100">
                             <option value="M" <?= $crianca['sexo'] === "M" ? "selected" : "" ?>>Masculino</option>
                             <option value="F" <?= $crianca['sexo'] === "F" ? "selected" : "" ?>>Feminino</option>
                             <option value="ND" <?= $crianca['sexo'] === "ND" ? "selected" : "" ?>>Prefere não divulgar</option>
@@ -386,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                         <textarea name="observacoes" rows="4"
                             class="mt-1 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 
-                                   rounded-lg bg-white dark:bg-gray-900 dark:text-gray-100"><?= $crianca['observacoes'] ?></textarea>
+                                   rounded-lg bg-white dark:bg-gray-700 dark:text-gray-100"><?= $crianca['observacoes'] ?></textarea>
                     </div>
 
                     <!-- BOTÕES -->

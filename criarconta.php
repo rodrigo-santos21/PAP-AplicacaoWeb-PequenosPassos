@@ -6,60 +6,65 @@ require "PHPMailer/src/Exception.php";
 
 use PHPMailer\PHPMailer\PHPMailer;
 
+$erro = "";
+$sucesso = "";
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+    // Dados recebidos
+    $nome = $_POST['nome'] ?? "";
+    $email = $_POST['email'] ?? "";
+    $pass = $_POST['pass'] ?? "";
+    $confirmarpass = $_POST['confirmarpass'] ?? "";
+    $datanascimento = $_POST['datanascimento'] ?? "";
+    $telefone = $_POST['telefone'] ?? "";
+
     // Verificar passwords
-    if ($_POST['pass'] !== $_POST['confirmarpass']) {
-        echo "<p style='color:red'>Erro: As passwords não coincidem.</p>";
-        exit;
+    if ($pass !== $confirmarpass) {
+        $erro = "As passwords não coincidem.";
     }
 
-    $nome = $_POST['nome'];
-    $email = $_POST['email'];
-    $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
-    $datanascimento = $_POST['datanascimento'];
-    $telefone = $_POST['telefone'];
-    $tipo = "encarregado";
+    // Validar idade
+    if (empty($erro)) {
+        $hoje = new DateTime();
+        $nascimento = new DateTime($datanascimento);
+        $idade = $hoje->diff($nascimento)->y;
 
-    // VALIDAR IDADE (mínimo 18 anos)
-    $hoje = new DateTime();
-    $nascimento = new DateTime($datanascimento);
-    $idade = $hoje->diff($nascimento)->y;
-
-    if ($idade < 18) {
-        echo "<p style='color:red'>Erro: Precisa ter pelo menos 18 anos para criar uma conta.</p>";
-        exit;
+        if ($idade < 18) {
+            $erro = "Precisa ter pelo menos 18 anos para criar uma conta.";
+        }
     }
 
-    // Gerar token de confirmação
-    $token = bin2hex(random_bytes(32));
+    // Se não houver erros, prosseguir
+    if (empty($erro)) {
 
-    // Inserir utilizador como NÃO confirmado e NÃO aprovado
-    $sql = "INSERT INTO utilizador (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado, analise_por)
-        VALUES (?, ?, ?, 'encarregado', ?, ?, 0, ?, 0, NULL)";
+        $passHash = password_hash($pass, PASSWORD_DEFAULT);
+        $token = bin2hex(random_bytes(32));
 
-    $stmt = mysqli_prepare($link, $sql);
-    mysqli_stmt_bind_param($stmt, "ssssss", $nome, $email, $pass, $datanascimento, $telefone, $token);
+        $sql = "INSERT INTO utilizador 
+                (nome, email, password, tipo, datanascimento, telefone, confirmado, token_confirmacao, aprovado, analise_por)
+                VALUES (?, ?, ?, 'encarregado', ?, ?, 0, ?, 0, NULL)";
 
-    if (mysqli_stmt_execute($stmt)) {
+        $stmt = mysqli_prepare($link, $sql);
+        mysqli_stmt_bind_param($stmt, "ssssss", $nome, $email, $passHash, $datanascimento, $telefone, $token);
 
-        $IDutl = mysqli_insert_id($link);
+        if (mysqli_stmt_execute($stmt)) {
 
-        // Registar log
-        date_default_timezone_set("Europe/Lisbon");
-        $fdatahora = date("Y-m-d H:i:s");
+            $IDutl = mysqli_insert_id($link);
 
-        mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
-                             VALUES ('Pedido de criação de conta (aguarda aprovação)', '$fdatahora', '$IDutl')");
+            date_default_timezone_set("Europe/Lisbon");
+            $fdatahora = date("Y-m-d H:i:s");
 
-        echo "<p style='color:green'>Pedido enviado! Aguarde aprovação da secretaria da escola.</p>";
-        exit();
+            mysqli_query($link, "INSERT INTO logs (descricao, datahora, IDutl)
+                                 VALUES ('Pedido de criação de conta (aguarda aprovação)', '$fdatahora', '$IDutl')");
 
-    } else {
-        echo "<p style='color:red'>Erro: " . mysqli_error($link) . "</p>";
+            $sucesso = "Pedido enviado! Aguarde aprovação da secretaria da escola.";
+
+        } else {
+            $erro = "Erro ao criar conta: " . mysqli_error($link);
+        }
     }
 }
-
 ?>
 <html lang="pt">
 <head>
@@ -119,12 +124,25 @@ function togglePassword(inputId, eyeId) {
     <div class="w-full max-w-lg bg-white rounded-lg shadow-md p-6 lg:p-8">
         <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Criar Conta</h2>
 
-        <form name="criarconta" method="post" action="criarconta.php" 
-              onsubmit="return avaliar(criarconta)" class="space-y-5">
+        <!-- MENSAGENS -->
+        <?php if (!empty($erro)): ?>
+            <div class="p-3 mb-4 bg-red-100 text-red-700 border border-red-300 rounded">
+                <?= $erro ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($sucesso)): ?>
+            <div class="p-3 mb-4 bg-green-100 text-green-700 border border-green-300 rounded">
+                <?= $sucesso ?>
+            </div>
+        <?php endif; ?>
+
+        <form name="criarconta" method="post" action="criarconta.php" class="space-y-5">
 
             <div>
                 <label for="nome">Nome</label>
                 <input name="nome" id="nome" type="text"
+                    value="<?= htmlspecialchars($nome ?? '') ?>"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira o seu nome" required>
             </div>
@@ -132,6 +150,7 @@ function togglePassword(inputId, eyeId) {
             <div>
                 <label for="email">Email</label>
                 <input name="email" id="email" type="email"
+                    value="<?= htmlspecialchars($email ?? '') ?>"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="Insira o seu email" required>
             </div>
@@ -145,7 +164,6 @@ function togglePassword(inputId, eyeId) {
                 <button type="button" onclick="togglePassword('pass', 'eyePass')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyePass">
-                        <!-- Ícone inicial (password oculta) -->
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                             class="size-6">
@@ -172,7 +190,6 @@ function togglePassword(inputId, eyeId) {
                 <button type="button" onclick="togglePassword('confirmarpass', 'eyeConfirm')"
                     class="absolute right-3 top-9 text-gray-500">
                     <span id="eyeConfirm">
-                        <!-- Ícone inicial (password oculta) -->
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                             class="size-6">
@@ -190,23 +207,22 @@ function togglePassword(inputId, eyeId) {
                 </button>
             </div>
 
-            <input type="hidden" name="tipo" id="tipo">
-
             <div>
                 <label for="datanascimento">Data de nascimento</label>
                 <input name="datanascimento" id="datanascimento" type="date"
+                    value="<?= htmlspecialchars($datanascimento ?? '') ?>"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm" required>
             </div>
 
             <div>
                 <label for="telefone">Telefone</label>
                 <input name="telefone" id="telefone" type="tel" maxlength="9" pattern="\d{9}"
+                    value="<?= htmlspecialchars($telefone ?? '') ?>"
                     class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
                     placeholder="9 dígitos" required
                     oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
 
-            <!-- BOTÕES RESPONSIVOS -->
             <div class="flex flex-col md:flex-row gap-3 justify-between">
                 <button type="button"
                     onclick="window.location.href='index.php';"

@@ -114,7 +114,7 @@ if (!isset($_SESSION['user']) || $_SESSION['tipo'] !== 'funcionario') {
 $nome = $_SESSION['user'];
 ?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="<?= ($tema ?? 'light') === 'dark' ? 'dark' : '' ?>">
 <head>
     <meta charset="utf-8">
     <title>Listar Crianças</title>
@@ -269,7 +269,7 @@ $nome = $_SESSION['user'];
 
                 <!-- PESQUISA -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Pesquisar:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Pesquisar:</label>
                     <input type="text" name="pesquisa" id="pesquisaInput"
                         placeholder="Nome da criança..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
@@ -279,7 +279,7 @@ $nome = $_SESSION['user'];
 
                 <!-- ORDEM -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
                                p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
@@ -293,7 +293,7 @@ $nome = $_SESSION['user'];
 
                 <!-- SALA -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Sala:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Sala:</label>
                     <select name="sala"
                         class="border border-gray-300 dark:border-gray-600 
                                p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
@@ -313,7 +313,7 @@ $nome = $_SESSION['user'];
 
                 <!-- ENCARREGADO -->
                 <div>
-                    <label class="font-semibold dark:text-gray-200">Encarregado:</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-200">Encarregado:</label>
                     <select name="encarregado"
                         class="border border-gray-300 dark:border-gray-600 
                                p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
@@ -338,7 +338,7 @@ $nome = $_SESSION['user'];
                 <div class="flex mt-6 items-center justify-end">
                     <button type="button"
                         onclick="window.location.href='listarcrifun.php'"
-                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                        class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                         title="Limpar filtros">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                              stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -373,71 +373,69 @@ $nome = $_SESSION['user'];
                 <!-- GRID DE CARDS -->
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <?php
+                    <?php
 
-                while ($cri = mysqli_fetch_assoc($result)) {
+                    while ($cri = mysqli_fetch_assoc($result)) {
 
-                    // Sala
-                    $salaNome = "—";
-                    if (!empty($cri['IDsala'])) {
-                        $resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = {$cri['IDsala']}");
-                        if ($resSala && mysqli_num_rows($resSala) > 0) {
-                            $sala = mysqli_fetch_assoc($resSala);
-                            $salaNome = $sala['nome'];
+                        // Sala
+                        $salaNome = "—";
+                        if (!empty($cri['IDsala'])) {
+                            $resSala = mysqli_query($link, "SELECT nome FROM sala WHERE IDsala = {$cri['IDsala']}");
+                            if ($resSala && mysqli_num_rows($resSala) > 0) {
+                                $sala = mysqli_fetch_assoc($resSala);
+                                $salaNome = $sala['nome'];
+                            }
                         }
-                    }
 
-                    // Encarregado
-                    $encNome = "—";
-                    if (!empty($cri['IDutl'])) {
-                        $resEnc = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$cri['IDutl']}");
-                        if ($resEnc && mysqli_num_rows($resEnc) > 0) {
-                            $enc = mysqli_fetch_assoc($resEnc);
-                            $encNome = $enc['nome'];
+                        // Encarregado
+                        $encNome = "—";
+                        if (!empty($cri['IDutl'])) {
+                            $resEnc = mysqli_query($link, "SELECT nome FROM utilizador WHERE IDutl = {$cri['IDutl']}");
+                            if ($resEnc && mysqli_num_rows($resEnc) > 0) {
+                                $enc = mysqli_fetch_assoc($resEnc);
+                                $encNome = $enc['nome'];
+                            }
                         }
-                    }
 
-                    // Sexo
-                    $sexo = ($cri['sexo'] === "M") ? "Masculino" :
-                            (($cri['sexo'] === "F") ? "Feminino" : "Indefinido");
+                        // Sexo
+                        $sexo = ($cri['sexo'] === "M") ? "Masculino" :
+                                (($cri['sexo'] === "F") ? "Feminino" : "Indefinido");
 
-                    // Observações
-                    $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
-                ?>
+                        // Observações
+                        $obs = !empty($cri['observacoes']) ? $cri['observacoes'] : "—";
+                    ?>
 
-                    <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                        <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-                            <?= $cri['nome'] ?>
-                        </h2>
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                                <?= $cri['nome'] ?>
+                            </h2>
 
-                        <div class="text-gray-700 dark:text-gray-200 space-y-1 mb-4">
-                            <p><strong>ID:</strong> <?= $cri['IDcri'] ?></p>
-                            <p><strong>Data Nasc.:</strong> <?= $cri['datanascimento'] ?></p>
-                            <p><strong>Sexo:</strong> <?= $sexo ?></p>
-                            <p><strong>Sala:</strong> <?= $salaNome ?></p>
-                            <p><strong>Encarregado:</strong> <?= $encNome ?></p>
-                            <p><strong>Observações:</strong> <?= $obs ?></p>
+                            <div class="text-gray-700 dark:text-gray-200 space-y-1 mb-4">
+                                <p><strong>ID:</strong> <?= $cri['IDcri'] ?></p>
+                                <p><strong>Data Nasc.:</strong> <?= $cri['datanascimento'] ?></p>
+                                <p><strong>Sexo:</strong> <?= $sexo ?></p>
+                                <p><strong>Sala:</strong> <?= $salaNome ?></p>
+                                <p><strong>Encarregado:</strong> <?= $encNome ?></p>
+                                <p><strong>Observações:</strong> <?= $obs ?></p>
+                            </div>
+
+                            <div class="flex gap-3">
+
+                                <!-- Ícone Editar -->
+                                <button onclick="window.location.href='editarcrifun.php?id=<?= $cri['IDcri'] ?>'"
+                                    class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                                    </svg>
+                                </button>
+
+                            </div>
+
                         </div>
-
-                        <div class="flex gap-3">
-
-                            <!-- Ícone Editar -->
-                            <button onclick="window.location.href='editarcrifun.php?id=<?= $cri['IDcri'] ?>'"
-                                class="text-gray-500 dark:text-gray-300 hover:text-yellow-500 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-                                </svg>
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                <?php } ?>
-
+                    <?php } ?>
                 </div>
             </div>
 

@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                         placeholder="Nome da sala..."
                         value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
                 </div>
 
                 <!-- 🔤 ORDEM -->
@@ -338,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Ordenar por:</label>
                     <select name="ordem"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">Mais recentes</option>
                         <option value="az"  <?= ($_GET['ordem'] ?? '')=='az'?'selected':'' ?>>A → Z</option>
@@ -352,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Capacidade:</label>
                     <select name="capacidade"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todas --</option>
                         <option value="asc"  <?= ($_GET['capacidade'] ?? '')=='asc'?'selected':'' ?>>Menor → Maior</option>
@@ -365,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Crianças:</label>
                     <select name="criancas"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todas --</option>
                         <option value="1" <?= ($_GET['criancas'] ?? '')=='1'?'selected':'' ?>>Com crianças</option>
@@ -378,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                     <label class="font-semibold dark:text-gray-200">Educadores:</label>
                     <select name="educadores"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="document.getElementById('filtrosForm').submit()">
                         <option value="">-- Todas --</option>
                         <option value="1" <?= ($_GET['educadores'] ?? '')=='1'?'selected':'' ?>>Com educadores</option>
@@ -449,7 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['eliminar_id'])) {
                             ))['total'];
                         ?>
 
-                            <div class="bg-green-50 dark:bg-gray-700 shadow-md rounded-lg p-6 hover:shadow-xl transition">
+                            <div class="bg-green-50 dark:bg-green-900/20 shadow-md rounded-lg p-6 hover:shadow-xl transition">
 
                                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
                                     <?= $s['nome'] ?>

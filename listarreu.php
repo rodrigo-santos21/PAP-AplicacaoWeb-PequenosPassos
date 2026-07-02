@@ -15,7 +15,6 @@ $tema = mysqli_fetch_assoc($resTema)['tema'] ?? 'light';
 // Atualizar sessão
 $_SESSION['tema'] = $tema;
 
-
 $stmtFoto = mysqli_prepare($link, "SELECT foto FROM utilizador WHERE IDutl = ?");
 mysqli_stmt_bind_param($stmtFoto, "i", $IDutl);
 mysqli_stmt_execute($stmtFoto);
@@ -43,7 +42,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'events') {
         $events[] = [
             'id'    => $r['IDreu'],
             'title' => $r['titulo'],
-            'start' => $r['datahora']
+            'start' => explode(" ", $r['datahora'])[0], // só a data
+            'allDay' => true
         ];
     }
 
@@ -364,6 +364,15 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 .no-scrollbar {
     scrollbar-width: none;
 }
+
+/* FULLCALENDAR — FUNDO DOS DIAS DA SEMANA NO DARK MODE */
+.dark .fc .fc-col-header {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
+
+.dark .fc .fc-col-header-cell {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
 </style>
 
 <body class="bg-gray-100 text-gray-900 min-h-screen 
@@ -435,28 +444,28 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
                             <label class="block text-sm font-medium dark:text-gray-200">Título</label>
                             <input type="text" id="reu_titulo"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100" required>
+                                          p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Data e Hora</label>
                             <input type="datetime-local" id="reu_datahora"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100" required>
+                                          p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Localidade</label>
                             <input type="text" id="reu_localidade"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100" required>
+                                          p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100" required>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Objetivo</label>
                             <textarea id="reu_objetivo" rows="3"
                                       class="w-full border border-gray-300 dark:border-gray-600 
-                                             p-2 rounded bg-white dark:bg-gray-900 dark:text-gray-100" required></textarea>
+                                             p-2 rounded bg-white dark:bg-gray-700 dark:text-gray-100" required></textarea>
                         </div>
 
                         <hr class="border-gray-300 dark:border-gray-600">
@@ -487,12 +496,12 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 
                         <!-- FUNCIONÁRIOS -->
                         <div id="sec_func" class="hidden border border-gray-300 dark:border-gray-600 
-                                                 p-4 rounded mb-4 dark:bg-gray-900">
+                                                 p-4 rounded mb-4 dark:bg-gray-700">
 
                             <label class="block font-medium dark:text-gray-200">Selecionar:</label>
                             <select id="funcionario_tipo"
                                 class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
-                                       bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher --</option>
                                 <option value="todos">Todos os funcionários</option>
                                 <option value="especificos">Selecionar específicos</option>
@@ -515,12 +524,12 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 
                         <!-- EDUCADORES -->
                         <div id="sec_edu" class="hidden border border-gray-300 dark:border-gray-600 
-                                                 p-4 rounded mb-4 dark:bg-gray-900">
+                                                 p-4 rounded mb-4 dark:bg-gray-700">
 
                             <label class="block font-medium dark:text-gray-200">Sala:</label>
                             <select id="educador_sala"
                                 class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
-                                       bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher sala --</option>
                                 <?php
                                 $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");
@@ -538,12 +547,12 @@ while ($f = mysqli_fetch_assoc($resF)) $listaFuncionarios[] = $f;
 
                         <!-- ENCARREGADOS -->
                         <div id="sec_enc" class="hidden border border-gray-300 dark:border-gray-600 
-                                                 p-4 rounded mb-4 dark:bg-gray-900">
+                                                 p-4 rounded mb-4 dark:bg-gray-700">
 
                             <label class="block font-medium dark:text-gray-200">Sala:</label>
                             <select id="encarregado_sala"
                                 class="border border-gray-300 dark:border-gray-600 p-2 rounded w-full mb-3 
-                                       bg-white dark:bg-gray-900 dark:text-gray-100">
+                                       bg-white dark:bg-gray-700 dark:text-gray-100">
                                 <option value="">-- Escolher sala --</option>
                                 <?php
                                 $salas = mysqli_query($link, "SELECT IDsala, nome FROM sala WHERE estado=1");

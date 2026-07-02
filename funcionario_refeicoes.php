@@ -41,6 +41,10 @@ $salas = mysqli_query($link, "
 $salaSelecionada = $_GET['sala'] ?? "";
 $criancaSelecionada = $_GET['crianca'] ?? "";
 
+if ($criancaSelecionada === "") {
+    $criancaSelecionada = "todas";
+}
+
 // Data base da semana
 $hoje = date('Y-m-d');
 $base = $_GET['data'] ?? $hoje;
@@ -133,7 +137,7 @@ $queryStringFiltros = "&sala=$salaSelecionada&crianca=$criancaSelecionada";
             <label class="font-semibold dark:text-gray-200">Escolher sala:</label>
             <select name="sala" onchange="this.form.submit()"
                 class="px-3 py-2 border border-gray-300 dark:border-gray-600 
-                       rounded bg-white dark:bg-gray-900 dark:text-gray-100">
+                       rounded bg-white dark:bg-gray-700 dark:text-gray-100">
                 <option value="">-- Selecionar sala --</option>
 
                 <?php while ($s = mysqli_fetch_assoc($salas)): ?>
@@ -159,7 +163,7 @@ $queryStringFiltros = "&sala=$salaSelecionada&crianca=$criancaSelecionada";
                 <label class="font-semibold dark:text-gray-200">Escolher criança:</label>
                 <select name="crianca" onchange="this.form.submit()"
                     class="px-3 py-2 border border-gray-300 dark:border-gray-600 
-                           rounded bg-white dark:bg-gray-900 dark:text-gray-100">
+                           rounded bg-white dark:bg-gray-700 dark:text-gray-100">
                     <option value="todas">-- Todas as crianças --</option>
 
                     <?php while ($c = mysqli_fetch_assoc($criancasSala)): ?>
@@ -210,7 +214,7 @@ $queryStringFiltros = "&sala=$salaSelecionada&crianca=$criancaSelecionada";
         </h2>
 
         <?php
-        if ($criancaSelecionada == "" || $criancaSelecionada == "todas") {
+        if ($criancaSelecionada === "" || $criancaSelecionada === "todas") {
             $criancas = mysqli_query($link, "
                 SELECT * FROM crianca
                 WHERE IDsala = $salaSelecionada AND estado = 1

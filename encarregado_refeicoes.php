@@ -191,7 +191,7 @@ function estado($v) {
                     placeholder="Nome..."
                     value="<?= htmlspecialchars($_GET['pesquisa'] ?? '') ?>"
                     class="border border-gray-300 dark:border-gray-600 
-                           p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100">
+                           p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100">
             </div>
 
             <!-- 🏫 SALA -->
@@ -199,7 +199,7 @@ function estado($v) {
                 <label class="font-semibold dark:text-gray-200">Sala:</label>
                 <select name="sala"
                         class="border border-gray-300 dark:border-gray-600 
-                               p-2 rounded w-full bg-white dark:bg-gray-900 dark:text-gray-100"
+                               p-2 rounded w-full bg-white dark:bg-gray-700 dark:text-gray-100"
                         onchange="filtrosForm.submit()">
                     <option value="">Todas</option>
 
@@ -220,7 +220,7 @@ function estado($v) {
             <div class="flex mt-6 items-center justify-end">
                 <button type="button"
                     onclick="window.location.href='encarregado_refeicoes.php'"
-                    class="text-gray-500 dark:text-gray-300 hover:text-red-600 transition text-2xl"
+                    class="text-gray-500 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500 transition text-2xl"
                     title="Limpar filtros">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                          stroke-width="1.5" stroke="currentColor" class="size-6">

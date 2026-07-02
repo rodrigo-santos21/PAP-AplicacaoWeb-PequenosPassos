@@ -42,7 +42,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'events') {
 
     // 1) Buscar todas as reuniões onde o educador participa
     $resIDs = mysqli_query($link, "
-        SELECT IDreu 
+        SELECT DISTINCT IDreu 
         FROM reuniao_participante 
         WHERE IDutl = $IDEDU
     ");
@@ -62,7 +62,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'events') {
             $events[] = [
                 'id'    => $r['IDreu'],
                 'title' => $r['titulo'],
-                'start' => $r['datahora']
+                'start' => explode(" ", $r['datahora'])[0], // só a data
+                'allDay' => true
             ];
         }
     }
@@ -182,6 +183,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
 .no-scrollbar {
     scrollbar-width: none;
 }
+
+/* FULLCALENDAR — FUNDO DOS DIAS DA SEMANA NO DARK MODE */
+.dark .fc .fc-col-header {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
+
+.dark .fc .fc-col-header-cell {
+    background-color: #1f2937 !important; /* bg-gray-800 */
+}
 </style>
 
 <body class="bg-gray-100 text-gray-900 min-h-screen 
@@ -234,28 +244,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'get' && isset($_GET['id'])) {
                             <label class="block text-sm font-medium dark:text-gray-200">Título</label>
                             <input type="text" id="reu_titulo"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
+                                          p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Data e Hora</label>
                             <input type="text" id="reu_datahora"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
+                                          p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Localidade</label>
                             <input type="text" id="reu_localidade"
                                    class="w-full border border-gray-300 dark:border-gray-600 
-                                          p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly>
+                                          p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-100" readonly>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium dark:text-gray-200">Objetivo</label>
                             <textarea id="reu_objetivo" rows="3"
                                       class="w-full border border-gray-300 dark:border-gray-600 
-                                             p-2 rounded bg-gray-100 dark:bg-gray-900 dark:text-gray-100" readonly></textarea>
+                                             p-2 rounded bg-gray-100 dark:bg-gray-700 dark:text-gray-100" readonly></textarea>
                         </div>
 
                         <hr class="my-4 border-gray-300 dark:border-gray-600">
